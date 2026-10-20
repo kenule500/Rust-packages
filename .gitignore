@@ -1,8 +1,11 @@
 # SpecDrive gate artifacts are regenerated locally at the current HEAD.
-# A committed test-evidence.json cannot also contain its own commit hash.
+# A committed gate artifact cannot also name its own commit hash, so
+# test-evidence.json, verification.json, and review.json stay local.
 .sdrive/governance/*/*/test-evidence.json
 .sdrive/governance/*/*/verification.json
+.sdrive/governance/*/*/review.json
 .sdrive/audit-log.json
+.sdrive/.backups/
 
 # Cargo build output and local lockfile
 target/

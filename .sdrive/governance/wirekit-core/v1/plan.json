@@ -1,0 +1,333 @@
+{
+  "feature": "wirekit-core",
+  "version": 1,
+  "architecture": {
+    "approach": "Add crates/wirekit as a workspace member that ships only the provider-independent core: a single #[non_exhaustive] WirekitError with stable W#### codes; one retry policy (exponential backoff with jitter, 3 attempts by default, retry on 5xx/429/network, honor Retry-After, never retry other 4xx); a hand-rolled per-provider token bucket; one shared reqwest::Client with HTTPS-only base URLs and a caller injection path; one auth layer (Bearer, Basic, API key header/query, HMAC, OAuth2 client credentials) over a redacting Secret<T>; tracing events for start, finish, retry, rate-limit hit, and error; and one request pipeline (auth, rate limit, retry, send, decode) including the body-level error hook required by CON-213. The core is always compiled; default = [] means no provider module enabled. No application domain types, database, or global singleton.",
+    "components": [
+      {
+        "name": "crates/wirekit/Cargo.toml",
+        "action": "create",
+        "description": "Package metadata inheriting edition, rust-version, and license from the workspace; default = []; additive provider features; rustls-tls default with a native-tls alternative; docs.rs all-features."
+      },
+      {
+        "name": "crates/wirekit/src/lib.rs",
+        "action": "create",
+        "description": "Crate-level forbid(unsafe_code) and deny(missing_docs), module declarations, and documentation of the feature set and the always-compiled core."
+      },
+      {
+        "name": "crates/wirekit/src/error.rs",
+        "action": "create",
+        "description": "The #[non_exhaustive] WirekitError enum with Api, Auth, RateLimit, Timeout, Network, InvalidConfig, and Decode variants; stable code() values; Display and std::error::Error; and mapping helpers from status codes and bodies."
+      },
+      {
+        "name": "crates/wirekit/src/client.rs",
+        "action": "create",
+        "description": "WirekitClient builder and the process-shared reqwest::Client, with caller injection, timeouts, TLS, proxy, default headers, pool limits, and HTTPS-only base URL validation."
+      },
+      {
+        "name": "crates/wirekit/src/retry.rs",
+        "action": "create",
+        "description": "RetryPolicy (attempts, base delay, max delay, jitter bounds), retry classification, exponential backoff with jitter, and Retry-After parsing for numeric and HTTP-date forms."
+      },
+      {
+        "name": "crates/wirekit/src/rate_limit.rs",
+        "action": "create",
+        "description": "A hand-rolled per-provider token bucket with per-provider overrides and an async acquire that never blocks the runtime thread."
+      },
+      {
+        "name": "crates/wirekit/src/auth.rs",
+        "action": "create",
+        "description": "The object-safe AuthScheme trait and Bearer, Basic, API-key-in-header, API-key-in-query, HMAC signature, and OAuth2 client-credentials implementations, including token caching and refresh."
+      },
+      {
+        "name": "crates/wirekit/src/secret.rs",
+        "action": "create",
+        "description": "The Secret<T> wrapper that redacts Debug and Display output and never implements Serialize for a secret field."
+      },
+      {
+        "name": "crates/wirekit/src/pipeline.rs",
+        "action": "create",
+        "description": "The ordered request pipeline (auth, rate limit, retry, send, decode), serde decoding, the CON-213 body-level error hook, and a configurable response size bound."
+      },
+      {
+        "name": "crates/wirekit/src/trace.rs",
+        "action": "create",
+        "description": "Tracing events for request start, request finish with duration, retry, rate-limit hit, and error, with redacted fields."
+      },
+      {
+        "name": "crates/wirekit/README.md",
+        "action": "create",
+        "description": "Crate purpose, the feature table, and one minimal usage sketch that does not name a provider module."
+      },
+      {
+        "name": ".github/workflows/ci.yml",
+        "action": "modify",
+        "description": "Add a wirekit feature-matrix build (default and each provider feature) and an MSRV build; do not add or modify test files."
+      }
+    ],
+    "referencedRequirementIds": [
+      "FR-001", "FR-002", "FR-003", "FR-004", "FR-005", "FR-006", "FR-007",
+      "FR-008", "FR-009", "FR-010", "FR-011", "FR-012", "FR-013", "FR-014",
+      "FR-015", "FR-016", "FR-017", "FR-018", "FR-019", "FR-020", "FR-021",
+      "FR-022", "FR-023", "FR-024", "FR-025", "FR-026",
+      "NFR-001", "NFR-002", "NFR-003", "NFR-004", "NFR-005", "NFR-006",
+      "NFR-007", "NFR-008", "NFR-009", "NFR-010", "NFR-011", "NFR-012",
+      "NFR-013", "NFR-014", "NFR-015"
+    ]
+  },
+  "dataModel": {
+    "entities": [
+      {
+        "name": "WirekitError",
+        "action": "create",
+        "fields": [
+          { "name": "Api", "type": "{ status, code, message }", "nullable": false, "action": "add" },
+          { "name": "Auth", "type": "{ message }", "nullable": false, "action": "add" },
+          { "name": "RateLimit", "type": "{ retry_after }", "nullable": true, "action": "add" },
+          { "name": "Timeout", "type": "unit", "nullable": false, "action": "add" },
+          { "name": "Network", "type": "{ source }", "nullable": false, "action": "add" },
+          { "name": "InvalidConfig", "type": "{ message }", "nullable": false, "action": "add" },
+          { "name": "Decode", "type": "{ message }", "nullable": false, "action": "add" }
+        ]
+      },
+      {
+        "name": "RetryPolicy",
+        "action": "create",
+        "fields": [
+          { "name": "attempts", "type": "u32", "nullable": false, "action": "add" },
+          { "name": "base_delay", "type": "Duration", "nullable": false, "action": "add" },
+          { "name": "max_delay", "type": "Duration", "nullable": false, "action": "add" },
+          { "name": "jitter", "type": "JitterBounds", "nullable": false, "action": "add" }
+        ]
+      },
+      {
+        "name": "RateLimitConfig",
+        "action": "create",
+        "fields": [
+          { "name": "capacity", "type": "u32", "nullable": false, "action": "add" },
+          { "name": "refill_per_second", "type": "f64", "nullable": false, "action": "add" }
+        ]
+      },
+      {
+        "name": "TokenBucket",
+        "action": "create",
+        "fields": [
+          { "name": "capacity", "type": "u32", "nullable": false, "action": "add" },
+          { "name": "available", "type": "f64", "nullable": false, "action": "add" },
+          { "name": "refill_rate", "type": "f64", "nullable": false, "action": "add" },
+          { "name": "last_refill", "type": "Instant", "nullable": false, "action": "add" }
+        ]
+      },
+      {
+        "name": "Secret",
+        "action": "create",
+        "fields": [
+          { "name": "inner", "type": "T", "nullable": false, "action": "add" }
+        ]
+      },
+      {
+        "name": "AuthScheme",
+        "action": "create",
+        "fields": [
+          { "name": "Bearer", "type": "Secret<String>", "nullable": false, "action": "add" },
+          { "name": "Basic", "type": "{ user, password: Secret<String> }", "nullable": false, "action": "add" },
+          { "name": "ApiKeyHeader", "type": "{ header, key: Secret<String> }", "nullable": false, "action": "add" },
+          { "name": "ApiKeyQuery", "type": "{ param, key: Secret<String> }", "nullable": false, "action": "add" },
+          { "name": "Hmac", "type": "{ algorithm, key: Secret<Vec<u8>> }", "nullable": false, "action": "add" },
+          { "name": "OAuth2ClientCredentials", "type": "{ token_url, client_id, client_secret: Secret<String>, scopes }", "nullable": false, "action": "add" }
+        ]
+      },
+      {
+        "name": "OAuth2Token",
+        "action": "create",
+        "fields": [
+          { "name": "access_token", "type": "Secret<String>", "nullable": false, "action": "add" },
+          { "name": "expires_at", "type": "Instant", "nullable": false, "action": "add" }
+        ]
+      },
+      {
+        "name": "WirekitClient",
+        "action": "create",
+        "fields": [
+          { "name": "http", "type": "reqwest::Client", "nullable": false, "action": "add" },
+          { "name": "retry", "type": "RetryPolicy", "nullable": false, "action": "add" },
+          { "name": "rate_limit", "type": "Option<RateLimitConfig>", "nullable": true, "action": "add" },
+          { "name": "auth", "type": "Option<Box<dyn AuthScheme>>", "nullable": true, "action": "add" },
+          { "name": "base_url", "type": "Url", "nullable": false, "action": "add" }
+        ]
+      },
+      {
+        "name": "RequestSpec",
+        "action": "create",
+        "fields": [
+          { "name": "method", "type": "http::Method", "nullable": false, "action": "add" },
+          { "name": "url", "type": "Url", "nullable": false, "action": "add" },
+          { "name": "headers", "type": "http::HeaderMap", "nullable": false, "action": "add" },
+          { "name": "body", "type": "Option<Vec<u8>>", "nullable": true, "action": "add" },
+          { "name": "response_type", "type": "fn(&[u8]) -> Result<T, WirekitError>", "nullable": false, "action": "add" },
+          { "name": "body_error_hook", "type": "Option<fn(&[u8], u16) -> Option<WirekitError>>", "nullable": true, "action": "add" }
+        ]
+      }
+    ],
+    "flowDescription": "A provider builds a RequestSpec and hands it to WirekitClient. The pipeline applies the configured auth scheme, acquires a token from the provider's bucket, sends the request through the shared reqwest::Client inside a retry loop, then decodes the body with serde and the optional body-level error hook. Every step maps failures into WirekitError. All state (client, buckets, OAuth2 token) is in-process and dropped with the client; nothing is persisted or transmitted by the crate itself."
+  },
+  "apiContracts": [],
+  "securityConsiderations": [
+    {
+      "requirementId": "NFR-011",
+      "description": "CON-511 Authentication: the pipeline applies the configured auth scheme to every outbound request and fails closed with WirekitError::InvalidConfig when credentials are missing; secrets are wrapped in Secret<T>."
+    },
+    {
+      "requirementId": "NFR-012",
+      "description": "CON-514 Rate limiting: a per-provider token bucket is enforced before every outbound request, with per-provider overrides, so the aggregate rate per provider is respected."
+    },
+    {
+      "requirementId": "NFR-013",
+      "description": "CON-515 Input validation: URLs, header values, and response bodies are validated; malformed input returns a typed WirekitError and never panics."
+    },
+    {
+      "requirementId": "NFR-014",
+      "description": "CON-519 Environment security: credentials come from caller-supplied configuration or secret stores; the crate never reads .env files and never commits a secret."
+    },
+    {
+      "requirementId": "NFR-015",
+      "description": "CON-520 HTTPS: non-HTTPS base URLs are rejected before any socket is opened, and all outbound requests use TLS."
+    },
+    {
+      "requirementId": "NFR-007",
+      "description": "CON-214 Secret redaction: secrets never appear in Debug, Display, logs, traces, or error payloads, and no secret field implements Serialize."
+    },
+    {
+      "requirementId": "NFR-008",
+      "description": "Network input is untrusted: response bodies are bounded and decoding failures become typed errors rather than panics, aborts, or hangs."
+    }
+  ],
+  "performanceConsiderations": [
+    {
+      "requirementId": "NFR-005",
+      "strategy": "Token acquisition and retry backoff await an async timer; std::thread::sleep and busy-waiting are forbidden, so no runtime thread is blocked."
+    },
+    {
+      "requirementId": "NFR-006",
+      "strategy": "One shared reqwest::Client per process reuses TCP connections and applies default request timeouts and connection-pool limits."
+    },
+    {
+      "requirementId": "NFR-009",
+      "strategy": "The pipeline keeps per-request work small: one bucket lookup, one header mutation set, one decode; no per-request client or pool allocation."
+    }
+  ],
+  "dependencies": [
+    {
+      "name": "reqwest",
+      "type": "library",
+      "action": "add",
+      "notes": "HTTP client; rustls-tls is the default backend and a native-tls feature is the alternative. The single shared client per process (CON-210). No skill is expected; wirekit is the Rust crate itself."
+    },
+    {
+      "name": "tokio",
+      "type": "library",
+      "action": "add",
+      "notes": "Features rt, time, and macros; supplies the timers used by retry backoff and token-bucket waiting."
+    },
+    {
+      "name": "tracing",
+      "type": "library",
+      "action": "add",
+      "notes": "Observability events for request start, finish, retry, rate-limit hit, and error (CON-211)."
+    },
+    {
+      "name": "thiserror",
+      "type": "library",
+      "action": "add",
+      "notes": "Derives Display and Error for WirekitError."
+    },
+    {
+      "name": "serde",
+      "type": "library",
+      "action": "add",
+      "notes": "Typed request and response models."
+    },
+    {
+      "name": "serde_json",
+      "type": "library",
+      "action": "add",
+      "notes": "JSON encoding and decoding of provider bodies."
+    },
+    {
+      "name": "http",
+      "type": "library",
+      "action": "add",
+      "notes": "Shared HTTP types: HeaderMap, StatusCode, Method."
+    },
+    {
+      "name": "rand",
+      "type": "library",
+      "action": "add",
+      "notes": "Jitter for exponential backoff."
+    },
+    {
+      "name": "async-trait",
+      "type": "library",
+      "action": "add",
+      "notes": "Object-safe async auth and transport traits."
+    },
+    {
+      "name": "url",
+      "type": "library",
+      "action": "add",
+      "notes": "URL parsing and HTTPS validation."
+    },
+    {
+      "name": "wiremock",
+      "type": "library",
+      "action": "add",
+      "notes": "Dev-dependency only: local HTTP mock for provider tests. Never published and never a runtime dependency."
+    },
+    {
+      "name": "crates.io",
+      "type": "service",
+      "action": "no_change",
+      "notes": "Existing publication target; the wirekit name must be checked immediately before publish in BP-010 (CON-111)."
+    },
+    {
+      "name": "GitHub Actions",
+      "type": "service",
+      "action": "no_change",
+      "notes": "CI execution from BP-002; add a wirekit feature-matrix build and an MSRV build."
+    }
+  ],
+  "risks": [
+    {
+      "description": "A single crate carrying 26+ provider features becomes a release and build-time bottleneck.",
+      "mitigation": "Ship core only in this feature; measure build times and propose a companion crate if needed (CON-104 amendment path)."
+    },
+    {
+      "description": "0.x churn in the error, retry, or auth contract breaks provider modules.",
+      "mitigation": "#[non_exhaustive], stable W#### codes, and an additive-only feature policy until the 1.0 freeze."
+    },
+    {
+      "description": "A dependency raises its MSRV above 1.85.",
+      "mitigation": "The MSRV CI job fails fast; pin or downgrade with a recorded decision."
+    },
+    {
+      "description": "rustls versus native-tls surprises on a platform.",
+      "mitigation": "rustls is the default and a documented feature selects native-tls."
+    },
+    {
+      "description": "A secret leaks into logs, traces, or an error payload.",
+      "mitigation": "Secret<T>, no Serialize for secret fields, redacted tracing fields, and property tests from the Test agent."
+    },
+    {
+      "description": "A provider needs behavior the pipeline cannot express.",
+      "mitigation": "The body-level error hook, per-provider retry and rate-limit overrides, and injectable clients."
+    },
+    {
+      "description": "The rate limiter blocks the async runtime or is unfair under concurrency.",
+      "mitigation": "Async token acquisition, per-provider buckets, and the concurrency edge case EC-015."
+    },
+    {
+      "description": "Scope creeps into provider modules or stateful crates.",
+      "mitigation": "The explicit out-of-scope list; later work becomes new features (CON-604, CON-612)."
+    }
+  ]
+}

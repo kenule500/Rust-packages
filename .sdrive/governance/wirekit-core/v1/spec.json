@@ -1,0 +1,698 @@
+{
+  "feature": "wirekit-core",
+  "title": "wirekit core - error, retry, rate limit, pooled client, tracing, auth",
+  "version": 1,
+  "overview": {
+    "problemStatement": "The workspace holds one crate, dado. Every provider integration named in catalogue/ will be a wirekit module, but wirekit does not exist: there is no shared error type, retry policy, rate limiter, HTTP client pool, tracing story, or auth layer. Without that shared core, each first-publish provider (NOAA, Twilio, SendGrid, Slack) would grow its own error enum, retry loop, and auth handling, which is the fragmentation wirekit exists to remove and a direct violation of CON-207.",
+    "proposedSolution": "Add a new workspace crate, crates/wirekit at version 0.1.0, that ships only the provider-independent core: a #[non_exhaustive] WirekitError with stable W#### codes; one retry policy (exponential backoff with jitter, 3 attempts by default, retry on 5xx/429/network, honor Retry-After, never retry other 4xx); a hand-rolled per-provider token bucket; one shared reqwest::Client with HTTPS-only base URLs and an injection path; an auth layer with Bearer, Basic, API key (header and query), HMAC, and OAuth2 client credentials over a redacting Secret wrapper; tracing events for request start, finish, retry, rate-limit hit, and error; and one request pipeline (auth -> rate limit -> retry -> send -> decode) including the body-level error hook. Provider modules, examples, docs, and publishing belong to BP-006 to BP-010.",
+    "targetAudience": "External Rust developers installing wirekit 0.1.0 who expect one error type, one retry policy, and one auth layer across providers, plus the provider modules (BP-006 to BP-009) and the M2/M3 crates that consume this contract.",
+    "assumptions": [
+      "The crate name wirekit is available on crates.io; it MUST be re-checked immediately before publication (CON-111). Availability is not verified by this feature.",
+      "The chosen dependency versions are MSRV 1.85 compatible and stay so; an MSRV CI job guards this (CON-102).",
+      "rustls is the preferred TLS backend; native-tls is a documented alternative, not the default.",
+      "Provider integrations remain feature-gated modules of wirekit, never separate crates (CON-104).",
+      "The core is always compiled; default = [] means no provider module enabled, not no core.",
+      "The dado dependency in the backlog is a sequencing dependency, not a code dependency; wirekit does not call dado.",
+      "Test authoring belongs to /sdrive:test, not this feature's implementation tasks.",
+      "Actual publication happens in BP-010 from main after review and archive."
+    ],
+    "outOfScope": [
+      "Provider modules and their feature flags (twilio, sendgrid, noaa, slack, and every other catalogue/ provider)",
+      "OAuth2 Authorization Code + PKCE and browser redirects (BP-015 owns the PKCE helper per CON-212)",
+      "Examples, a provider matrix, a docs site, and the changelog (BP-010)",
+      "Publishing wirekit to crates.io (BP-010)",
+      "Cross-process quota state (quota-ledger), webhook verification and delivery state (hookgate), and the tenant/provider registry (platform-core)",
+      "Streaming uploads/downloads, WebSocket transports, and multipart file transfer beyond a single-body request",
+      "Application domain types, billing rules, and product workflows (CON-106)",
+      "JavaScript/TypeScript bindings"
+    ]
+  },
+  "userStories": [
+    {
+      "id": "US-001",
+      "title": "Handle every provider failure with one error type",
+      "role": "external Rust developer",
+      "want": "one WirekitError type that every provider maps into",
+      "benefit": "I write one error handler instead of one per provider",
+      "acceptanceCriteria": [
+        {
+          "id": "AC-001",
+          "text": "Given a provider response with a non-2xx status, when the pipeline maps the failure, then it returns WirekitError::Api { status, code, message } and no provider-specific error type appears in the public API."
+        },
+        {
+          "id": "AC-002",
+          "text": "Given any WirekitError, when code() is called, then it returns a stable &'static str of the form W####, and Display renders the code with a message."
+        },
+        {
+          "id": "AC-003",
+          "text": "Given any WirekitError, when Debug and Display are printed, then no credential, token, or raw request/response body appears."
+        },
+        {
+          "id": "AC-004",
+          "text": "Given the WirekitError enum, when a consumer matches it with a wildcard arm, then the match compiles, proving #[non_exhaustive]."
+        },
+        {
+          "id": "AC-005",
+          "text": "Given WirekitError, when used with ? or as Box<dyn std::error::Error>, then it implements std::error::Error and exposes source() for wrapped causes."
+        }
+      ]
+    },
+    {
+      "id": "US-002",
+      "title": "Get the same retry behavior from every provider",
+      "role": "external Rust developer",
+      "want": "one retry policy that applies everywhere",
+      "benefit": "I am not debugging why one provider retries and another does not",
+      "acceptanceCriteria": [
+        {
+          "id": "AC-006",
+          "text": "Given a 5xx response and the default policy, when the request is executed, then it is retried up to 3 attempts total, and the final failure is WirekitError::Api carrying the last status."
+        },
+        {
+          "id": "AC-007",
+          "text": "Given a 429 response with a Retry-After header, when the request is retried, then the delay is at least the header value, and an exhausted policy yields WirekitError::RateLimit { retry_after }."
+        },
+        {
+          "id": "AC-008",
+          "text": "Given a 400, 401, 403, or 404 response, when executed, then no retry occurs and the error returns immediately."
+        },
+        {
+          "id": "AC-009",
+          "text": "Given a network or timeout failure, when executed, then it is retried and ends as WirekitError::Network or WirekitError::Timeout."
+        },
+        {
+          "id": "AC-010",
+          "text": "Given the retry policy, when delays are computed, then they grow exponentially with bounded jitter and stay within the configured bounds."
+        },
+        {
+          "id": "AC-011",
+          "text": "Given a retry, when it occurs, then a tracing event records the attempt number and the delay."
+        }
+      ]
+    },
+    {
+      "id": "US-003",
+      "title": "Respect per-provider rate limits",
+      "role": "external Rust developer",
+      "want": "rate limiting handled in one place",
+      "benefit": "I do not build rate limiting per API",
+      "acceptanceCriteria": [
+        {
+          "id": "AC-012",
+          "text": "Given a configured per-provider token bucket, when requests exceed the configured rate, then the limiter throttles them so the rate is not exceeded."
+        },
+        {
+          "id": "AC-013",
+          "text": "Given two providers with different rate configurations, when both send requests, then each uses its own bucket and its own override."
+        },
+        {
+          "id": "AC-014",
+          "text": "Given a rate-limit hit, when it occurs, then a tracing metric event is emitted."
+        },
+        {
+          "id": "AC-015",
+          "text": "Given an empty bucket, when a request waits for a token, then the async task yields instead of blocking the runtime thread (no std::thread::sleep)."
+        }
+      ]
+    },
+    {
+      "id": "US-004",
+      "title": "Share one HTTP client pool",
+      "role": "external Rust developer",
+      "want": "one pooled client across providers",
+      "benefit": "connections are reused and memory is bounded",
+      "acceptanceCriteria": [
+        {
+          "id": "AC-016",
+          "text": "Given no injected client, when two providers send requests, then they share one reqwest::Client and therefore one connection pool."
+        },
+        {
+          "id": "AC-017",
+          "text": "Given a caller-injected reqwest::Client, when a request is sent, then the injected client is used verbatim and no second pool is created."
+        },
+        {
+          "id": "AC-018",
+          "text": "Given the client builder, when timeouts, TLS, a proxy, and default headers are configured, then those settings apply to requests."
+        },
+        {
+          "id": "AC-019",
+          "text": "Given an http:// base URL, when a request is prepared, then it is rejected with WirekitError::InvalidConfig before any socket is opened."
+        },
+        {
+          "id": "AC-020",
+          "text": "Given the default configuration, when the client is built, then a request timeout and connection-pool limits are applied."
+        }
+      ]
+    },
+    {
+      "id": "US-005",
+      "title": "Apply authentication consistently",
+      "role": "external Rust developer",
+      "want": "the auth flow built once",
+      "benefit": "every provider using the same scheme reuses it",
+      "acceptanceCriteria": [
+        {
+          "id": "AC-021",
+          "text": "Given a bearer token, when a request is sent, then Authorization: Bearer <token> is applied."
+        },
+        {
+          "id": "AC-022",
+          "text": "Given basic credentials, when a request is sent, then Authorization: Basic <base64(user:pass)> is applied."
+        },
+        {
+          "id": "AC-023",
+          "text": "Given an API key configured for a header, when a request is sent, then the configured header carries the key."
+        },
+        {
+          "id": "AC-024",
+          "text": "Given an API key configured for the query string, when a request is sent, then the key is added as a query parameter."
+        },
+        {
+          "id": "AC-025",
+          "text": "Given the HMAC scheme, when a request is signed, then the signature is computed over the canonical raw request bytes and compared with a constant-time routine."
+        },
+        {
+          "id": "AC-026",
+          "text": "Given OAuth2 client credentials, when a request is made without a valid token, then a token is fetched, cached, and reused, and is refreshed before expiry."
+        },
+        {
+          "id": "AC-027",
+          "text": "Given an auth or secret type, when Debug/Display are printed, then the secret renders as ***, and no secret field implements Serialize."
+        }
+      ]
+    },
+    {
+      "id": "US-006",
+      "title": "Observe every call",
+      "role": "external Rust developer",
+      "want": "tracing on every call",
+      "benefit": "I can plug in OpenTelemetry, Datadog, or Jaeger once",
+      "acceptanceCriteria": [
+        {
+          "id": "AC-028",
+          "text": "Given a request, when it starts, then a tracing event with the method and the redacted URL is emitted."
+        },
+        {
+          "id": "AC-029",
+          "text": "Given a completed request, when it finishes, then a tracing event records the duration."
+        },
+        {
+          "id": "AC-030",
+          "text": "Given a retry, a rate-limit hit, or an error, when it occurs, then the matching tracing event is emitted."
+        },
+        {
+          "id": "AC-031",
+          "text": "Given any of these events, when they are recorded, then no credential or token appears in the output."
+        }
+      ]
+    },
+    {
+      "id": "US-007",
+      "title": "Implement a provider against one pipeline",
+      "role": "provider author",
+      "want": "to declare a URL, method, body, and response type",
+      "benefit": "I do not reimplement auth, retry, rate limiting, tracing, or error mapping",
+      "acceptanceCriteria": [
+        {
+          "id": "AC-032",
+          "text": "Given a provider that declares a URL, method, body, and response type, when it executes, then the pipeline applies auth, rate limit, retry, send, and decode in that order."
+        },
+        {
+          "id": "AC-033",
+          "text": "Given a successful response, when decoded, then the caller's typed value is returned via serde."
+        },
+        {
+          "id": "AC-034",
+          "text": "Given HTTP 200 with a body-level error (Slack ok: false or a GraphQL errors[] array), when the body hook is configured, then WirekitError::Api is returned instead of a success (CON-213)."
+        },
+        {
+          "id": "AC-035",
+          "text": "Given a malformed body, when decoding fails, then WirekitError::Decode is returned and no panic occurs."
+        },
+        {
+          "id": "AC-036",
+          "text": "Given missing credentials, when a request is prepared, then WirekitError::InvalidConfig is returned and no request is sent."
+        }
+      ]
+    },
+    {
+      "id": "US-008",
+      "title": "Keep the crate safe, dependency-honest, and lint-clean",
+      "role": "security-conscious developer",
+      "want": "the crate to stay within its stated job",
+      "benefit": "it can be a dependency of any Rust application",
+      "acceptanceCriteria": [
+        {
+          "id": "AC-037",
+          "text": "Given the crate root, when compiled, then #![forbid(unsafe_code)] and #![deny(missing_docs)] are present and every public item is documented."
+        },
+        {
+          "id": "AC-038",
+          "text": "Given the crate, when built with default features and with each provider feature independently, then it compiles, and features are additive (CON-204)."
+        },
+        {
+          "id": "AC-039",
+          "text": "Given Rust 1.85, when the workspace builds, then wirekit compiles under edition 2021."
+        },
+        {
+          "id": "AC-040",
+          "text": "Given the crate, when inspected, then it introduces no database, tenant, billing, or application-domain types (CON-106, CON-107)."
+        },
+        {
+          "id": "AC-041",
+          "text": "Given the crate's source, when scanned, then it does not read .env files or environment files to obtain credentials (CON-519)."
+        },
+        {
+          "id": "AC-042",
+          "text": "Given the full test suite, when it runs, then every acceptance criterion has at least one test, supplied by the Test agent (CON-404)."
+        }
+      ]
+    }
+  ],
+  "functionalRequirements": [
+    {
+      "id": "FR-001",
+      "text": "The repository MUST contain a wirekit crate as a workspace member at crates/wirekit, version 0.1.0, inheriting edition, rust-version, and license from [workspace.package].",
+      "linkedAcceptanceCriteria": ["AC-038", "AC-039"]
+    },
+    {
+      "id": "FR-002",
+      "text": "The crate MUST compile with default = [], always expose the core, and gate every provider module behind an additive feature.",
+      "linkedAcceptanceCriteria": ["AC-038"]
+    },
+    {
+      "id": "FR-003",
+      "text": "The crate MUST declare #![forbid(unsafe_code)] and #![deny(missing_docs)], and every public item MUST have a rustdoc comment.",
+      "linkedAcceptanceCriteria": ["AC-037"]
+    },
+    {
+      "id": "FR-004",
+      "text": "A single #[non_exhaustive] WirekitError enum MUST be the only error type on the public API.",
+      "linkedAcceptanceCriteria": ["AC-001", "AC-004"]
+    },
+    {
+      "id": "FR-005",
+      "text": "Every WirekitError variant MUST expose a stable code() string of the form W#### and MUST implement Display and std::error::Error.",
+      "linkedAcceptanceCriteria": ["AC-002", "AC-005"]
+    },
+    {
+      "id": "FR-006",
+      "text": "Provider failures MUST map into WirekitError::Api { status, code, message }; a provider MUST NOT introduce a second error type.",
+      "linkedAcceptanceCriteria": ["AC-001"]
+    },
+    {
+      "id": "FR-007",
+      "text": "WirekitError's Debug, Display, logs, traces, and payloads MUST NOT contain credentials, tokens, or raw bodies.",
+      "linkedAcceptanceCriteria": ["AC-003"]
+    },
+    {
+      "id": "FR-008",
+      "text": "HTTP retries MUST use exponential backoff with jitter and 3 attempts by default.",
+      "linkedAcceptanceCriteria": ["AC-006", "AC-010"]
+    },
+    {
+      "id": "FR-009",
+      "text": "Retries MUST occur on 5xx, 429, and network or timeout errors, and MUST honor Retry-After.",
+      "linkedAcceptanceCriteria": ["AC-007", "AC-009"]
+    },
+    {
+      "id": "FR-010",
+      "text": "Retries MUST NOT occur on any other 4xx status.",
+      "linkedAcceptanceCriteria": ["AC-008"]
+    },
+    {
+      "id": "FR-011",
+      "text": "The retry policy MUST be configurable per client for attempt count, base delay, maximum delay, and jitter bounds.",
+      "linkedAcceptanceCriteria": ["AC-010"]
+    },
+    {
+      "id": "FR-012",
+      "text": "Rate limiting MUST be a per-provider token bucket with per-provider overrides.",
+      "linkedAcceptanceCriteria": ["AC-012", "AC-013"]
+    },
+    {
+      "id": "FR-013",
+      "text": "The rate limiter MUST emit a tracing event for every rate-limit hit.",
+      "linkedAcceptanceCriteria": ["AC-014"]
+    },
+    {
+      "id": "FR-014",
+      "text": "The crate MUST share one pooled reqwest::Client per process unless the caller injects its own client.",
+      "linkedAcceptanceCriteria": ["AC-016", "AC-017"]
+    },
+    {
+      "id": "FR-015",
+      "text": "The client builder MUST allow configuring timeouts, TLS, proxying, and default headers.",
+      "linkedAcceptanceCriteria": ["AC-018", "AC-020"]
+    },
+    {
+      "id": "FR-016",
+      "text": "The client MUST reject non-HTTPS base URLs with WirekitError::InvalidConfig.",
+      "linkedAcceptanceCriteria": ["AC-019"]
+    },
+    {
+      "id": "FR-017",
+      "text": "The auth layer MUST provide Bearer, Basic, API-key-in-header, API-key-in-query, HMAC-signature, and OAuth2-client-credentials schemes.",
+      "linkedAcceptanceCriteria": ["AC-021", "AC-022", "AC-023", "AC-024", "AC-025", "AC-026"]
+    },
+    {
+      "id": "FR-018",
+      "text": "OAuth2 client credentials MUST fetch a token, cache it, and refresh it before expiry, with a single in-flight fetch per client.",
+      "linkedAcceptanceCriteria": ["AC-026"]
+    },
+    {
+      "id": "FR-019",
+      "text": "Auth and secret types MUST redact secrets in Debug/Display and MUST NOT implement Serialize for a secret field.",
+      "linkedAcceptanceCriteria": ["AC-027"]
+    },
+    {
+      "id": "FR-020",
+      "text": "Every outbound request MUST emit tracing events for start, finish with duration, retry, rate-limit hit, and error.",
+      "linkedAcceptanceCriteria": ["AC-028", "AC-029", "AC-030"]
+    },
+    {
+      "id": "FR-021",
+      "text": "The core MUST expose one request pipeline (auth, rate limit, retry, send, decode) so a provider supplies only a URL, method, body, and response type.",
+      "linkedAcceptanceCriteria": ["AC-032"]
+    },
+    {
+      "id": "FR-022",
+      "text": "The core MUST expose a body-level error hook so that HTTP 200 with a body-reported error maps to WirekitError::Api.",
+      "linkedAcceptanceCriteria": ["AC-034"]
+    },
+    {
+      "id": "FR-023",
+      "text": "Response bodies MUST decode into caller types via serde, and a decode failure MUST return WirekitError::Decode rather than a panic.",
+      "linkedAcceptanceCriteria": ["AC-033", "AC-035"]
+    },
+    {
+      "id": "FR-024",
+      "text": "The crate MUST treat URLs, header values, and response bytes as untrusted and MUST NOT panic on malformed input.",
+      "linkedAcceptanceCriteria": ["AC-035", "AC-036"]
+    },
+    {
+      "id": "FR-025",
+      "text": "Credentials MUST come from caller-supplied configuration or secret stores; the crate MUST NOT read .env or environment files.",
+      "linkedAcceptanceCriteria": ["AC-041"]
+    },
+    {
+      "id": "FR-026",
+      "text": "The crate MUST be publishable as wirekit 0.1.0 with complete metadata and a docs.rs all-features configuration.",
+      "linkedAcceptanceCriteria": ["AC-038", "AC-039"]
+    }
+  ],
+  "nonFunctionalRequirements": [
+    {
+      "id": "NFR-001",
+      "text": "The crate MUST compile on Rust 1.85 with edition 2021.",
+      "linkedAcceptanceCriteria": ["AC-039"]
+    },
+    {
+      "id": "NFR-002",
+      "text": "The crate MUST keep forbid(unsafe_code) and deny(missing_docs); docs MUST build with warnings denied.",
+      "linkedAcceptanceCriteria": ["AC-037"]
+    },
+    {
+      "id": "NFR-003",
+      "text": "Features MUST be additive; enabling a provider feature MUST NOT enable or disable another feature, and the default feature set MUST be documented.",
+      "linkedAcceptanceCriteria": ["AC-038"]
+    },
+    {
+      "id": "NFR-004",
+      "text": "The crate MUST NOT force a database, tenant model, quota state, webhook state, or application-domain types on consumers.",
+      "linkedAcceptanceCriteria": ["AC-040"]
+    },
+    {
+      "id": "NFR-005",
+      "text": "Retry backoff and token-bucket waiting MUST yield to the async runtime and MUST NOT block a runtime thread.",
+      "linkedAcceptanceCriteria": ["AC-015"]
+    },
+    {
+      "id": "NFR-006",
+      "text": "The shared client MUST bound resource usage through default timeouts and connection-pool limits.",
+      "linkedAcceptanceCriteria": ["AC-020"]
+    },
+    {
+      "id": "NFR-007",
+      "text": "Secrets MUST be redacted in Debug, Display, logs, traces, and error payloads, and MUST NOT be serialized.",
+      "linkedAcceptanceCriteria": ["AC-003", "AC-027", "AC-031"]
+    },
+    {
+      "id": "NFR-008",
+      "text": "The crate MUST treat all network input as untrusted and MUST NOT panic, abort, or hang on malformed responses.",
+      "linkedAcceptanceCriteria": ["AC-035"]
+    },
+    {
+      "id": "NFR-009",
+      "text": "Every acceptance criterion MUST be covered by at least one test, supplied by the Test agent.",
+      "linkedAcceptanceCriteria": [
+        "AC-001", "AC-002", "AC-003", "AC-004", "AC-005", "AC-006", "AC-007", "AC-008", "AC-009", "AC-010",
+        "AC-011", "AC-012", "AC-013", "AC-014", "AC-015", "AC-016", "AC-017", "AC-018", "AC-019", "AC-020",
+        "AC-021", "AC-022", "AC-023", "AC-024", "AC-025", "AC-026", "AC-027", "AC-028", "AC-029", "AC-030",
+        "AC-031", "AC-032", "AC-033", "AC-034", "AC-035", "AC-036", "AC-037", "AC-038", "AC-039", "AC-040",
+        "AC-041", "AC-042"
+      ]
+    },
+    {
+      "id": "NFR-010",
+      "text": "The crate MUST NOT expose a global mutable singleton; client and provider construction MUST be explicit.",
+      "linkedAcceptanceCriteria": ["AC-017"]
+    },
+    {
+      "id": "NFR-011",
+      "text": "Authentication (CON-511) - the pipeline MUST apply the configured auth scheme to every outbound request and MUST fail closed with WirekitError::InvalidConfig when credentials are missing.",
+      "linkedAcceptanceCriteria": ["AC-021", "AC-022", "AC-023", "AC-024", "AC-025", "AC-026", "AC-036"]
+    },
+    {
+      "id": "NFR-012",
+      "text": "Rate limiting (CON-514) - the per-provider token bucket MUST be enforced before every outbound request, with per-provider overrides.",
+      "linkedAcceptanceCriteria": ["AC-012", "AC-013"]
+    },
+    {
+      "id": "NFR-013",
+      "text": "Input validation (CON-515) - URLs, header values, and response bodies MUST be validated; malformed input MUST return a typed WirekitError and MUST NOT panic.",
+      "linkedAcceptanceCriteria": ["AC-035", "AC-036"]
+    },
+    {
+      "id": "NFR-014",
+      "text": "Environment security (CON-519) - credentials MUST come from caller-supplied configuration or secret stores; the crate MUST NOT read .env files and MUST NOT commit secrets.",
+      "linkedAcceptanceCriteria": ["AC-041"]
+    },
+    {
+      "id": "NFR-015",
+      "text": "HTTPS (CON-520) - all outbound requests MUST use TLS; non-HTTPS base URLs MUST be rejected before any socket is opened.",
+      "linkedAcceptanceCriteria": ["AC-019"]
+    }
+  ],
+  "edgeCases": [
+    {
+      "id": "EC-001",
+      "description": "429 response with a numeric Retry-After",
+      "expectedBehavior": "Wait at least the header value, then retry; if attempts are exhausted, return WirekitError::RateLimit { retry_after }."
+    },
+    {
+      "id": "EC-002",
+      "description": "429 response without Retry-After",
+      "expectedBehavior": "Apply jittered exponential backoff."
+    },
+    {
+      "id": "EC-003",
+      "description": "5xx response with attempts exhausted",
+      "expectedBehavior": "WirekitError::Api carrying the last status and any parsed code and message."
+    },
+    {
+      "id": "EC-004",
+      "description": "400, 401, 403, or 404 response",
+      "expectedBehavior": "No retry; WirekitError::Api returned immediately."
+    },
+    {
+      "id": "EC-005",
+      "description": "Network failure mid-flight",
+      "expectedBehavior": "Retried, then WirekitError::Network."
+    },
+    {
+      "id": "EC-006",
+      "description": "Request timeout",
+      "expectedBehavior": "Retried, then WirekitError::Timeout."
+    },
+    {
+      "id": "EC-007",
+      "description": "Retry-After given as an HTTP date, or unparseable",
+      "expectedBehavior": "Parsed safely; an unparseable value falls back to backoff without panicking."
+    },
+    {
+      "id": "EC-008",
+      "description": "Empty token bucket",
+      "expectedBehavior": "The request waits asynchronously and proceeds when a token is available."
+    },
+    {
+      "id": "EC-009",
+      "description": "OAuth2 token endpoint returns 4xx",
+      "expectedBehavior": "WirekitError::Auth; no retry on a non-429 4xx."
+    },
+    {
+      "id": "EC-010",
+      "description": "OAuth2 token expires between requests",
+      "expectedBehavior": "Refreshed before the next request, never during a partially sent one."
+    },
+    {
+      "id": "EC-011",
+      "description": "HTTP 200 with Slack ok: false or a GraphQL errors[] array",
+      "expectedBehavior": "WirekitError::Api via the body-level error hook (CON-213)."
+    },
+    {
+      "id": "EC-012",
+      "description": "Malformed JSON body",
+      "expectedBehavior": "WirekitError::Decode; no panic."
+    },
+    {
+      "id": "EC-013",
+      "description": "Base URL using http://",
+      "expectedBehavior": "Rejected before any socket is opened."
+    },
+    {
+      "id": "EC-014",
+      "description": "Caller-injected client",
+      "expectedBehavior": "Used verbatim; no second pool and no overridden configuration."
+    },
+    {
+      "id": "EC-015",
+      "description": "Concurrent requests for one provider",
+      "expectedBehavior": "Share one bucket so the aggregate rate is respected."
+    },
+    {
+      "id": "EC-016",
+      "description": "Secret present in configuration",
+      "expectedBehavior": "Debug prints ***; Serialize is not implemented for the secret."
+    },
+    {
+      "id": "EC-017",
+      "description": "Oversized response body",
+      "expectedBehavior": "Bounded by a configurable limit; exceeding it returns a typed error rather than an unbounded allocation."
+    },
+    {
+      "id": "EC-018",
+      "description": "Missing credentials",
+      "expectedBehavior": "WirekitError::InvalidConfig; no request is sent."
+    },
+    {
+      "id": "EC-019",
+      "description": "HMAC signing of a request",
+      "expectedBehavior": "Computed over the raw request bytes; a re-serialized body would not verify."
+    },
+    {
+      "id": "EC-020",
+      "description": "Clock skew near token expiry",
+      "expectedBehavior": "Refresh uses a configurable safety margin."
+    }
+  ],
+  "dependencies": [
+    {
+      "name": "reqwest",
+      "type": "library",
+      "notes": "HTTP client with rustls-tls by default; the single shared client per process (CON-210)."
+    },
+    {
+      "name": "tokio",
+      "type": "library",
+      "notes": "Async runtime features rt, time, and macros; required by the retry and rate-limit timers."
+    },
+    {
+      "name": "tracing",
+      "type": "library",
+      "notes": "Request, retry, rate-limit, and error events (CON-211)."
+    },
+    {
+      "name": "thiserror",
+      "type": "library",
+      "notes": "WirekitError derive."
+    },
+    {
+      "name": "serde",
+      "type": "library",
+      "notes": "Typed request and response models."
+    },
+    {
+      "name": "serde_json",
+      "type": "library",
+      "notes": "JSON encoding and decoding for provider bodies."
+    },
+    {
+      "name": "http",
+      "type": "library",
+      "notes": "Shared HTTP types: HeaderMap, StatusCode, Method."
+    },
+    {
+      "name": "rand",
+      "type": "library",
+      "notes": "Jitter for exponential backoff."
+    },
+    {
+      "name": "async-trait",
+      "type": "library",
+      "notes": "Object-safe async auth and transport traits."
+    },
+    {
+      "name": "url",
+      "type": "library",
+      "notes": "URL parsing and HTTPS validation."
+    },
+    {
+      "name": "wiremock",
+      "type": "library",
+      "notes": "Dev-dependency only: local HTTP mock for provider tests."
+    },
+    {
+      "name": "crates.io",
+      "type": "service",
+      "notes": "Publication target (BP-010); the wirekit name MUST be checked immediately before publish (CON-111)."
+    },
+    {
+      "name": "GitHub Actions",
+      "type": "service",
+      "notes": "Workspace and MSRV CI from BP-002."
+    }
+  ],
+  "risks": [
+    {
+      "id": "RISK-001",
+      "description": "A single crate carrying 26+ provider features becomes a release and build-time bottleneck.",
+      "mitigation": "Ship core only in this feature; measure build times and propose a companion crate if needed (CON-104 amendment path)."
+    },
+    {
+      "id": "RISK-002",
+      "description": "0.x churn in the error, retry, or auth contract breaks provider modules.",
+      "mitigation": "#[non_exhaustive], stable W#### codes, and an additive-only feature policy until the 1.0 freeze."
+    },
+    {
+      "id": "RISK-003",
+      "description": "A dependency raises its MSRV above 1.85.",
+      "mitigation": "The MSRV CI job fails fast; pin or downgrade with a recorded decision."
+    },
+    {
+      "id": "RISK-004",
+      "description": "rustls versus native-tls surprises on a platform.",
+      "mitigation": "rustls is the default and a documented feature selects native-tls."
+    },
+    {
+      "id": "RISK-005",
+      "description": "A secret leaks into logs, traces, or an error payload.",
+      "mitigation": "The Secret<T> wrapper, no Serialize for secret fields, redacted tracing fields, and property tests from the Test agent."
+    },
+    {
+      "id": "RISK-006",
+      "description": "A provider needs behavior the pipeline cannot express.",
+      "mitigation": "The body-level error hook, per-provider retry and rate-limit overrides, and injectable clients."
+    },
+    {
+      "id": "RISK-007",
+      "description": "The rate limiter blocks the async runtime or is unfair under concurrency.",
+      "mitigation": "Async token acquisition, per-provider buckets, and the concurrency edge case EC-015."
+    },
+    {
+      "id": "RISK-008",
+      "description": "Scope creeps into provider modules or stateful crates.",
+      "mitigation": "The explicit out-of-scope list; later work becomes new features (CON-604, CON-612)."
+    }
+  ]
+}

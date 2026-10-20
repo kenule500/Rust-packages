@@ -67,5 +67,6 @@
 - `cargo publish -p dado --dry-run --allow-dirty` completed and aborted the upload as expected. The crates.io index had transient DNS/timeout warnings; packaging and verification succeeded.
 - Feature independence was rechecked with `cargo check -p dado --no-default-features` and with each of `yaml`, `diag`, `graph`, `emit`, and `glob` enabled alone. All combinations passed.
 - `sdrive verify m0-foundation` passes after adding Rust-aware source, path, symbol, and dependency detection to `.sdrive/scripts/verify.js`: 37 matched, 0 missing, 0 renamed, 0 extra, status `pass`.
+- SpecDrive records test evidence through `.sdrive/scripts/rust-tests.js`, which runs `cargo test --workspace --all-features` and prints a parser-friendly summary. `sdrive test m0-foundation` records 36 passed, 0 failed, 2 skipped, 37 TEST IDs, and 37 AC IDs.
 - `test-evidence.json` and `verification.json` are local gate artifacts. They are ignored and regenerated at the current `HEAD` because a committed evidence file cannot also name the commit that contains it.
-- No production code was modified by this test phase. The only source-tree additions are the integration test files.
+- After the test run, the user-directed layout refactor moved the Cargo workspace from `catalogue/` to the repository root; `catalogue/` now holds only the provider and design Markdown docs. The paths in this report are post-move (`crates/...`), and no `dado` logic changed.

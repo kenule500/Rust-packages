@@ -5,5 +5,7 @@
     "allowStaleEvidence": false,
     "requireStructuredReview": true
   },
-  "test": {}
+  "test": {
+    "command": "node .sdrive/scripts/rust-tests.js"
+  }
 }

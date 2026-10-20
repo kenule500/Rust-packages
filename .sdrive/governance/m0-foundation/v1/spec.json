@@ -8,10 +8,10 @@
     "targetAudience": "External Rust developers who need strict YAML parsing into typed structs, plus maintainers and contributors to the GIA Packages workspace.",
     "assumptions": [
       "The crate name remains dado. The crates.io API returned 404 on 2026-10-20; the name must be checked again immediately before publication.",
-      "The Cargo workspace remains rooted at catalogue/ with members crates/*.",
+      "The Cargo workspace remains rooted at the repository root with members crates/*.",
       "Rust 1.85 remains the MSRV.",
       "GitHub is the source host and CI platform.",
-      "The YAML subset documented in catalogue/crates/dado/README.md is authoritative.",
+      "The YAML subset documented in crates/dado/README.md is authoritative.",
       "No CLA and no DCO are required for contributions.",
       "The 0.1.0 release is manual, not automated.",
       "Test authoring belongs to /sdrive:test, not this feature's implementation tasks."
@@ -325,7 +325,7 @@
     },
     {
       "id": "FR-017",
-      "text": "The repository MUST include RELEASING.md and catalogue/crates/dado/CHANGELOG.md.",
+      "text": "The repository MUST include RELEASING.md and crates/dado/CHANGELOG.md.",
       "linkedAcceptanceCriteria": ["AC-027", "AC-030"]
     },
     {

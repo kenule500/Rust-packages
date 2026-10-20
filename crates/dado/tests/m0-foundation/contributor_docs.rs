@@ -110,10 +110,10 @@ fn ac_025_pull_request_template_requests_summary_links_evidence_and_checklist() 
 fn ac_026_licence_files_exist_and_match_the_declared_dual_licence() {
     let mit_root = read_repo("LICENSE-MIT");
     let apache_root = read_repo("LICENSE-APACHE");
-    let mit_crate = read_repo("catalogue/crates/dado/LICENSE-MIT");
-    let apache_crate = read_repo("catalogue/crates/dado/LICENSE-APACHE");
-    let workspace = read_repo("catalogue/Cargo.toml");
-    let crate_manifest = read_repo("catalogue/crates/dado/Cargo.toml");
+    let mit_crate = read_repo("crates/dado/LICENSE-MIT");
+    let apache_crate = read_repo("crates/dado/LICENSE-APACHE");
+    let workspace = read_repo("Cargo.toml");
+    let crate_manifest = read_repo("crates/dado/Cargo.toml");
 
     assert_contains(&mit_root, "MIT License", "root LICENSE-MIT");
     assert_contains(

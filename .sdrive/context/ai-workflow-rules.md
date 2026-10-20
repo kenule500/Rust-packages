@@ -108,10 +108,11 @@ Source: `.sdrive/agents/01-constitution.md`, `<git-commit-and-push>`.
 ### Repository-specific workflow facts
 
 - The repository's default branch is `main`; the only remote is `origin`.
-- The working tree currently has untracked `.opencode/`, `.sdrive/`, and
-  `AGENTS.md`; all tracked files are under `catalogue/`.
-- There is no CI, no pre-commit hook installed, and no release automation.
-- `catalogue/.gitignore` ignores `Cargo.lock`, `target/`, and `*.rs.bk`.
+- The working tree is centered on the Cargo workspace at the repository root;
+  provider and design Markdown lives under `catalogue/`.
+- CI is configured in `.github/workflows/ci.yml`; there is no pre-commit hook
+  installed and no release automation.
+- `.gitignore` ignores `Cargo.lock`, `target/`, and `*.rs.bk`.
 
 ## Standard Best Practices (from MCP/skills)
 
@@ -130,6 +131,5 @@ Source: `.sdrive/agents/01-constitution.md`, `<git-commit-and-push>`.
 - [to be confirmed] Whether a CI pipeline will be added; none exists today.
 - [to be confirmed] Whether the `developer` and `reviewer` roles will be filled
   beyond the single `admin` member.
-- [to be confirmed] Whether `sdrive` is expected to be run from the SpecDrive
-  root (`Packages/`) or the code root (`catalogue/`). The commands in this
-  session were run from `Packages/`.
+- [to be confirmed] Whether `sdrive` is expected to be run from the repository
+  root (`Packages/`). The commands in this session were run from `Packages/`.

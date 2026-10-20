@@ -9,21 +9,22 @@
 ### Workspace shape
 
 ```
-catalogue/
+Packages/                 # repository root; the SpecDrive root
   Cargo.toml              # [workspace] resolver = "2", members = ["crates/*"]
   crates/
     dado/                 # the only implemented crate
-  00_provider_index.md    # index of the 26 provider modules
-  01_wirekit.md ... 37_signedlink.md
+  catalogue/              # provider and design Markdown only
+    00_provider_index.md  # index of the 26 provider modules
+    01_wirekit.md ... 37_signedlink.md
 ```
 
-- The workspace is a single Cargo workspace rooted at `catalogue/`.
-  Source: `catalogue/Cargo.toml`.
+- The workspace is a single Cargo workspace rooted at the repository root.
+  Source: `Cargo.toml`.
 - Workspace-level package settings (`edition`, `rust-version`, `license`) are
-  inherited by every crate. Source: `catalogue/Cargo.toml` `[workspace.package]`.
+  inherited by every crate. Source: `Cargo.toml` `[workspace.package]`.
 - The only crate today is `dado`, and it inherits all three settings with
   `edition.workspace = true`, `rust-version.workspace = true`,
-  `license.workspace = true`. Source: `catalogue/crates/dado/Cargo.toml`.
+  `license.workspace = true`. Source: `crates/dado/Cargo.toml`.
 
 ### Package boundaries
 
@@ -43,7 +44,7 @@ The repository states one job per package:
 | `rtmp-publish` | Egress destination model and health | `catalogue/36_rtmp_publish.md` |
 | `signedlink` | Signed links and attribution | `catalogue/37_signedlink.md` |
 
-`catalogue/README.md` states: "Do not merge them into a framework."
+`README.md` states: "Do not merge them into a framework."
 
 ### Provider clients are modules, not crates
 
@@ -90,7 +91,7 @@ consuming app / adapter crate
 ### Purity and I/O boundaries
 
 - `dado` never opens a socket, reads a URL, spawns a runtime, or writes a file.
-  Callers fetch; `dado` parses. Source: `catalogue/crates/dado/README.md`,
+  Callers fetch; `dado` parses. Source: `crates/dado/README.md`,
   `crates/dado/src/lib.rs`.
 - `ffscene` compiles a scene; it does not encode. A separate process runs FFmpeg.
   Source: `catalogue/32_ffscene.md`.

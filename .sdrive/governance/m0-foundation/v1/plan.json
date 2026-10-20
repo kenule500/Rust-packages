@@ -5,22 +5,22 @@
     "approach": "Parse a strict YAML 1.2 core subset into an ordered value tree, deserialize it through serde, and keep yaml::Error independent of diag with line, column, and byte offset. Add GitHub Actions CI, contributor and security surfaces, license files, complete package metadata, and a manual release runbook.",
     "components": [
       {
-        "name": "catalogue/crates/dado/src/yaml.rs",
+        "name": "crates/dado/src/yaml.rs",
         "action": "modify",
         "description": "Replace the D0001 scaffold with the lexer, parser, YamlValue tree, scalar resolution, serde deserializer, rejection rules, depth limit, and error construction."
       },
       {
-        "name": "catalogue/crates/dado/src/lib.rs",
+        "name": "crates/dado/src/lib.rs",
         "action": "reuse",
         "description": "Keep the feature gates and crate-level lints; update crate docs only if the public surface changes."
       },
       {
-        "name": "catalogue/crates/dado/Cargo.toml",
+        "name": "crates/dado/Cargo.toml",
         "action": "modify",
         "description": "Keep existing dependencies and features; add package metadata and docs.rs all-features configuration."
       },
       {
-        "name": "catalogue/Cargo.toml",
+        "name": "Cargo.toml",
         "action": "modify",
         "description": "Add shared repository metadata if the crate inherits it."
       },
@@ -75,7 +75,7 @@
         "description": "Manual dado-v0.1.0 release runbook covering pre-flight, dry-run, tag, publish, verification, and yank or rollback."
       },
       {
-        "name": "catalogue/crates/dado/CHANGELOG.md",
+        "name": "crates/dado/CHANGELOG.md",
         "action": "create",
         "description": "Keep a Changelog entry for dado 0.1.0."
       }

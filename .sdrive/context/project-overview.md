@@ -14,8 +14,8 @@
 | Default branch | `main` | `git branch -a` |
 | Commit history | One commit, `d3d6a36 first commit` | `git log --oneline` |
 | SpecDrive root | `C:\Users\KENULE-NWINEE\Documents\vscode-projs\Projects\Packages` | `.sdrive/` location |
-| Code root | `Packages/catalogue/` | `catalogue/Cargo.toml` |
-| Product name in docs | "GIA Packages" | `catalogue/README.md` |
+| Code root | `Packages/` | `Cargo.toml` |
+| Product name in docs | "GIA Packages" | `README.md` |
 
 The repository is the standalone home of public Rust packages consumed by GIA and
 other projects. GIA is described as one consumer, not the owner of the ecosystem.
@@ -27,19 +27,19 @@ other projects. GIA is described as one consumer, not the owner of the ecosystem
 - Let the consuming product keep its own domain types, billing rules, and service
   composition.
 
-Source: `catalogue/README.md` sections "GIA Packages", "Why these are separate
+Source: `README.md` sections "GIA Packages", "Why these are separate
 from the app", and "Public crates.io, not app-only".
 
 ### Technology stack
 
 | Fact | Value | Source |
 |---|---|---|
-| Language | Rust | `catalogue/Cargo.toml` |
-| Edition | 2021 | `catalogue/Cargo.toml` `[workspace.package]` |
-| Resolver | 2 | `catalogue/Cargo.toml` |
-| MSRV | 1.85 | `catalogue/Cargo.toml` `rust-version` |
-| Licence | `MIT OR Apache-2.0` | `catalogue/Cargo.toml` `license` |
-| Workspace members | `crates/*` | `catalogue/Cargo.toml` |
+| Language | Rust | `Cargo.toml` |
+| Edition | 2021 | `Cargo.toml` `[workspace.package]` |
+| Resolver | 2 | `Cargo.toml` |
+| MSRV | 1.85 | `Cargo.toml` `rust-version` |
+| Licence | `MIT OR Apache-2.0` | `Cargo.toml` `license` |
+| Workspace members | `crates/*` | `Cargo.toml` |
 | Installed toolchain | rustc 1.95.0, cargo 1.95.0 | `rustc --version`, `cargo --version` |
 | Node tooling | Node 24.20.0; SpecDrive CLI 0.1.44 | `node --version`, `sdrive --version` |
 
@@ -49,7 +49,7 @@ Only one crate exists today:
 
 | Crate | Version | State | Source |
 |---|---|---|---|
-| `dado` | 0.1.0 | Scaffold. `diag`, `graph`, `emit`, `glob` implemented; `yaml` returns `D0001`. | `catalogue/crates/dado/README.md`, `src/yaml.rs` |
+| `dado` | 0.1.0 | Implemented: strict YAML subset, diagnostics, graph, emit, and glob; 38 tests (36 pass, 2 ignored pending publish and tag checks). | `crates/dado/README.md`, `src/yaml.rs` |
 
 `dado` is described as "the base layer for config-driven tools: strict YAML,
 diagnostics, dependency graphs, code emission, and glob matching", with five
@@ -84,19 +84,19 @@ them: `quota` -> `quota-ledger`, `webhook-gateway` -> `hookgate`,
   publish.
 - crates.io names are permanent; availability was checked October 2026.
 
-Source: `catalogue/README.md` "Status"; `catalogue/00_provider_index.md` "Status".
+Source: `README.md` "Status"; `catalogue/00_provider_index.md` "Status".
 
 ### Repository hygiene observed
 
 | Fact | Value | Source |
 |---|---|---|
-| Ignored paths | `target/`, `**/*.rs.bk`, `Cargo.lock`, `.DS_Store` | `catalogue/.gitignore` |
-| `Cargo.lock` on disk | Present, untracked | `git ls-files catalogue/Cargo.lock` (empty) |
-| CI configuration | None found | `catalogue/` tree |
-| Test files | None found | `catalogue/crates/**` |
+| Ignored paths | `target/`, `**/*.rs.bk`, `Cargo.lock`, `.DS_Store` | `.gitignore` |
+| `Cargo.lock` on disk | Present, untracked | `git ls-files Cargo.lock` (empty) |
+| CI configuration | `.github/workflows/ci.yml` | `.github/workflows/ci.yml` |
+| Test files | `crates/dado/tests/m0-foundation/` | `crates/**` |
 | `rustfmt` / `clippy` config | None found | repository tree |
-| `CONTRIBUTING.md` | None found | repository tree |
-| Tracked files | 49, all under `catalogue/` | `git ls-files` |
+| `CONTRIBUTING.md` | Present | `CONTRIBUTING.md` |
+| Tracked files | Cargo workspace at the repository root; provider docs under `catalogue/` | `git ls-files` |
 
 ### Governance state at discovery time
 
@@ -121,7 +121,7 @@ Source: `.sdrive/config.json`, `.sdrive/team.json`, `.sdrive/workflow-state.json
   permissive licence, and `Debug` on public types.
   Source: <https://rust-lang.github.io/api-guidelines/checklist.html>.
 - crates.io names are permanent and cannot be reused after publication.
-  Source: `catalogue/README.md` "Crate names that are already taken".
+  Source: `README.md` "Crate names that are already taken".
 - No Context7 or project skill files were available in this environment.
 
 ## Assumptions

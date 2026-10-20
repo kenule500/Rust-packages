@@ -149,7 +149,7 @@ fn ac_031_token_is_documented_as_a_secret_and_not_committed() {
 #[test]
 fn ac_032_package_metadata_resolves_to_real_values() {
     let manifest = read_crate("Cargo.toml");
-    let workspace = read_repo("catalogue/Cargo.toml");
+    let workspace = read_repo("Cargo.toml");
 
     assert_contains_all(
         &manifest,

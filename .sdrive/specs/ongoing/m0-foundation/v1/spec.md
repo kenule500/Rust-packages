@@ -36,10 +36,10 @@ Deliver the M0 foundation as one feature:
 ### Assumptions
 
 - `dado` remains the crate name. `https://crates.io/api/v1/crates/dado` returned 404 on 2026-10-20. The name MUST be checked again immediately before publication (CON-111).
-- The workspace remains rooted at `catalogue/` with members `crates/*` (CON-101).
+- The workspace remains rooted at the repository root with members `crates/*` (CON-101).
 - Rust 1.85 remains the MSRV (CON-102).
 - GitHub is the source host and CI platform.
-- The supported YAML subset in `catalogue/crates/dado/README.md` is authoritative.
+- The supported YAML subset in `crates/dado/README.md` is authoritative.
 - No CLA and no DCO are required for contributions.
 - The 0.1.0 release is manual, not automated.
 - Test authoring belongs to `/sdrive:test`, not this feature's implementation tasks.
@@ -58,9 +58,9 @@ Deliver the M0 foundation as one feature:
 
 ### Sources
 
-- `catalogue/crates/dado/README.md`
-- `catalogue/crates/dado/src/yaml.rs`
-- `catalogue/Cargo.toml`
+- `crates/dado/README.md`
+- `crates/dado/src/yaml.rs`
+- `Cargo.toml`
 - `.sdrive/constitution.md`
 - `.sdrive/product/backlog.md` (BP-001 to BP-004)
 - YAML 1.2.2 specification: <https://yaml.org/spec/1.2.2/>
@@ -180,7 +180,7 @@ As a security-conscious developer, I want `dado` to remain I/O-free, feature-ind
 | FR-014 | CI MUST use concurrency cancellation per ref. | AC-021 |
 | FR-015 | The repository MUST include `CONTRIBUTING.md`, `SECURITY.md`, `.github/ISSUE_TEMPLATE/bug_report.yml`, `.github/ISSUE_TEMPLATE/feature_request.yml`, `.github/ISSUE_TEMPLATE/config.yml`, and `.github/pull_request_template.md`. | AC-022, AC-023, AC-024, AC-025 |
 | FR-016 | The repository MUST include `LICENSE-MIT` and `LICENSE-APACHE`. | AC-026 |
-| FR-017 | The repository MUST include `RELEASING.md` and `catalogue/crates/dado/CHANGELOG.md`. | AC-027, AC-030 |
+| FR-017 | The repository MUST include `RELEASING.md` and `crates/dado/CHANGELOG.md`. | AC-027, AC-030 |
 | FR-018 | The published package metadata MUST resolve `repository` to the GitHub URL, include `readme`, `keywords`, `categories`, `license`, and `rust-version`, and set `[package.metadata.docs.rs] all-features = true`. | AC-032, AC-033, AC-034 |
 | FR-019 | The release runbook MUST cover pre-flight, version and changelog, `cargo publish --dry-run`, tag naming, publish, verification, and yank or rollback. | AC-027, AC-028, AC-031 |
 | FR-020 | The release runbook MUST document `CARGO_REGISTRY_TOKEN` as an environment or CI secret and MUST NOT include a real token. | AC-031 |

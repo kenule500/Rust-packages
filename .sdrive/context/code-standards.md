@@ -11,10 +11,10 @@
 
 | Fact | Value | Source |
 |---|---|---|
-| Edition | 2021 | `catalogue/Cargo.toml` |
-| MSRV | 1.85 | `catalogue/Cargo.toml` |
-| Resolver | 2 | `catalogue/Cargo.toml` |
-| Licence | `MIT OR Apache-2.0` | `catalogue/Cargo.toml` |
+| Edition | 2021 | `Cargo.toml` |
+| MSRV | 1.85 | `Cargo.toml` |
+| Resolver | 2 | `Cargo.toml` |
+| Licence | `MIT OR Apache-2.0` | `Cargo.toml` |
 | Installed toolchain | 1.95.0 | `rustc --version` |
 
 ### Crate-level lint attributes (observed in `dado`)
@@ -24,7 +24,7 @@
 #![deny(missing_docs)]
 ```
 
-Source: `catalogue/crates/dado/src/lib.rs`.
+Source: `crates/dado/src/lib.rs`.
 
 ### Documentation style (observed in `dado`)
 
@@ -35,7 +35,7 @@ Source: `catalogue/crates/dado/src/lib.rs`.
 - The crate-level doc lists the feature-gated modules and the crate's I/O
   boundary.
 
-Source: `catalogue/crates/dado/src/*.rs`.
+Source: `crates/dado/src/*.rs`.
 
 ### Error style (observed in `dado`)
 
@@ -43,8 +43,8 @@ Source: `catalogue/crates/dado/src/*.rs`.
 - Errors implement `core::fmt::Display` and `core::error::Error`.
 - The `yaml` scaffold returns `D0001` rather than guessing at a partial document.
 
-Source: `catalogue/crates/dado/src/diag.rs`,
-`catalogue/crates/dado/src/yaml.rs`.
+Source: `crates/dado/src/diag.rs`,
+`crates/dado/src/yaml.rs`.
 
 ### Feature style (observed in `dado`)
 
@@ -53,7 +53,7 @@ Source: `catalogue/crates/dado/src/diag.rs`,
 - Optional dependencies use `dep:` in the feature list.
 - The crate compiles with zero dependencies when no feature is enabled.
 
-Source: `catalogue/crates/dado/Cargo.toml`.
+Source: `crates/dado/Cargo.toml`.
 
 ### Formatting and linting
 
@@ -66,10 +66,10 @@ Source: `catalogue/crates/dado/Cargo.toml`.
 | Fact | Value | Source |
 |---|---|---|
 | Framework | Rust's built-in test harness (`cargo test`) | Rust toolchain; no external test framework in any manifest |
-| Run command | `cargo test --workspace --all-features` from `catalogue/` | `catalogue/Cargo.toml` |
+| Run command | `cargo test --workspace --all-features` from the repository root | `Cargo.toml` |
 | Unit test location | Inline `#[cfg(test)] mod tests` in the module under test | Rust convention; no counter-example in the repo |
 | Integration test location | `crates/<crate>/tests/` | Rust convention; the folder does not exist yet |
-| Existing tests | None | `catalogue/crates/**` |
+| Existing tests | None | `crates/**` |
 
 ### Error, retry, and rate-limit contract (documented)
 
@@ -116,8 +116,8 @@ Source: `catalogue/crates/dado/Cargo.toml`.
   used for indentation, and duplicate keys are rejected with a positioned error.
 - Unknown constructs are faults, never silent guesses.
 
-Source: `catalogue/crates/dado/src/yaml.rs`,
-`catalogue/crates/dado/README.md`.
+Source: `crates/dado/src/yaml.rs`,
+`crates/dado/README.md`.
 
 ## Standard Best Practices (from MCP/skills)
 

@@ -13,7 +13,7 @@ concurrency:
 
 defaults:
   run:
-    working-directory: catalogue
+    working-directory: .
 
 jobs:
   fmt:
@@ -26,7 +26,7 @@ jobs:
           components: rustfmt
       - uses: Swatinem/rust-cache@v2
         with:
-          workspaces: catalogue
+          workspaces: .
       - run: cargo fmt --all --check
 
   clippy:
@@ -39,7 +39,7 @@ jobs:
           components: clippy
       - uses: Swatinem/rust-cache@v2
         with:
-          workspaces: catalogue
+          workspaces: .
       - run: cargo clippy --workspace --all-features -- -D warnings
 
   docs:
@@ -52,7 +52,7 @@ jobs:
       - uses: dtolnay/rust-toolchain@stable
       - uses: Swatinem/rust-cache@v2
         with:
-          workspaces: catalogue
+          workspaces: .
       - run: cargo doc --workspace --all-features --no-deps
 
   package:
@@ -63,7 +63,7 @@ jobs:
       - uses: dtolnay/rust-toolchain@stable
       - uses: Swatinem/rust-cache@v2
         with:
-          workspaces: catalogue
+          workspaces: .
       - run: cargo package --workspace
 
   test:
@@ -78,7 +78,7 @@ jobs:
       - uses: dtolnay/rust-toolchain@stable
       - uses: Swatinem/rust-cache@v2
         with:
-          workspaces: catalogue
+          workspaces: .
       - run: cargo test --workspace --all-features
 
   msrv:
@@ -89,6 +89,6 @@ jobs:
       - uses: dtolnay/rust-toolchain@1.85.0
       - uses: Swatinem/rust-cache@v2
         with:
-          workspaces: catalogue
+          workspaces: .
       - run: cargo build --workspace --all-features
       - run: cargo test --workspace --all-features

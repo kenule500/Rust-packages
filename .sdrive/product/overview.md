@@ -35,7 +35,7 @@ Rust teams integrating many external APIs face the same recurring costs:
 
 The repository already states the thesis: "Every GIA service that talks to Twilio or Stripe uses the same client, the same error type, and the same retry policy." The product plan turns that thesis into a publishable ecosystem.
 
-Source: `catalogue/README.md` sections "Why these are separate from the app" and "Public crates.io, not app-only".
+Source: `README.md` sections "Why these are separate from the app" and "Public crates.io, not app-only".
 
 ## Target users
 
@@ -136,16 +136,16 @@ The 11 public crates:
 
 | Constraint | Source |
 |---|---|
-| Rust edition 2021, MSRV 1.85 | `.sdrive/constitution.md` CON-102; `catalogue/Cargo.toml` |
-| `MIT OR Apache-2.0` | CON-102; `catalogue/Cargo.toml` |
-| Single Cargo workspace at `catalogue/`, members `crates/*` | CON-101 |
+| Rust edition 2021, MSRV 1.85 | `.sdrive/constitution.md` CON-102; `Cargo.toml` |
+| `MIT OR Apache-2.0` | CON-102; `Cargo.toml` |
+| Single Cargo workspace at the repository root, members `crates/*` | CON-101 |
 | One job per package; no framework | CON-103 |
 | Providers are `wirekit` modules, not crates | CON-104 |
 | No application domain types in public crates | CON-106 |
 | Stateful concerns live in their own crates | CON-107 |
 | crates.io names are permanent | CON-111 |
 | No CI, tests, `rustfmt.toml`, or `clippy.toml` exist today | `.sdrive/context/project-overview.md` |
-| `Cargo.lock` is ignored and untracked | `catalogue/.gitignore` |
+| `Cargo.lock` is ignored and untracked | `.gitignore` |
 | One team member (`kenule500`, admin) | `.sdrive/team.json` |
 | Provider access approvals are external | `catalogue/00_provider_index.md` |
 | No UI or Figma data | `.sdrive/context/ui-context.md` |
@@ -191,22 +191,22 @@ These are proposals, not commitments:
 
 | Fact | Detail |
 |---|---|
-| Workspace | `catalogue/Cargo.toml`, members `crates/*` |
+| Workspace | `Cargo.toml`, members `crates/*` |
 | Implemented crates | `dado` 0.1.0 only |
-| `dado` state | `diag`, `graph`, `emit`, `glob` implemented; `yaml` returns `D0001` |
-| Documentation | 39 Markdown files in `catalogue/` |
+| `dado` state | Implemented: strict YAML subset, diagnostics, graph, emit, and glob |
+| Documentation | 38 provider/design Markdown files in `catalogue/` plus the root README |
 | Missing referenced doc | `21_Packages_To_Build.md` is cited but absent |
-| Feature specs | None; `.sdrive/specs/` is empty |
+| Feature specs | `m0-foundation` v1 (in progress) |
 | Product plan | This document set |
 | Default branch | `main` |
 | Remote | `https://github.com/kenule500/Rust-packages.git` |
-| CI | None |
-| Tests | None |
+| CI | GitHub Actions (`.github/workflows/ci.yml`) |
+| Tests | 38 Rust tests; 36 pass, 2 ignored pending publish and tag checks |
 
 ## Architecture and package boundaries
 
 ```
-catalogue/
+Packages/                     # repository root
   Cargo.toml                  # workspace, members = crates/*
   crates/
     dado/                     # foundation, no I/O
@@ -221,6 +221,7 @@ catalogue/
     studio-protocol/          # control protocol (planned)
     rtmp-publish/             # egress model (planned)
     signedlink/               # signed links (planned)
+  catalogue/                  # provider and design Markdown only
 ```
 
 Dependency direction:
@@ -323,7 +324,7 @@ These are high-level patterns the plan borrows from, not copied designs or APIs:
 
 The user did not name these references. They are recorded as **proposed inspiration**, not confirmed guidance. Replace or remove them if the user prefers different models.
 
-Source for the product facts: `catalogue/README.md`, `catalogue/00_provider_index.md`, and `catalogue/01_wirekit.md` through `catalogue/37_signedlink.md`.
+Source for the product facts: `README.md`, `catalogue/00_provider_index.md`, and `catalogue/01_wirekit.md` through `catalogue/37_signedlink.md`.
 
 ## Open questions
 

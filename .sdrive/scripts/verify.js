@@ -69,7 +69,7 @@ const CANDIDATE_ROOTS = [
   "locales",
   "i18n",
   "content",
-  "catalogue"
+  "crates"
 ];
 
 const IGNORED_DIRS = new Set([
@@ -217,8 +217,7 @@ function filesContainRustDefinition(files, name) {
 function repositoryMentionsDependency(name) {
   const candidates = [
     "Cargo.toml",
-    "catalogue/Cargo.toml",
-    "catalogue/crates/dado/Cargo.toml",
+    "crates/dado/Cargo.toml",
     ".github/workflows/ci.yml",
     "README.md",
     "CONTRIBUTING.md",

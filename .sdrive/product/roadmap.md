@@ -40,7 +40,7 @@ Make the repository safe to publish from. Finish the one crate that already exis
 
 ### Work detail
 
-- **`dado` parser:** implement the YAML 1.2 core subset described in `catalogue/crates/dado/README.md`; reject unsupported constructs with positioned errors; replace the `D0001` scaffold.
+- **`dado` parser:** implement the YAML 1.2 core subset described in `crates/dado/README.md`; reject unsupported constructs with positioned errors; replace the `D0001` scaffold.
 - **CI:** run `cargo fmt --check`, `cargo clippy --workspace --all-features -- -D warnings`, `cargo test --workspace --all-features`, `cargo doc --workspace --all-features --no-deps`, and an MSRV check on 1.85.
 - **Contributor docs:** state the branch policy, the test requirement, the source-citation rule, and how to report a security issue privately.
 - **Release runbook:** metadata checklist, version bump, changelog, `cargo publish --dry-run`, publish order, and rollback guidance.

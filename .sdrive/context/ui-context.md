@@ -8,12 +8,13 @@
 
 ### This repository has no UI layer
 
-- `catalogue/` contains Rust crates and Markdown design docs only.
+- The repository root contains the Cargo workspace and crates; `catalogue/`
+  contains only Markdown design docs.
 - There are no HTML, CSS, JavaScript, template, or asset files.
 - The only non-Rust source is Markdown documentation.
 - The README describes the project as public Rust packages, not an application:
   "Package docs, implementation, releases, and crates.io publishing happen here."
-  Source: `catalogue/README.md`.
+  Source: `README.md`.
 
 ### UI obligations that belong to the consuming app
 

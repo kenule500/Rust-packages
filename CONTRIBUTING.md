@@ -2,13 +2,13 @@
 
 `dado` is the base layer for config-driven Rust tools: a strict YAML parser,
 diagnostics, dependency graphs, code emission, and glob matching. The Cargo
-workspace lives in [`catalogue/`](catalogue/), with the published crate at
-[`catalogue/crates/dado/`](catalogue/crates/dado/).
+workspace lives at the repository root, with the published crate at
+[`crates/dado/`](crates/dado/).
 
 ## Prerequisites
 
 - Rust 1.85 or newer. The workspace's MSRV is declared in
-  [`catalogue/Cargo.toml`](catalogue/Cargo.toml).
+  [`Cargo.toml`](Cargo.toml).
 - `rustfmt` and `clippy` components:
   `rustup component add rustfmt clippy`
 - Git and a GitHub account.
@@ -16,11 +16,9 @@ workspace lives in [`catalogue/`](catalogue/), with the published crate at
 
 ## Build and test
 
-Run commands from `catalogue/`:
+Run commands from the repository root:
 
 ```sh
-cd catalogue
-
 # Build every feature
 cargo build --workspace --all-features
 

@@ -35,7 +35,6 @@ publishing; do not publish under a different name without approval.
 Confirm the version and metadata:
 
 ```sh
-cd catalogue
 cargo metadata --no-deps --format-version 1
 ```
 
@@ -45,14 +44,14 @@ and `glob` features.
 
 ## 2. Version and changelog
 
-1. Set `version = "0.1.0"` in `catalogue/crates/dado/Cargo.toml`.
+1. Set `version = "0.1.0"` in `crates/dado/Cargo.toml`.
 2. Add or update the `0.1.0` section in
-   `catalogue/crates/dado/CHANGELOG.md`.
-3. Confirm `README.md` describes the current API and builds as published.
+   `crates/dado/CHANGELOG.md`.
+3. Confirm `crates/dado/README.md` describes the current API and builds as published.
 4. Commit the release preparation:
 
    ```sh
-   git add catalogue/crates/dado/Cargo.toml catalogue/crates/dado/CHANGELOG.md
+   git add crates/dado/Cargo.toml crates/dado/CHANGELOG.md
    git commit -m "specdrive(release): prepare dado 0.1.0"
    git push origin main
    ```
@@ -62,7 +61,7 @@ bypass required checks.
 
 ## 3. Package and dry-run
 
-From `catalogue/`:
+From the repository root:
 
 ```sh
 cargo package -p dado --list
@@ -81,7 +80,6 @@ file, commit it, or paste it into an issue.
 
 ```sh
 export CARGO_REGISTRY_TOKEN="<token supplied by your secret store>"
-cd catalogue
 cargo publish -p dado
 ```
 
@@ -89,7 +87,6 @@ PowerShell:
 
 ```powershell
 $env:CARGO_REGISTRY_TOKEN = "<token supplied by your secret store>"
-cd catalogue
 cargo publish -p dado
 ```
 
@@ -151,8 +148,8 @@ stop and document a new release plan before publishing anything else.
 - [ ] `main` is clean and up to date.
 - [ ] CI is green on the release commit.
 - [ ] `https://crates.io/api/v1/crates/dado` returns `404`.
-- [ ] Version is `0.1.0` in `Cargo.toml`.
-- [ ] `CHANGELOG.md` has the `0.1.0` entry.
+- [ ] Version is `0.1.0` in `crates/dado/Cargo.toml`.
+- [ ] `crates/dado/CHANGELOG.md` has the `0.1.0` entry.
 - [ ] `cargo fmt --all --check` passes.
 - [ ] `cargo clippy --workspace --all-features -- -D warnings` passes.
 - [ ] `cargo test --workspace --all-features` passes.

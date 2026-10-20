@@ -123,7 +123,7 @@ Depends on: P1, P2
   - Acceptance criteria: AC-032, AC-034
 
 - [x] **T5.2 - Add the dado changelog**
-  - Description: Create `catalogue/crates/dado/CHANGELOG.md` in Keep a Changelog format with a `0.1.0` entry covering the first YAML parser, diagnostics offset, and baseline release.
+  - Description: Create `crates/dado/CHANGELOG.md` in Keep a Changelog format with a `0.1.0` entry covering the first YAML parser, diagnostics offset, and baseline release.
   - Requirements: FR-017
   - Acceptance criteria: AC-030
 

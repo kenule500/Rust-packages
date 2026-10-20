@@ -13,43 +13,43 @@
 
 | AC ID | Test ID | File | Status |
 |-------|---------|------|--------|
-| AC-001 | TEST-001 | catalogue/crates/dado/tests/m0-foundation/yaml_values.rs | ✅ Pass |
-| AC-002 | TEST-002 | catalogue/crates/dado/tests/m0-foundation/yaml_values.rs | ✅ Pass |
-| AC-003 | TEST-003 | catalogue/crates/dado/tests/m0-foundation/yaml_values.rs | ✅ Pass |
-| AC-004 | TEST-004 | catalogue/crates/dado/tests/m0-foundation/yaml_values.rs | ✅ Pass |
-| AC-005 | TEST-005 | catalogue/crates/dado/tests/m0-foundation/yaml_values.rs | ✅ Pass |
-| AC-006 | TEST-006 | catalogue/crates/dado/tests/m0-foundation/yaml_values.rs | ✅ Pass |
-| AC-007 | TEST-007 | catalogue/crates/dado/tests/m0-foundation/yaml_values.rs | ✅ Pass |
-| AC-008 | TEST-008 | catalogue/crates/dado/tests/m0-foundation/yaml_values.rs | ✅ Pass |
-| AC-009 | TEST-009 | catalogue/crates/dado/tests/m0-foundation/yaml_values.rs | ✅ Pass |
-| AC-010 | TEST-010 | catalogue/crates/dado/tests/m0-foundation/yaml_values.rs | ✅ Pass |
-| AC-011 | TEST-011 | catalogue/crates/dado/tests/m0-foundation/yaml_errors.rs | ✅ Pass |
-| AC-012 | TEST-012 | catalogue/crates/dado/tests/m0-foundation/yaml_errors.rs | ✅ Pass |
-| AC-013 | TEST-013 | catalogue/crates/dado/tests/m0-foundation/yaml_errors.rs | ✅ Pass |
-| AC-014 | TEST-014 | catalogue/crates/dado/tests/m0-foundation/quality_baseline.rs | ✅ Pass |
-| AC-015 | TEST-015 | catalogue/crates/dado/tests/m0-foundation/quality_baseline.rs | ✅ Pass |
-| AC-016 | TEST-016 | catalogue/crates/dado/tests/m0-foundation/quality_baseline.rs | ✅ Pass |
-| AC-017 | TEST-017 | catalogue/crates/dado/tests/m0-foundation/quality_baseline.rs | ✅ Pass |
-| AC-018 | TEST-018 | catalogue/crates/dado/tests/m0-foundation/quality_baseline.rs | ✅ Pass |
-| AC-019 | TEST-019 | catalogue/crates/dado/tests/m0-foundation/quality_baseline.rs | ✅ Pass |
-| AC-020 | TEST-020 | catalogue/crates/dado/tests/m0-foundation/quality_baseline.rs | ✅ Pass |
-| AC-021 | TEST-021 | catalogue/crates/dado/tests/m0-foundation/quality_baseline.rs | ✅ Pass |
-| AC-022 | TEST-022 | catalogue/crates/dado/tests/m0-foundation/contributor_docs.rs | ✅ Pass |
-| AC-023 | TEST-023 | catalogue/crates/dado/tests/m0-foundation/contributor_docs.rs | ✅ Pass |
-| AC-024 | TEST-024 | catalogue/crates/dado/tests/m0-foundation/contributor_docs.rs | ✅ Pass |
-| AC-025 | TEST-025 | catalogue/crates/dado/tests/m0-foundation/contributor_docs.rs | ✅ Pass |
-| AC-026 | TEST-026 | catalogue/crates/dado/tests/m0-foundation/contributor_docs.rs | ✅ Pass |
-| AC-027 | TEST-027 | catalogue/crates/dado/tests/m0-foundation/contributor_docs.rs | ✅ Pass |
-| AC-028 | TEST-028 | catalogue/crates/dado/tests/m0-foundation/release_readiness.rs | ✅ Pass |
-| AC-029 | TEST-029 | catalogue/crates/dado/tests/m0-foundation/release_readiness.rs | ⚠️ Blocked |
-| AC-030 | TEST-030 | catalogue/crates/dado/tests/m0-foundation/release_readiness.rs | ⚠️ Partial |
-| AC-031 | TEST-031 | catalogue/crates/dado/tests/m0-foundation/release_readiness.rs | ✅ Pass |
-| AC-032 | TEST-032 | catalogue/crates/dado/tests/m0-foundation/release_readiness.rs | ✅ Pass |
-| AC-033 | TEST-033 | catalogue/crates/dado/tests/m0-foundation/release_readiness.rs | ✅ Pass |
-| AC-034 | TEST-034 | catalogue/crates/dado/tests/m0-foundation/release_readiness.rs | ✅ Pass |
-| AC-035 | TEST-035 | catalogue/crates/dado/tests/m0-foundation/purity.rs | ✅ Pass |
-| AC-036 | TEST-036 | catalogue/crates/dado/tests/m0-foundation/purity.rs | ✅ Pass |
-| AC-037 | TEST-037 | catalogue/crates/dado/tests/m0-foundation/purity.rs | ✅ Pass |
+| AC-001 | TEST-001 | crates/dado/tests/m0-foundation/yaml_values.rs | ✅ Pass |
+| AC-002 | TEST-002 | crates/dado/tests/m0-foundation/yaml_values.rs | ✅ Pass |
+| AC-003 | TEST-003 | crates/dado/tests/m0-foundation/yaml_values.rs | ✅ Pass |
+| AC-004 | TEST-004 | crates/dado/tests/m0-foundation/yaml_values.rs | ✅ Pass |
+| AC-005 | TEST-005 | crates/dado/tests/m0-foundation/yaml_values.rs | ✅ Pass |
+| AC-006 | TEST-006 | crates/dado/tests/m0-foundation/yaml_values.rs | ✅ Pass |
+| AC-007 | TEST-007 | crates/dado/tests/m0-foundation/yaml_values.rs | ✅ Pass |
+| AC-008 | TEST-008 | crates/dado/tests/m0-foundation/yaml_values.rs | ✅ Pass |
+| AC-009 | TEST-009 | crates/dado/tests/m0-foundation/yaml_values.rs | ✅ Pass |
+| AC-010 | TEST-010 | crates/dado/tests/m0-foundation/yaml_values.rs | ✅ Pass |
+| AC-011 | TEST-011 | crates/dado/tests/m0-foundation/yaml_errors.rs | ✅ Pass |
+| AC-012 | TEST-012 | crates/dado/tests/m0-foundation/yaml_errors.rs | ✅ Pass |
+| AC-013 | TEST-013 | crates/dado/tests/m0-foundation/yaml_errors.rs | ✅ Pass |
+| AC-014 | TEST-014 | crates/dado/tests/m0-foundation/quality_baseline.rs | ✅ Pass |
+| AC-015 | TEST-015 | crates/dado/tests/m0-foundation/quality_baseline.rs | ✅ Pass |
+| AC-016 | TEST-016 | crates/dado/tests/m0-foundation/quality_baseline.rs | ✅ Pass |
+| AC-017 | TEST-017 | crates/dado/tests/m0-foundation/quality_baseline.rs | ✅ Pass |
+| AC-018 | TEST-018 | crates/dado/tests/m0-foundation/quality_baseline.rs | ✅ Pass |
+| AC-019 | TEST-019 | crates/dado/tests/m0-foundation/quality_baseline.rs | ✅ Pass |
+| AC-020 | TEST-020 | crates/dado/tests/m0-foundation/quality_baseline.rs | ✅ Pass |
+| AC-021 | TEST-021 | crates/dado/tests/m0-foundation/quality_baseline.rs | ✅ Pass |
+| AC-022 | TEST-022 | crates/dado/tests/m0-foundation/contributor_docs.rs | ✅ Pass |
+| AC-023 | TEST-023 | crates/dado/tests/m0-foundation/contributor_docs.rs | ✅ Pass |
+| AC-024 | TEST-024 | crates/dado/tests/m0-foundation/contributor_docs.rs | ✅ Pass |
+| AC-025 | TEST-025 | crates/dado/tests/m0-foundation/contributor_docs.rs | ✅ Pass |
+| AC-026 | TEST-026 | crates/dado/tests/m0-foundation/contributor_docs.rs | ✅ Pass |
+| AC-027 | TEST-027 | crates/dado/tests/m0-foundation/contributor_docs.rs | ✅ Pass |
+| AC-028 | TEST-028 | crates/dado/tests/m0-foundation/release_readiness.rs | ✅ Pass |
+| AC-029 | TEST-029 | crates/dado/tests/m0-foundation/release_readiness.rs | ⚠️ Blocked |
+| AC-030 | TEST-030 | crates/dado/tests/m0-foundation/release_readiness.rs | ⚠️ Partial |
+| AC-031 | TEST-031 | crates/dado/tests/m0-foundation/release_readiness.rs | ✅ Pass |
+| AC-032 | TEST-032 | crates/dado/tests/m0-foundation/release_readiness.rs | ✅ Pass |
+| AC-033 | TEST-033 | crates/dado/tests/m0-foundation/release_readiness.rs | ✅ Pass |
+| AC-034 | TEST-034 | crates/dado/tests/m0-foundation/release_readiness.rs | ✅ Pass |
+| AC-035 | TEST-035 | crates/dado/tests/m0-foundation/purity.rs | ✅ Pass |
+| AC-036 | TEST-036 | crates/dado/tests/m0-foundation/purity.rs | ✅ Pass |
+| AC-037 | TEST-037 | crates/dado/tests/m0-foundation/purity.rs | ✅ Pass |
 
 ## 3. Failures
 
@@ -60,7 +60,7 @@
 
 ## 4. Notes
 
-- Framework: Rust's built-in test harness (`cargo test`), per CON-401 and CON-402. Tests live under `catalogue/crates/dado/tests/m0-foundation/`, per CON-403 and CON-406. Every test name carries its AC ID.
+- Framework: Rust's built-in test harness (`cargo test`), per CON-401 and CON-402. Tests live under `crates/dado/tests/m0-foundation/`, per CON-403 and CON-406. Every test name carries its AC ID.
 - `cargo test --workspace --all-features` exited 0: 36 passed, 0 failed, 2 ignored (38 test functions). The two ignored tests are the post-publish and post-release checks above.
 - AC-014 through AC-021 assert the workflow contract. The commands themselves were also run locally: `cargo fmt --all --check`, `cargo clippy --workspace --all-features --all-targets -- -D warnings`, `RUSTDOCFLAGS="-D warnings" cargo doc --workspace --all-features --no-deps`, and `cargo package --workspace` all passed. CI run 39450156382 is green on format, clippy, docs, package, the three-OS test matrix, and MSRV 1.85.
 - `cargo package --workspace` packaged 14 files (94.0 KiB) and verified the package. Cargo warned that the new integration test target is not in the published package; that is intentional because `include` lists only the crate sources and release files.

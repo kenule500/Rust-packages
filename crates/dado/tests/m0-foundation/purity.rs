@@ -113,7 +113,7 @@ fn ac_037_crate_root_forbids_unsafe_code_and_denies_missing_docs() {
     assert_contains(&lib, "#![forbid(unsafe_code)]", "src/lib.rs");
     assert_contains(&lib, "#![deny(missing_docs)]", "src/lib.rs");
     assert_contains(
-        &read_repo("catalogue/Cargo.toml"),
+        &read_repo("Cargo.toml"),
         "edition = \"2021\"",
         "workspace edition",
     );

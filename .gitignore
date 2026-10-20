@@ -3,3 +3,9 @@
 .sdrive/governance/*/*/test-evidence.json
 .sdrive/governance/*/*/verification.json
 .sdrive/audit-log.json
+
+# Cargo build output and local lockfile
+target/
+**/*.rs.bk
+Cargo.lock
+.DS_Store

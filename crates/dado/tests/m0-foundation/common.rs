@@ -2,12 +2,12 @@
 
 use std::path::{Path, PathBuf};
 
-/// Repository root, three levels above the `dado` crate directory.
+/// Repository root, two levels above the `dado` crate directory.
 pub fn repo_root() -> PathBuf {
     Path::new(env!("CARGO_MANIFEST_DIR"))
         .ancestors()
-        .nth(3)
-        .expect("dado is nested three levels below the repository root")
+        .nth(2)
+        .expect("dado is nested two levels below the repository root")
         .to_path_buf()
 }
 

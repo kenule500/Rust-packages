@@ -182,7 +182,7 @@
         {
           "id": "T5.2",
           "title": "Add the dado changelog",
-          "description": "Create catalogue/crates/dado/CHANGELOG.md in Keep a Changelog format with a 0.1.0 entry covering the first YAML parser, diagnostics offset, and baseline release.",
+          "description": "Create crates/dado/CHANGELOG.md in Keep a Changelog format with a 0.1.0 entry covering the first YAML parser, diagnostics offset, and baseline release.",
           "linkedRequirements": ["FR-017"],
           "linkedAcceptanceCriteria": ["AC-030"],
           "completed": true

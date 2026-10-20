@@ -1,6 +1,6 @@
 # Project Constitution
 
-> **Version:** 1.0.0
+> **Version:** 1.1.0
 > **Last Updated:** 2026-10-20
 > **Status:** Active
 
@@ -8,26 +8,26 @@ This document is the single source of truth for all project standards, rules, an
 
 ## 1. Tech Stack & Architecture (CON-1xx)
 
-- **CON-101:** The repository MUST use one Cargo workspace rooted at `catalogue/` with members declared as `crates/*`. <!-- source: .sdrive/context/architecture-context.md §Workspace shape; catalogue/Cargo.toml -->
-- **CON-102:** Every crate MUST inherit `edition = "2021"`, `rust-version = "1.85"`, and `license = "MIT OR Apache-2.0"` from `[workspace.package]`. Overriding them requires a constitution amendment. <!-- source: .sdrive/context/architecture-context.md §Workspace shape; catalogue/Cargo.toml -->
-- **CON-103:** Every package MUST have exactly one job. Packages MUST NOT be merged into a framework. <!-- source: .sdrive/context/project-overview.md §Purpose; catalogue/README.md -->
+- **CON-101:** The repository MUST use one Cargo workspace rooted at the repository root with members declared as `crates/*`. <!-- source: .sdrive/context/architecture-context.md §Workspace shape; Cargo.toml -->
+- **CON-102:** Every crate MUST inherit `edition = "2021"`, `rust-version = "1.85"`, and `license = "MIT OR Apache-2.0"` from `[workspace.package]`. Overriding them requires a constitution amendment. <!-- source: .sdrive/context/architecture-context.md §Workspace shape; Cargo.toml -->
+- **CON-103:** Every package MUST have exactly one job. Packages MUST NOT be merged into a framework. <!-- source: .sdrive/context/project-overview.md §Purpose; README.md -->
 - **CON-104:** Provider integrations MUST ship as feature-flagged modules of `wirekit`. A provider MUST NOT become a separate crate without a constitution amendment. <!-- source: .sdrive/context/architecture-context.md §Provider clients are modules, not crates; catalogue/00_provider_index.md -->
 - **CON-105:** A new provider module MUST have a design file following the `03`-`28` pattern before implementation begins. <!-- source: .sdrive/context/architecture-context.md §Provider clients are modules, not crates; catalogue/01_wirekit.md -->
-- **CON-106:** Public crates MUST NOT contain application domain types, billing rules, product UI, or vendor workflow code. Those belong in the consuming application. <!-- source: .sdrive/context/project-overview.md §Purpose; catalogue/README.md; catalogue/31_platform_core.md -->
+- **CON-106:** Public crates MUST NOT contain application domain types, billing rules, product UI, or vendor workflow code. Those belong in the consuming application. <!-- source: .sdrive/context/project-overview.md §Purpose; README.md; catalogue/31_platform_core.md -->
 - **CON-107:** Stateful concerns (quota, webhook delivery state, token storage) MUST live in their own crates and MUST NOT be added to `wirekit`. <!-- source: .sdrive/context/architecture-context.md §Why stateful packages are separate; catalogue/29_quota.md; catalogue/30_webhook_gateway.md -->
-- **CON-108:** `dado` MUST remain I/O-free: no sockets, no URLs, no runtime, and no file writes. Callers fetch; `dado` parses. <!-- source: .sdrive/context/architecture-context.md §Purity and I/O boundaries; catalogue/crates/dado/README.md; catalogue/crates/dado/src/lib.rs -->
+- **CON-108:** `dado` MUST remain I/O-free: no sockets, no URLs, no runtime, and no file writes. Callers fetch; `dado` parses. <!-- source: .sdrive/context/architecture-context.md §Purity and I/O boundaries; crates/dado/README.md; crates/dado/src/lib.rs -->
 - **CON-109:** Public crates MUST NOT expose a global mutable singleton. Registration MUST be explicit. <!-- source: .sdrive/context/architecture-context.md §Direction of dependencies; catalogue/31_platform_core.md -->
 - **CON-110:** A public crate MUST NOT depend on a consuming application. Dependencies point from the application to the crate. <!-- source: .sdrive/context/project-overview.md §Purpose; .sdrive/context/architecture-context.md §Direction of dependencies -->
-- **CON-111:** A crate name MUST be checked on crates.io immediately before publication. A published name is permanent and MUST NOT be reused. <!-- source: .sdrive/context/project-overview.md §Publishing status; catalogue/README.md -->
+- **CON-111:** A crate name MUST be checked on crates.io immediately before publication. A published name is permanent and MUST NOT be reused. <!-- source: .sdrive/context/project-overview.md §Publishing status; README.md -->
 
 ## 2. Coding Standards (CON-2xx)
 
-- **CON-201:** Every crate MUST declare `#![forbid(unsafe_code)]`. Any exception MUST be justified in the crate's design document and approved by a constitution amendment. <!-- source: .sdrive/context/code-standards.md §Crate-level lint attributes; catalogue/crates/dado/src/lib.rs -->
-- **CON-202:** Every crate MUST declare `#![deny(missing_docs)]`, and every public item MUST have a rustdoc comment. <!-- source: .sdrive/context/code-standards.md §Crate-level lint attributes; catalogue/crates/dado/src/lib.rs -->
-- **CON-203:** Every module MUST start with a `//!` doc comment that states its scope and its non-goals. <!-- source: .sdrive/context/code-standards.md §Documentation style; catalogue/crates/dado/src/*.rs -->
+- **CON-201:** Every crate MUST declare `#![forbid(unsafe_code)]`. Any exception MUST be justified in the crate's design document and approved by a constitution amendment. <!-- source: .sdrive/context/code-standards.md §Crate-level lint attributes; crates/dado/src/lib.rs -->
+- **CON-202:** Every crate MUST declare `#![deny(missing_docs)]`, and every public item MUST have a rustdoc comment. <!-- source: .sdrive/context/code-standards.md §Crate-level lint attributes; crates/dado/src/lib.rs -->
+- **CON-203:** Every module MUST start with a `//!` doc comment that states its scope and its non-goals. <!-- source: .sdrive/context/code-standards.md §Documentation style; crates/dado/src/*.rs -->
 - **CON-204:** Optional functionality MUST be behind additive Cargo features. Enabling a feature MUST NOT disable another, and the default feature set MUST be documented. <!-- source: .sdrive/context/code-standards.md §Feature style; https://doc.rust-lang.org/cargo/reference/features.html -->
-- **CON-205:** Error types MUST expose a stable code and implement `Display` and `std::error::Error`. A published code MUST NOT be reused with a different meaning. <!-- source: .sdrive/context/code-standards.md §Error style; catalogue/crates/dado/src/diag.rs; catalogue/crates/dado/src/yaml.rs -->
-- **CON-206:** Unsupported or unknown input constructs MUST produce a positioned error. They MUST NOT be silently guessed or ignored. <!-- source: .sdrive/context/code-standards.md §YAML contract; catalogue/crates/dado/src/yaml.rs -->
+- **CON-205:** Error types MUST expose a stable code and implement `Display` and `std::error::Error`. A published code MUST NOT be reused with a different meaning. <!-- source: .sdrive/context/code-standards.md §Error style; crates/dado/src/diag.rs; crates/dado/src/yaml.rs -->
+- **CON-206:** Unsupported or unknown input constructs MUST produce a positioned error. They MUST NOT be silently guessed or ignored. <!-- source: .sdrive/context/code-standards.md §YAML contract; crates/dado/src/yaml.rs -->
 - **CON-207:** Every provider client MUST map failures into the shared `WirekitError` enum. A provider MUST NOT introduce a second error type. <!-- source: .sdrive/context/code-standards.md §Error, retry, and rate-limit contract; catalogue/01_wirekit.md -->
 - **CON-208:** HTTP retries MUST use exponential backoff with jitter, 3 attempts by default, retry on 5xx/429/network errors, honor `Retry-After`, and MUST NOT retry other 4xx. <!-- source: .sdrive/context/code-standards.md §Error, retry, and rate-limit contract; catalogue/01_wirekit.md -->
 - **CON-209:** Rate limiting MUST be a per-provider token bucket with per-provider overrides and tracing metrics. <!-- source: .sdrive/context/code-standards.md §Error, retry, and rate-limit contract; catalogue/01_wirekit.md -->
@@ -47,12 +47,12 @@ This document is the single source of truth for all project standards, rules, an
 
 ## 4. Testing & Quality (CON-4xx)
 
-- **CON-401:** Test framework is Rust's built-in test harness (`cargo test`). <!-- source: .sdrive/context/code-standards.md §Tests; catalogue/Cargo.toml -->
-- **CON-402:** Run tests with `cargo test --workspace --all-features` from `catalogue/`. <!-- source: .sdrive/context/code-standards.md §Tests; catalogue/Cargo.toml -->
-- **CON-403:** Unit tests live in inline `#[cfg(test)]` modules. Integration tests live under `catalogue/crates/<crate>/tests/`. <!-- source: .sdrive/context/code-standards.md §Tests -->
+- **CON-401:** Test framework is Rust's built-in test harness (`cargo test`). <!-- source: .sdrive/context/code-standards.md §Tests; Cargo.toml -->
+- **CON-402:** Run tests with `cargo test --workspace --all-features` from the repository root. <!-- source: .sdrive/context/code-standards.md §Tests; Cargo.toml -->
+- **CON-403:** Unit tests live in inline `#[cfg(test)]` modules. Integration tests live under `crates/<crate>/tests/`. <!-- source: .sdrive/context/code-standards.md §Tests -->
 - **CON-404:** Every acceptance criterion MUST have at least one test. <!-- source: SpecDrive -->
 - **CON-405:** Test names MUST include the acceptance criterion ID (e.g., `AC-001`). <!-- source: SpecDrive -->
-- **CON-406:** Test files MUST be organized by feature, nested under the crate's test folder: `catalogue/crates/<crate>/tests/<feature>/<subfeature>.rs`. The `<feature>` segment MUST match the SpecDrive feature folder name (kebab-case). If the project adopts a flat test layout, ask the user before restructuring. <!-- source: SpecDrive; .sdrive/context/code-standards.md §Tests -->
+- **CON-406:** Test files MUST be organized by feature, nested under the crate's test folder: `crates/<crate>/tests/<feature>/<subfeature>.rs`. The `<feature>` segment MUST match the SpecDrive feature folder name (kebab-case). If the project adopts a flat test layout, ask the user before restructuring. <!-- source: SpecDrive; .sdrive/context/code-standards.md §Tests -->
 
 ## 5. Security & Compliance (CON-5xx)
 

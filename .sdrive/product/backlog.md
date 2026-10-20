@@ -177,9 +177,9 @@
 
 ### Derived from the repository
 
-- Crate boundaries, provider list, auth/retry/security rules: `catalogue/README.md`, `catalogue/00_provider_index.md`, and `catalogue/01_wirekit.md` through `catalogue/37_signedlink.md`.
-- Workspace, MSRV, licence: `catalogue/Cargo.toml`.
-- `dado` status: `catalogue/crates/dado/README.md`.
+- Crate boundaries, provider list, auth/retry/security rules: `README.md`, `catalogue/00_provider_index.md`, and `catalogue/01_wirekit.md` through `catalogue/37_signedlink.md`.
+- Workspace, MSRV, licence: `Cargo.toml`.
+- `dado` status: `crates/dado/README.md`.
 - Governance constraints: `.sdrive/constitution.md`.
 
 ### Agent recommendations

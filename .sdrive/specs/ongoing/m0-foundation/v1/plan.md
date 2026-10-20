@@ -99,10 +99,10 @@ The test jobs are CI configuration, not test authoring. `/sdrive:test` writes an
 
 | Component | Action | Description |
 |---|---|---|
-| `catalogue/crates/dado/src/yaml.rs` | modify | Replace the `D0001` scaffold with the lexer, parser, `YamlValue`, scalar resolution, serde deserializer, and error construction. |
-| `catalogue/crates/dado/src/lib.rs` | reuse | Keep the feature gates and crate-level lints; update docs only if the public surface changes. |
-| `catalogue/crates/dado/Cargo.toml` | modify | Keep existing dependencies and features; add package metadata and docs.rs configuration. |
-| `catalogue/Cargo.toml` | modify | Add shared `repository` metadata if inherited by the crate. |
+| `crates/dado/src/yaml.rs` | modify | Replace the `D0001` scaffold with the lexer, parser, `YamlValue`, scalar resolution, serde deserializer, and error construction. |
+| `crates/dado/src/lib.rs` | reuse | Keep the feature gates and crate-level lints; update docs only if the public surface changes. |
+| `crates/dado/Cargo.toml` | modify | Keep existing dependencies and features; add package metadata and docs.rs configuration. |
+| `Cargo.toml` | modify | Add shared `repository` metadata if inherited by the crate. |
 | `.github/workflows/ci.yml` | create | Format, clippy, docs, package, cross-platform test, and MSRV jobs. |
 | `CONTRIBUTING.md` | create | Setup, commands, branch and commit rules, SpecDrive workflow, PR checklist. |
 | `SECURITY.md` | create | Private advisory path, supported versions, response targets, disclosure policy. |
@@ -113,7 +113,7 @@ The test jobs are CI configuration, not test authoring. `/sdrive:test` writes an
 | `LICENSE-MIT` | create | MIT license text. |
 | `LICENSE-APACHE` | create | Apache-2.0 license text. |
 | `RELEASING.md` | create | Manual release runbook for `dado-v0.1.0`. |
-| `catalogue/crates/dado/CHANGELOG.md` | create | Keep a Changelog entry for 0.1.0. |
+| `crates/dado/CHANGELOG.md` | create | Keep a Changelog entry for 0.1.0. |
 
 ## Data Model
 

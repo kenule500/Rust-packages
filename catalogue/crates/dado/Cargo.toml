@@ -1,0 +1,22 @@
+[package]
+name = "dado"
+version = "0.1.0"
+edition.workspace = true
+rust-version.workspace = true
+license.workspace = true
+description = "The base layer for config-driven tools: strict YAML, diagnostics, dependency graphs, code emission, and glob matching."
+keywords = ["yaml", "parser", "diagnostics", "codegen", "config"]
+categories = ["parser-implementations", "development-tools"]
+
+[features]
+default = []
+yaml = ["dep:serde", "dep:winnow", "dep:indexmap"]
+diag = []
+graph = []
+emit = []
+glob = []
+
+[dependencies]
+serde = { version = "1.0.229", features = ["derive"], optional = true }
+winnow = { version = "1.0.4", optional = true }
+indexmap = { version = "2.14.2", features = ["serde"], optional = true }

@@ -1,0 +1,248 @@
+{
+  "version": "1.1.0",
+  "rules": {
+    "/sdrive:constitution": [
+      "admin"
+    ],
+    "/sdrive:product-plan": [
+      "admin",
+      "reviewer"
+    ],
+    "/sdrive:propose": [
+      "admin",
+      "reviewer"
+    ],
+    "/sdrive:update-propose": [
+      "admin",
+      "reviewer"
+    ],
+    "/sdrive:design": [
+      "admin",
+      "reviewer",
+      "developer"
+    ],
+    "/sdrive:sync": [
+      "admin",
+      "reviewer",
+      "developer"
+    ],
+    "/sdrive:skills": [
+      "admin"
+    ],
+    "/sdrive:docs": [
+      "admin",
+      "reviewer",
+      "developer"
+    ],
+    "/sdrive:apply": [
+      "admin",
+      "developer"
+    ],
+    "/sdrive:test": [
+      "admin",
+      "developer"
+    ],
+    "/sdrive:performance": [
+      "admin",
+      "developer"
+    ],
+    "/sdrive:debug": [
+      "admin",
+      "developer"
+    ],
+    "/sdrive:review": [
+      "admin",
+      "reviewer"
+    ],
+    "/sdrive:archive": [
+      "admin",
+      "reviewer"
+    ],
+    "/sdrive:secure": [
+      "admin",
+      "developer"
+    ],
+    "/sdrive:onboard": [
+      "admin"
+    ]
+  },
+  "cli": {
+    "init": [
+      "admin"
+    ],
+    "update": [
+      "admin"
+    ],
+    "template:list": [
+      "admin",
+      "reviewer",
+      "developer"
+    ],
+    "template:set": [
+      "admin"
+    ],
+    "config:validate": [
+      "admin",
+      "reviewer",
+      "developer"
+    ],
+    "config:get": [
+      "admin",
+      "reviewer",
+      "developer"
+    ],
+    "config:set": [
+      "admin"
+    ],
+    "doctor": [
+      "admin",
+      "reviewer",
+      "developer"
+    ],
+    "validate": [
+      "admin",
+      "reviewer",
+      "developer"
+    ],
+    "verify": [
+      "admin",
+      "reviewer",
+      "developer"
+    ],
+    "check": [
+      "admin",
+      "developer"
+    ],
+    "test": [
+      "admin",
+      "developer"
+    ],
+    "create": [
+      "admin",
+      "reviewer",
+      "developer"
+    ],
+    "update-propose": [
+      "admin",
+      "reviewer"
+    ],
+    "assign": [
+      "admin",
+      "reviewer"
+    ],
+    "status": [
+      "admin",
+      "reviewer",
+      "developer"
+    ],
+    "approve": [
+      "admin",
+      "reviewer"
+    ],
+    "archive:check": [
+      "admin",
+      "reviewer"
+    ],
+    "archive:finalize": [
+      "admin",
+      "reviewer"
+    ],
+    "team:add": [
+      "admin"
+    ],
+    "team:remove": [
+      "admin"
+    ],
+    "team:list": [
+      "admin",
+      "reviewer",
+      "developer"
+    ],
+    "team:update": [
+      "admin"
+    ],
+    "team:sync": [
+      "admin"
+    ],
+    "hooks:install": [
+      "admin"
+    ],
+    "diff": [
+      "admin",
+      "reviewer",
+      "developer"
+    ],
+    "openapi:generate": [
+      "admin",
+      "reviewer",
+      "developer"
+    ],
+    "dashboard": [
+      "admin",
+      "reviewer",
+      "developer"
+    ],
+    "amend": [
+      "admin",
+      "reviewer"
+    ],
+    "reopen": [
+      "admin",
+      "reviewer"
+    ],
+    "onboard": [
+      "admin"
+    ],
+    "version:new": [
+      "admin",
+      "reviewer"
+    ],
+    "diff:version": [
+      "admin",
+      "reviewer",
+      "developer"
+    ],
+    "adapters:list": [
+      "admin",
+      "reviewer",
+      "developer"
+    ],
+    "adapters:verify": [
+      "admin",
+      "reviewer",
+      "developer"
+    ],
+    "adapters:add": [
+      "admin"
+    ],
+    "permissions:check": [
+      "admin"
+    ],
+    "audit:verify": [
+      "admin",
+      "reviewer",
+      "developer"
+    ],
+    "migrate:detect": [
+      "admin",
+      "reviewer",
+      "developer"
+    ],
+    "migrate:plan": [
+      "admin",
+      "reviewer",
+      "developer"
+    ],
+    "migrate:apply": [
+      "admin"
+    ],
+    "migrate:verify": [
+      "admin",
+      "reviewer",
+      "developer"
+    ],
+    "migrate:rollback": [
+      "admin"
+    ]
+  }
+}

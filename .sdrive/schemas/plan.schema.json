@@ -1,0 +1,167 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "Technical Plan",
+  "type": "object",
+  "properties": {
+    "feature": {
+      "type": "string",
+      "pattern": "^[a-z0-9-]+$"
+    },
+    "version": {
+      "type": "integer",
+      "minimum": 1
+    },
+    "architecture": {
+      "type": "object",
+      "properties": {
+        "approach": {
+          "type": "string",
+          "minLength": 10
+        },
+        "components": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "name": { "type": "string" },
+              "action": {
+                "enum": ["create", "modify", "reuse", "delete"]
+              },
+              "description": { "type": "string" }
+            },
+            "required": ["name", "action"]
+          }
+        },
+        "referencedRequirementIds": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "pattern": "^(FR|NFR)-[0-9]{3}$"
+          },
+          "uniqueItems": true
+        }
+      },
+      "required": ["approach", "components", "referencedRequirementIds"]
+    },
+    "dataModel": {
+      "type": "object",
+      "properties": {
+        "entities": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "name": { "type": "string" },
+              "action": {
+                "enum": ["create", "update", "no_change", "delete"]
+              },
+              "fields": {
+                "type": "array",
+                "items": {
+                  "type": "object",
+                  "properties": {
+                    "name": { "type": "string" },
+                    "type": { "type": "string" },
+                    "nullable": { "type": "boolean" },
+                    "action": {
+                      "enum": ["add", "modify", "remove", "no_change"]
+                    }
+                  },
+                  "required": ["name", "type", "action"]
+                }
+              }
+            },
+            "required": ["name", "action", "fields"]
+          }
+        },
+        "flowDescription": {
+          "type": "string",
+          "minLength": 10
+        }
+      },
+      "required": ["entities", "flowDescription"]
+    },
+    "apiContracts": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "method": {
+            "enum": ["GET", "POST", "PUT", "DELETE", "PATCH"]
+          },
+          "path": { "type": "string" },
+          "action": {
+            "enum": ["create", "modify", "reuse", "delete"]
+          },
+          "authenticationRequired": { "type": "boolean" },
+          "linkedRequirements": {
+            "type": "array",
+            "items": {
+              "type": "string",
+              "pattern": "^(FR|NFR)-[0-9]{3}$"
+            }
+          }
+        },
+        "required": ["method", "path", "action", "linkedRequirements"]
+      }
+    },
+    "securityConsiderations": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "requirementId": {
+            "type": "string",
+            "pattern": "^NFR-[0-9]{3}$"
+          },
+          "description": { "type": "string" }
+        },
+        "required": ["requirementId", "description"]
+      }
+    },
+    "performanceConsiderations": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "requirementId": {
+            "type": "string",
+            "pattern": "^NFR-[0-9]{3}$"
+          },
+          "strategy": { "type": "string" }
+        },
+        "required": ["requirementId", "strategy"]
+      }
+    },
+    "dependencies": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "name": { "type": "string" },
+          "type": {
+            "enum": ["library", "service", "internal", "external"]
+          },
+          "action": {
+            "enum": ["add", "update", "remove", "no_change"]
+          },
+          "notes": { "type": "string" }
+        },
+        "required": ["name", "type", "action"]
+      }
+    },
+    "risks": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "description": { "type": "string" },
+          "mitigation": { "type": "string" }
+        },
+        "required": ["description", "mitigation"]
+      }
+    }
+  },
+  "required": ["feature", "version", "architecture", "dataModel"],
+  "additionalProperties": false
+}

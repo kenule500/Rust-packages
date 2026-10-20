@@ -1,0 +1,18 @@
+{
+  "members": [
+    {
+      "username": "kenule500",
+      "role": "admin"
+    }
+  ],
+  "rules": {
+    "approval_required": [
+      "admin",
+      "reviewer"
+    ],
+    "implementation_allowed": [
+      "developer",
+      "admin"
+    ]
+  }
+}

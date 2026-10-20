@@ -1,0 +1,12 @@
+{
+  "feature": "{{featureName}}",
+  "version": 1,
+  "architecture": {
+    "approach": "Python FastAPI backend",
+    "components": []
+  },
+  "dataModel": {
+    "entities": [],
+    "flowDescription": "REST API with async endpoints"
+  }
+}

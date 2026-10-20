@@ -1,0 +1,9 @@
+{
+  "defaultTemplate": "generic",
+  "governance": {
+    "requireTestEvidence": true,
+    "allowStaleEvidence": false,
+    "requireStructuredReview": true
+  },
+  "test": {}
+}

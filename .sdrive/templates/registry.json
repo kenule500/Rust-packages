@@ -1,0 +1,30 @@
+{
+  "version": "1.0.0",
+  "templates": [
+    {
+      "name": "generic",
+      "description": "Generic project template",
+      "path": "generic"
+    },
+    {
+      "name": "react-node",
+      "description": "React frontend with Node.js backend",
+      "path": "react-node"
+    },
+    {
+      "name": "nextjs",
+      "description": "Next.js full-stack application",
+      "path": "nextjs"
+    },
+    {
+      "name": "expo",
+      "description": "Expo / React Native mobile app",
+      "path": "expo"
+    },
+    {
+      "name": "fastapi",
+      "description": "Python FastAPI backend",
+      "path": "fastapi"
+    }
+  ]
+}

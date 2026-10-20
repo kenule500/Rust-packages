@@ -1,0 +1,12 @@
+{
+  "feature": "{{featureName}}",
+  "version": 1,
+  "architecture": {
+    "approach": "{{approach}}",
+    "components": []
+  },
+  "dataModel": {
+    "entities": [],
+    "flowDescription": "{{flowDescription}}"
+  }
+}

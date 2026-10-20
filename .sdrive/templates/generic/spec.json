@@ -1,0 +1,11 @@
+{
+  "feature": "{{featureName}}",
+  "version": 1,
+  "overview": {
+    "problemStatement": "{{problemStatement}}",
+    "proposedSolution": "{{proposedSolution}}",
+    "targetAudience": "{{targetAudience}}"
+  },
+  "userStories": [],
+  "functionalRequirements": []
+}

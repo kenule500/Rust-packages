@@ -1,0 +1,23 @@
+{
+  "feature": "{{featureName}}",
+  "version": 1,
+  "architecture": {
+    "approach": "Next.js full-stack application",
+    "components": []
+  },
+  "dataModel": {
+    "entities": [],
+    "flowDescription": "Server components + API routes"
+  }
+}{
+  "feature": "{{featureName}}",
+  "version": 1,
+  "architecture": {
+    "approach": "Next.js full-stack application",
+    "components": []
+  },
+  "dataModel": {
+    "entities": [],
+    "flowDescription": "Server components + API routes"
+  }
+}

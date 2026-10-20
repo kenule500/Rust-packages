@@ -1,0 +1,158 @@
+{
+  "prefix": "/sdrive:",
+  "version": "1.0.0",
+  "commands": [
+    {
+      "command": "/sdrive:constitution",
+      "agent": "constitution",
+      "agentFile": ".sdrive/agents/01-constitution.md",
+      "description": "Initialize or update the project constitution",
+      "acceptsFeature": false,
+      "gates": [],
+      "validators": ["governance"]
+    },
+    {
+      "command": "/sdrive:product-plan",
+      "agent": "product-plan",
+      "agentFile": ".sdrive/agents/12-product-plan.md",
+      "description": "Optionally create an approved product overview, conceptual app mockup, roadmap, milestones, and feature backlog",
+      "acceptsFeature": false,
+      "gates": [],
+      "validators": []
+    },
+    {
+      "command": "/sdrive:propose",
+      "agent": "specification",
+      "agentFile": ".sdrive/agents/02-specification.md",
+      "description": "Choose the base branch, create the feature branch, then write the specification, traceability, plan, and tasks",
+      "acceptsFeature": true,
+      "gates": [],
+      "validators": ["governance"]
+    },
+    {
+      "command": "/sdrive:update-propose",
+      "agent": "update-proposal",
+      "agentFile": ".sdrive/agents/13-update-propose.md",
+      "description": "Extend an existing feature specification with new requirements, stories, and acceptance criteria",
+      "acceptsFeature": true,
+      "gates": [],
+      "validators": ["governance"]
+    },
+    {
+      "command": "/sdrive:design",
+      "agent": "uiux",
+      "agentFile": ".sdrive/agents/03-uiux.md",
+      "description": "Build UI/UX prototype and design system",
+      "acceptsFeature": true,
+      "gates": [],
+      "validators": ["governance"]
+    },
+    {
+      "command": "/sdrive:sync",
+      "agent": "cascade",
+      "agentFile": ".sdrive/agents/04-cascade.md",
+      "description": "Sync spec, plan, tasks, and traceability",
+      "acceptsFeature": true,
+      "gates": [],
+      "validators": ["governance"]
+    },
+    {
+      "command": "/sdrive:skills",
+      "agent": "discover-skills",
+      "agentFile": ".sdrive/agents/05-discover-skills.md",
+      "description": "Audit and manage AI skills",
+      "acceptsFeature": false,
+      "gates": [],
+      "validators": []
+    },
+    {
+      "command": "/sdrive:docs",
+      "agent": "documentation",
+      "agentFile": ".sdrive/agents/06-documentation.md",
+      "description": "Generate documentation and detect drift",
+      "acceptsFeature": true,
+      "acceptsAll": true,
+      "gates": [],
+      "validators": ["governance"]
+    },
+    {
+      "command": "/sdrive:apply",
+      "agent": "implementation",
+      "agentFile": ".sdrive/agents/07-implementation.md",
+      "description": "Write production code from approved tasks, on the branch /sdrive:propose created",
+      "acceptsFeature": true,
+      "acceptsAll": true,
+      "gates": ["specification", "planning"],
+      "validators": ["governance"]
+    },
+    {
+      "command": "/sdrive:performance",
+      "agent": "performance",
+      "agentFile": ".sdrive/agents/08-performance.md",
+      "description": "Benchmark and optimize performance",
+      "acceptsFeature": true,
+      "acceptsAll": true,
+      "gates": [],
+      "validators": ["governance"]
+    },
+    {
+      "command": "/sdrive:debug",
+      "agent": "debug",
+      "agentFile": ".sdrive/agents/15-debug.md",
+      "description": "Reproduce, isolate, and fix defects — layout, APIs, runtime, and glitches",
+      "acceptsFeature": true,
+      "acceptsAll": true,
+      "gates": [],
+      "validators": ["governance"]
+    },
+    {
+      "command": "/sdrive:review",
+      "agent": "review-complete",
+      "agentFile": ".sdrive/agents/09-review-complete.md",
+      "description": "Final audit — pass/fail verdict, no merge",
+      "acceptsFeature": true,
+      "acceptsAll": true,
+      "gates": ["implementation"],
+      "validators": ["governance"]
+    },
+    {
+      "command": "/sdrive:archive",
+      "agent": "archive",
+      "agentFile": ".sdrive/agents/14-archive.md",
+      "description": "Merge an approved feature to the confirmed target branch and complete its lifecycle",
+      "acceptsFeature": true,
+      "acceptsAll": true,
+      "gates": ["review"],
+      "validators": ["governance"]
+    },
+    {
+      "command": "/sdrive:secure",
+      "agent": "security",
+      "agentFile": ".sdrive/agents/10-security.md",
+      "description": "Security audit, threat modeling, and fixes",
+      "acceptsFeature": true,
+      "acceptsAll": true,
+      "gates": [],
+      "validators": ["governance"]
+    },
+    {
+      "command": "/sdrive:test",
+      "agent": "test",
+      "agentFile": ".sdrive/agents/11-test.md",
+      "description": "Write tests for acceptance criteria, run them, and report coverage",
+      "acceptsFeature": true,
+      "acceptsAll": true,
+      "gates": [],
+      "validators": ["governance"]
+    },
+    {
+      "command": "/sdrive:onboard",
+      "agent": "onboarding",
+      "agentFile": ".sdrive/agents/00-onboarding.md",
+      "description": "Onboard an existing project into SpecDrive",
+      "acceptsFeature": false,
+      "gates": [],
+      "validators": ["governance"]
+    }
+  ]
+}

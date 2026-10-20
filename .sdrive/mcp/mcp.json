@@ -1,0 +1,31 @@
+{
+  "name": "specdrive",
+  "version": "0.1.10",
+  "description": "SpecDrive MCP server",
+  "methods": [
+    {
+      "name": "specdrive.list_features",
+      "description": "List all SpecDrive features"
+    },
+    {
+      "name": "specdrive.get_feature",
+      "description": "Get details of a feature"
+    },
+    {
+      "name": "specdrive.get_spec",
+      "description": "Get the spec.json of a feature"
+    },
+    {
+      "name": "specdrive.get_traceability",
+      "description": "Get the traceability matrix of a feature"
+    },
+    {
+      "name": "specdrive.validate",
+      "description": "Run the governance validator"
+    },
+    {
+      "name": "specdrive.status",
+      "description": "Show SpecDrive status summary"
+    }
+  ]
+}

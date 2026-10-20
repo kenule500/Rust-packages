@@ -1,0 +1,12 @@
+{
+  "feature": "{{featureName}}",
+  "version": 1,
+  "architecture": {
+    "approach": "Turborepo monorepo with configurable apps and shared packages",
+    "components": []
+  },
+  "dataModel": {
+    "entities": [],
+    "flowDescription": "Shared packages consumed by one or more apps"
+  }
+}

@@ -1,0 +1,12 @@
+{
+  "feature": "{{featureName}}",
+  "version": 1,
+  "architecture": {
+    "approach": "Expo React Native mobile app",
+    "components": []
+  },
+  "dataModel": {
+    "entities": [],
+    "flowDescription": "Mobile app with local state"
+  }
+}

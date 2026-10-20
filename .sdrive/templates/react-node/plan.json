@@ -1,0 +1,15 @@
+{
+  "feature": "{{featureName}}",
+  "version": 1,
+  "architecture": {
+    "approach": "React frontend with Node.js API",
+    "components": [
+      { "name": "frontend", "action": "create" },
+      { "name": "backend", "action": "create" }
+    ]
+  },
+  "dataModel": {
+    "entities": [],
+    "flowDescription": "React client communicates with Node API"
+  }
+}

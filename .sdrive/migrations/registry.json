@@ -1,0 +1,47 @@
+{
+  "version": "1.0.0",
+  "adapters": [
+    {
+      "id": "openspec",
+      "name": "OpenSpec",
+      "roots": ["openspec"],
+      "defaultLifecycle": "ongoing",
+      "mapping": { "spec": "spec.md", "plan": "plan.md", "tasks": "tasks.md" }
+    },
+    {
+      "id": "speckit",
+      "name": "GitHub Spec Kit",
+      "roots": [".specify"],
+      "defaultLifecycle": "ongoing",
+      "mapping": { "spec": "spec.md", "plan": "plan.md", "tasks": "tasks.md" }
+    },
+    {
+      "id": "kiro",
+      "name": "AWS Kiro",
+      "roots": [".kiro"],
+      "defaultLifecycle": "ongoing",
+      "mapping": { "spec": "requirements.md", "plan": "design.md", "tasks": "tasks.md" }
+    },
+    {
+      "id": "agent-os",
+      "name": "Agent OS",
+      "roots": [".agent-os"],
+      "defaultLifecycle": "ongoing",
+      "mapping": { "spec": "spec.md", "plan": "plan.md", "tasks": "tasks.md" }
+    },
+    {
+      "id": "bmad",
+      "name": "BMAD Method",
+      "roots": [".bmad-core", "docs/prd.md", "docs/stories"],
+      "defaultLifecycle": "backlog",
+      "mapping": { "spec": "story.md / prd.md", "plan": "architecture.md", "tasks": "none" }
+    },
+    {
+      "id": "generic",
+      "name": "Generic spec folders",
+      "roots": ["specs", "docs/specs", "documentation/specs"],
+      "defaultLifecycle": "backlog",
+      "mapping": { "spec": "spec.md / requirements.md", "plan": "plan.md / design.md", "tasks": "tasks.md" }
+    }
+  ]
+}

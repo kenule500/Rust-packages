@@ -1,0 +1,57 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "SpecDrive Config",
+  "type": "object",
+  "properties": {
+    "defaultTemplate": {
+      "type": "string",
+      "enum": [
+        "generic",
+        "react-node",
+        "nextjs",
+        "expo",
+        "fastapi",
+        "turborepo"
+      ]
+    },
+    "governance": {
+      "type": "object",
+      "properties": {
+        "requireTestEvidence": {
+          "type": "boolean"
+        },
+        "allowStaleEvidence": {
+          "type": "boolean"
+        },
+        "requireStructuredReview": {
+          "type": "boolean"
+        },
+        "testCommand": {
+          "type": "string"
+        },
+        "lintCommand": {
+          "type": "string"
+        },
+        "buildCommand": {
+          "type": "string"
+        }
+      },
+      "additionalProperties": false
+    },
+    "test": {
+      "type": "object",
+      "properties": {
+        "command": {
+          "type": "string"
+        },
+        "timeoutMs": {
+          "type": "integer",
+          "minimum": 1000
+        }
+      },
+      "additionalProperties": false
+    }
+  },
+  "required": ["defaultTemplate"],
+  "additionalProperties": false
+}

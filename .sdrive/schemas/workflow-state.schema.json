@@ -1,0 +1,204 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "Workflow State",
+  "type": "object",
+  "properties": {
+    "features": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "name": {
+            "type": "string",
+            "pattern": "^[a-z0-9-]+$"
+          },
+          "branch": {
+            "type": "string"
+          },
+          "base": {
+            "type": "string"
+          },
+          "currentVersion": {
+            "type": "string",
+            "pattern": "^v[0-9]+$"
+          },
+          "versions": {
+            "type": "array",
+            "minItems": 1,
+            "items": {
+              "type": "object",
+              "properties": {
+                "id": {
+                  "type": "string",
+                  "pattern": "^v[0-9]+$"
+                },
+                "phase": {
+                  "enum": ["backlog", "ongoing", "completed", "blocked"]
+                },
+                "currentStep": {
+                  "enum": ["specification", "planning", "implementation", "review"]
+                },
+                "gates": {
+                  "type": "object",
+                  "properties": {
+                    "specification": {
+                      "enum": ["pending", "approved", "rejected"]
+                    },
+                    "planning": {
+                      "enum": ["pending", "approved", "rejected"]
+                    },
+                    "implementation": {
+                      "enum": ["pending", "in_progress", "approved", "rejected"]
+                    },
+                    "review": {
+                      "enum": ["pending", "approved", "rejected"]
+                    }
+                  },
+                  "required": [
+                    "specification",
+                    "planning",
+                    "implementation",
+                    "review"
+                  ]
+                },
+                "history": {
+                  "type": "array",
+                  "items": {
+                    "type": "object",
+                    "properties": {
+                      "event": {
+                        "type": "string",
+                        "minLength": 3
+                      },
+                      "by": {
+                        "type": "string"
+                      },
+                      "timestamp": {
+                        "type": "string",
+                        "format": "date-time"
+                      }
+                    },
+                    "required": ["event", "timestamp"]
+                  }
+                }
+              },
+              "required": ["id", "phase", "currentStep", "gates"]
+            }
+          }
+        },
+        "required": ["name", "currentVersion", "versions"]
+      }
+    },
+    "onboarding": {
+      "type": "object",
+      "properties": {
+        "mode": {
+          "enum": ["greenfield", "brownfield"]
+        },
+        "date": {
+          "type": "string",
+          "format": "date-time"
+        },
+        "detectedSystems": {
+          "type": "object",
+          "properties": {
+            "openspec": {
+              "type": "object",
+              "properties": {
+                "detected": { "type": "boolean" },
+                "specs": { "type": "integer" },
+                "changes": { "type": "integer" },
+                "archived": { "type": "integer" }
+              },
+              "required": ["detected"],
+              "additionalProperties": false
+            },
+            "speckit": {
+              "type": "object",
+              "properties": {
+                "detected": { "type": "boolean" },
+                "specs": { "type": "integer" },
+                "hasConstitution": { "type": "boolean" }
+              },
+              "required": ["detected"],
+              "additionalProperties": false
+            },
+            "frameworks": {
+              "type": "array",
+              "items": {
+                "type": "object",
+                "properties": {
+                  "id": { "type": "string" },
+                  "name": { "type": "string" },
+                  "root": { "type": "string" },
+                  "confidence": { "enum": ["high", "medium", "low", "none"] },
+                  "detected": { "type": "boolean" },
+                  "counts": { "type": "object" }
+                },
+                "required": ["id", "name", "detected"],
+                "additionalProperties": false
+              }
+            }
+          },
+          "additionalProperties": false
+        },
+        "missing": {
+          "type": "array",
+          "items": { "type": "string" }
+        },
+        "deferred": {
+          "type": "array",
+          "items": { "type": "string" }
+        },
+        "retroactiveFeatures": {
+          "type": "array",
+          "items": { "type": "string" }
+        },
+        "verifiedFeatures": {
+          "type": "array",
+          "items": { "type": "string" }
+        },
+        "migrated": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "feature": { "type": "string" },
+              "from": {
+                "enum": ["openspec", "speckit", "kiro", "agent-os", "bmad", "generic", "other"]
+              },
+              "date": {
+                "type": "string",
+                "format": "date-time"
+              },
+              "source": { "type": "string" }
+            },
+            "required": ["feature", "from", "date"],
+            "additionalProperties": false
+          }
+        },
+        "skipped": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "system": {
+                "enum": ["openspec", "speckit", "kiro", "agent-os", "bmad", "generic", "other"]
+              },
+              "reason": { "type": "string" }
+            },
+            "required": ["system"],
+            "additionalProperties": false
+          }
+        },
+        "notes": {
+          "type": "string"
+        }
+      },
+      "required": ["mode", "date"],
+      "additionalProperties": false
+    }
+  },
+  "required": ["features"],
+  "additionalProperties": false
+}

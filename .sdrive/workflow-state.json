@@ -64,8 +64,8 @@
       ]
     },
     {
-      "name": "wirekit-core",
-      "branch": "feature/wirekit-core",
+      "name": "m1-first-publish",
+      "branch": "feature/m1-first-publish",
       "base": "main",
       "currentVersion": "v1",
       "versions": [
@@ -94,6 +94,21 @@
               "event": "Gate 2 approved: technical plan and tasks",
               "by": "kenule500",
               "timestamp": "2026-10-20T18:20:00Z"
+            },
+            {
+              "event": "Scope expanded from BP-005 to the whole M1 milestone (BP-005 to BP-010); branch and feature renamed to m1-first-publish; specification and planning gates reset for re-approval",
+              "by": "kenule500",
+              "timestamp": "2026-10-20T18:40:00Z"
+            },
+            {
+              "event": "Gate 1 re-approved: expanded M1 specification and traceability",
+              "by": "kenule500",
+              "timestamp": "2026-10-20T19:05:00Z"
+            },
+            {
+              "event": "Gate 2 re-approved: expanded M1 technical plan and tasks",
+              "by": "kenule500",
+              "timestamp": "2026-10-20T19:05:00Z"
             }
           ]
         }

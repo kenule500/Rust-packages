@@ -1,0 +1,88 @@
+name: Bug report
+description: Report a reproducible defect in dado.
+title: "[bug]: "
+labels: ["bug"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thanks for taking the time to report a defect. Please provide a minimal,
+        reproducible case. Do not include credentials, tokens, or production data.
+  - type: input
+    id: version
+    attributes:
+      label: dado version
+      description: The version from Cargo.toml or Cargo.lock.
+      placeholder: "0.1.0"
+    validations:
+      required: true
+  - type: dropdown
+    id: features
+    attributes:
+      label: Enabled features
+      description: Select every feature used by the failing case.
+      multiple: true
+      options:
+        - yaml
+        - diag
+        - graph
+        - emit
+        - glob
+    validations:
+      required: true
+  - type: textarea
+    id: reproduction
+    attributes:
+      label: Minimal reproduction
+      description: Input, code, and the exact command needed to reproduce.
+      placeholder: |
+        Input YAML:
+        ```yaml
+        key: value
+        ```
+
+        Code:
+        ```rust
+        let value: MyType = dado::yaml::from_str(input)?;
+        ```
+      render: markdown
+    validations:
+      required: true
+  - type: textarea
+    id: expected
+    attributes:
+      label: Expected behaviour
+    validations:
+      required: true
+  - type: textarea
+    id: actual
+    attributes:
+      label: Actual behaviour
+      description: Include the full error code and position if one is returned.
+    validations:
+      required: true
+  - type: input
+    id: environment
+    attributes:
+      label: Environment
+      description: Rust version, operating system, and target triple.
+      placeholder: "rustc 1.95.0, Windows 11, x86_64-pc-windows-msvc"
+    validations:
+      required: true
+  - type: textarea
+    id: logs
+    attributes:
+      label: Sanitized logs
+      description: Paste relevant output after removing secrets and private data.
+      render: text
+    validations:
+      required: false
+  - type: checkboxes
+    id: checks
+    attributes:
+      label: Pre-submission checks
+      options:
+        - label: I searched existing issues and did not find a duplicate.
+          required: true
+        - label: This report does not contain a security vulnerability.
+          required: true

@@ -14,7 +14,9 @@ impl Pattern {
     /// Compile a pattern. Compilation cannot fail today; the signature leaves
     /// room for a future error type without breaking callers.
     pub fn new(pattern: &str) -> Self {
-        Self { raw: pattern.to_owned() }
+        Self {
+            raw: pattern.to_owned(),
+        }
     }
 
     /// The original pattern text.

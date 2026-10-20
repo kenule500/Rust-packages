@@ -48,11 +48,18 @@ pub struct Diagnostic {
 pub fn render(source: &str, diagnostics: &[Diagnostic]) -> String {
     let mut out = String::new();
     for d in diagnostics {
-        out.push_str(&format!("{} {}: {}\n", severity_label(d.severity), d.code, d.message));
+        out.push_str(&format!(
+            "{} {}: {}\n",
+            severity_label(d.severity),
+            d.code,
+            d.message
+        ));
         if let Some(span) = d.span {
             if let Some((line_no, line)) = line_at(source, span.start) {
                 out.push_str(&format!("  {line_no:>4} | {line}\n"));
-                let col = span.start.saturating_sub(byte_offset_of_line(source, span.start));
+                let col = span
+                    .start
+                    .saturating_sub(byte_offset_of_line(source, span.start));
                 out.push_str(&format!("       | {}^\n", " ".repeat(col)));
             }
         }
@@ -72,13 +79,17 @@ fn severity_label(s: Severity) -> &'static str {
 }
 
 fn byte_offset_of_line(source: &str, at: usize) -> usize {
-    source[..at.min(source.len())].rfind('\n').map_or(0, |i| i + 1)
+    source[..at.min(source.len())]
+        .rfind('\n')
+        .map_or(0, |i| i + 1)
 }
 
 fn line_at(source: &str, at: usize) -> Option<(usize, &str)> {
     let at = at.min(source.len());
     let start = byte_offset_of_line(source, at);
-    let end = source[start..].find('\n').map_or(source.len(), |i| start + i);
+    let end = source[start..]
+        .find('\n')
+        .map_or(source.len(), |i| start + i);
     let number = source[..start].matches('\n').count() + 1;
     Some((number, &source[start..end]))
 }

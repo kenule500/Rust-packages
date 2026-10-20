@@ -20,12 +20,20 @@ impl Default for Writer {
 impl Writer {
     /// A writer using four spaces per level.
     pub fn new() -> Self {
-        Self { out: String::new(), depth: 0, unit: "    " }
+        Self {
+            out: String::new(),
+            depth: 0,
+            unit: "    ",
+        }
     }
 
     /// A writer using `unit` per level (use `"\t"` for tab-indented targets).
     pub fn with_unit(unit: &'static str) -> Self {
-        Self { out: String::new(), depth: 0, unit }
+        Self {
+            out: String::new(),
+            depth: 0,
+            unit,
+        }
     }
 
     /// Write one indented line. Empty input emits a blank line.

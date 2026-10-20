@@ -13,7 +13,7 @@
           "description": "Add YamlValue with Null, Bool, Integer, Float, String, Sequence, and Mapping variants. Use IndexMap<String, YamlValue> for mappings so insertion order is preserved. Keep the type internal.",
           "linkedRequirements": ["FR-001", "FR-002"],
           "linkedAcceptanceCriteria": ["AC-001", "AC-002"],
-          "completed": false
+          "completed": true
         },
         {
           "id": "T1.2",
@@ -21,7 +21,7 @@
           "description": "Parse block mappings and sequences, indentation, comments, blank lines, and multi-line plain scalars. Track byte offsets for every token. Reject tab indentation and inconsistent indentation with a positioned error.",
           "linkedRequirements": ["FR-002", "FR-005"],
           "linkedAcceptanceCriteria": ["AC-001", "AC-005"],
-          "completed": false
+          "completed": true
         },
         {
           "id": "T1.3",
@@ -29,7 +29,7 @@
           "description": "Parse single-line flow sequences and mappings, single- and double-quoted scalars with escapes, and literal and folded block scalars with chomping. Reject multi-line flow collections.",
           "linkedRequirements": ["FR-002"],
           "linkedAcceptanceCriteria": ["AC-001"],
-          "completed": false
+          "completed": true
         },
         {
           "id": "T1.4",
@@ -37,7 +37,7 @@
           "description": "Resolve null, tilde, true, false, decimal, hexadecimal, octal, and binary integers, and finite floats. Keep yes, no, on, and off as strings. Reject .inf, .nan, and malformed numeric literals with a positioned error.",
           "linkedRequirements": ["FR-003", "FR-004"],
           "linkedAcceptanceCriteria": ["AC-002", "AC-003", "AC-007"],
-          "completed": false
+          "completed": true
         },
         {
           "id": "T1.5",
@@ -45,7 +45,7 @@
           "description": "Detect and reject tags, directives, anchors, aliases, merge keys, multi-document streams, complex keys, duplicate keys, and unterminated quotes or flow collections. Every rejection carries a stable code and a position. Messages name the construct but never echo a scalar value.",
           "linkedRequirements": ["FR-005"],
           "linkedAcceptanceCriteria": ["AC-004", "AC-005", "AC-006"],
-          "completed": false
+          "completed": true
         },
         {
           "id": "T1.6",
@@ -53,7 +53,7 @@
           "description": "Track nesting depth and return a positioned error above 128. Allow trailing comments and whitespace; reject any other trailing content. Keep recursion bounded.",
           "linkedRequirements": ["FR-007", "NFR-001"],
           "linkedAcceptanceCriteria": ["AC-009"],
-          "completed": false
+          "completed": true
         }
       ]
     },
@@ -68,7 +68,7 @@
           "description": "Implement from_str with a DeserializeOwned bound by walking YamlValue through a serde Deserializer. Map type mismatches to positioned errors. Empty and comment-only input resolves to null.",
           "linkedRequirements": ["FR-001"],
           "linkedAcceptanceCriteria": ["AC-001", "AC-008"],
-          "completed": false
+          "completed": true
         },
         {
           "id": "T2.2",
@@ -76,7 +76,7 @@
           "description": "Add offset to yaml::Error; implement Display as code, message, line, column, and offset, and keep std::error::Error. Ensure Debug and Display do not echo the full source or any scalar value.",
           "linkedRequirements": ["FR-006", "NFR-002", "NFR-007"],
           "linkedAcceptanceCriteria": ["AC-011", "AC-013"],
-          "completed": false
+          "completed": true
         },
         {
           "id": "T2.3",
@@ -84,7 +84,7 @@
           "description": "Document and verify that a diag Span built from error.offset renders the correct caret. Do not add diag to the yaml feature.",
           "linkedRequirements": ["FR-006", "FR-009"],
           "linkedAcceptanceCriteria": ["AC-012", "AC-036"],
-          "completed": false
+          "completed": true
         },
         {
           "id": "T2.4",
@@ -92,7 +92,7 @@
           "description": "Keep forbid unsafe_code and deny missing_docs. Verify no default features and each feature independently. Confirm no network, filesystem, or runtime dependency is added.",
           "linkedRequirements": ["FR-008", "FR-009", "FR-010", "FR-011", "NFR-003", "NFR-006"],
           "linkedAcceptanceCriteria": ["AC-035", "AC-036", "AC-037"],
-          "completed": false
+          "completed": true
         }
       ]
     },
@@ -107,7 +107,7 @@
           "description": "Add .github/workflows/ci.yml with push and pull_request triggers, contents read permissions, a concurrency group per workflow and ref, and cancel-in-progress enabled.",
           "linkedRequirements": ["FR-012", "FR-014"],
           "linkedAcceptanceCriteria": ["AC-014", "AC-021"],
-          "completed": false
+          "completed": true
         },
         {
           "id": "T3.2",
@@ -115,7 +115,7 @@
           "description": "Add jobs for cargo fmt check, cargo clippy with warnings denied, cargo doc with warnings denied, and cargo package. Install required components through the Rust toolchain action.",
           "linkedRequirements": ["FR-012"],
           "linkedAcceptanceCriteria": ["AC-015", "AC-016", "AC-019", "AC-020"],
-          "completed": false
+          "completed": true
         },
         {
           "id": "T3.3",
@@ -123,7 +123,7 @@
           "description": "Add stable-Rust jobs on ubuntu, windows, and macos, plus a Rust 1.85 job on ubuntu. Use Cargo caching and checkout actions. Configure each job to invoke the workspace test command; do not add or modify test files.",
           "linkedRequirements": ["FR-012", "FR-013", "NFR-004", "NFR-010"],
           "linkedAcceptanceCriteria": ["AC-014", "AC-017", "AC-018", "AC-021"],
-          "completed": false
+          "completed": true
         }
       ]
     },
@@ -138,7 +138,7 @@
           "description": "Document prerequisites, build and test commands, branch naming, commit convention, the SpecDrive proposal and apply workflow, and a pull request checklist. State that no CLA or DCO is required and contributions are MIT OR Apache-2.0.",
           "linkedRequirements": ["FR-015"],
           "linkedAcceptanceCriteria": ["AC-022"],
-          "completed": false
+          "completed": true
         },
         {
           "id": "T4.2",
@@ -146,7 +146,7 @@
           "description": "Document GitHub private vulnerability reporting, supported versions, acknowledgement and triage targets, the no-public-disclosure request, and what to include in a report. Do not include a personal email unless the user supplies one.",
           "linkedRequirements": ["FR-015"],
           "linkedAcceptanceCriteria": ["AC-023"],
-          "completed": false
+          "completed": true
         },
         {
           "id": "T4.3",
@@ -154,7 +154,7 @@
           "description": "Add YAML issue forms for bug reports and feature requests, an issue template config, and a pull request template. The PR template asks for a summary, linked BP or spec, test evidence, and a checklist.",
           "linkedRequirements": ["FR-015"],
           "linkedAcceptanceCriteria": ["AC-024", "AC-025"],
-          "completed": false
+          "completed": true
         },
         {
           "id": "T4.4",
@@ -162,7 +162,7 @@
           "description": "Add LICENSE-MIT and LICENSE-APACHE with the standard texts. They must match the workspace MIT OR Apache-2.0 declaration.",
           "linkedRequirements": ["FR-016"],
           "linkedAcceptanceCriteria": ["AC-026"],
-          "completed": false
+          "completed": true
         }
       ]
     },
@@ -177,7 +177,7 @@
           "description": "Add repository at the workspace level if inherited, and ensure the crate resolves repository, readme, keywords, categories, license, and rust-version. Add docs.rs all-features metadata.",
           "linkedRequirements": ["FR-018"],
           "linkedAcceptanceCriteria": ["AC-032", "AC-034"],
-          "completed": false
+          "completed": true
         },
         {
           "id": "T5.2",
@@ -185,7 +185,7 @@
           "description": "Create catalogue/crates/dado/CHANGELOG.md in Keep a Changelog format with a 0.1.0 entry covering the first YAML parser, diagnostics offset, and baseline release.",
           "linkedRequirements": ["FR-017"],
           "linkedAcceptanceCriteria": ["AC-030"],
-          "completed": false
+          "completed": true
         },
         {
           "id": "T5.3",
@@ -193,7 +193,7 @@
           "description": "Document pre-flight checks, version and changelog, publish dry-run, tag dado-v0.1.0, the publish command, post-publish verification, and yank or rollback. Document CARGO_REGISTRY_TOKEN as an environment or CI secret; never include a real token.",
           "linkedRequirements": ["FR-017", "FR-019", "FR-020", "FR-021"],
           "linkedAcceptanceCriteria": ["AC-027", "AC-028", "AC-030", "AC-031"],
-          "completed": false
+          "completed": true
         },
         {
           "id": "T5.4",
@@ -201,7 +201,7 @@
           "description": "Inspect cargo package list output and confirm Cargo.toml, README.md, source files, and license files are included. Run cargo publish --dry-run and record the result in the release checklist.",
           "linkedRequirements": ["FR-018", "FR-019"],
           "linkedAcceptanceCriteria": ["AC-033", "AC-028"],
-          "completed": false
+          "completed": true
         }
       ]
     },
@@ -216,7 +216,7 @@
           "description": "Run cargo fmt --all --check and fix any formatting differences.",
           "linkedRequirements": ["NFR-005"],
           "linkedAcceptanceCriteria": ["AC-015"],
-          "completed": false
+          "completed": true
         },
         {
           "id": "T6.2",
@@ -224,7 +224,7 @@
           "description": "Run cargo clippy --workspace --all-features -- -D warnings and fix all findings.",
           "linkedRequirements": ["NFR-005"],
           "linkedAcceptanceCriteria": ["AC-016"],
-          "completed": false
+          "completed": true
         },
         {
           "id": "T6.3",
@@ -232,7 +232,7 @@
           "description": "Run cargo doc --workspace --all-features --no-deps with RUSTDOCFLAGS set to -D warnings and fix all findings.",
           "linkedRequirements": ["NFR-005"],
           "linkedAcceptanceCriteria": ["AC-019"],
-          "completed": false
+          "completed": true
         },
         {
           "id": "T6.4",
@@ -240,7 +240,7 @@
           "description": "Run cargo package, cargo publish --dry-run, the governance validator, and the encoding check. Confirm the working tree is on feature/m0-foundation.",
           "linkedRequirements": ["FR-018", "FR-019"],
           "linkedAcceptanceCriteria": ["AC-020", "AC-028"],
-          "completed": false
+          "completed": true
         },
         {
           "id": "T6.5",
@@ -248,7 +248,7 @@
           "description": "Confirm the CI triggers and job names, issue and PR templates, license files, release runbook, and changelog entry are present and internally consistent. Do not run the test suite; that belongs to the Test agent.",
           "linkedRequirements": ["FR-012", "FR-015", "FR-017"],
           "linkedAcceptanceCriteria": ["AC-014", "AC-022", "AC-023", "AC-024", "AC-025", "AC-026", "AC-027"],
-          "completed": false
+          "completed": true
         }
       ]
     }

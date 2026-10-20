@@ -70,8 +70,7 @@ impl Graph {
             }
         }
 
-        let mut queue: VecDeque<usize> =
-            (0..n).filter(|&i| indegree[i] == 0).collect();
+        let mut queue: VecDeque<usize> = (0..n).filter(|&i| indegree[i] == 0).collect();
         let mut order = Vec::with_capacity(n);
 
         while let Some(node) = queue.pop_front() {
@@ -90,7 +89,10 @@ impl Graph {
 
         let stuck: Vec<usize> = (0..n).filter(|&i| indegree[i] > 0).collect();
         Err(Cycle {
-            nodes: stuck.into_iter().filter_map(|i| self.name(i).map(str::to_owned)).collect(),
+            nodes: stuck
+                .into_iter()
+                .filter_map(|i| self.name(i).map(str::to_owned))
+                .collect(),
         })
     }
 }

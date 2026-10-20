@@ -1,0 +1,62 @@
+name: Feature request
+description: Propose a capability or improvement for dado.
+title: "[feature]: "
+labels: ["enhancement"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thanks for helping shape dado. Describe the problem first; the proposed
+        API is more useful when it is tied to a concrete use case.
+  - type: textarea
+    id: problem
+    attributes:
+      label: Problem
+      description: What are you trying to do, and what blocks you today?
+    validations:
+      required: true
+  - type: textarea
+    id: solution
+    attributes:
+      label: Proposed solution
+      description: Describe the behaviour or API you would like.
+    validations:
+      required: true
+  - type: textarea
+    id: alternatives
+    attributes:
+      label: Alternatives considered
+      description: Workarounds, other crates, or designs you evaluated.
+    validations:
+      required: false
+  - type: dropdown
+    id: area
+    attributes:
+      label: Area
+      options:
+        - yaml
+        - diag
+        - graph
+        - emit
+        - glob
+        - packaging or release
+        - documentation
+        - other
+    validations:
+      required: true
+  - type: textarea
+    id: context
+    attributes:
+      label: Additional context
+      description: Links to a SpecDrive backlog item, examples, or prior art.
+    validations:
+      required: false
+  - type: checkboxes
+    id: checks
+    attributes:
+      label: Pre-submission checks
+      options:
+        - label: I searched existing issues and the product backlog.
+          required: true
+        - label: This request does not contain a security vulnerability.
+          required: true

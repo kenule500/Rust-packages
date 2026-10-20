@@ -8,7 +8,7 @@
       "versions": [
         {
           "id": "v1",
-          "phase": "ongoing",
+          "phase": "completed",
           "currentStep": "implementation",
           "gates": {
             "specification": "approved",
@@ -50,6 +50,14 @@
               "actor": "kenule500",
               "previousValue": "pending",
               "timestamp": "2026-10-20T17:46:06.616Z"
+            },
+            {
+              "event": "feature_archived",
+              "by": "kenule500",
+              "from": "ongoing",
+              "version": "v1",
+              "mergeCommit": "53a55d9e00948803435e31c06877b1d954aa6e08",
+              "timestamp": "2026-10-20T17:59:24.527Z"
             }
           ]
         }

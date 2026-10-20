@@ -173,6 +173,7 @@ publish if this is blank or failing.
 ```text
 Date: 2026-10-20
 Command: cargo publish -p dado --dry-run
-Result: Passed during implementation (packaged 14 files, 94.0 KiB; upload
-        aborted as expected). Re-run from a clean `main` before publishing.
+Result: Passed on a clean `feature/m0-foundation` tree at commit 5aa858f
+        (packaged 14 files, 94.0 KiB; upload aborted as expected). Re-run
+        from a clean `main` before publishing.
 ```

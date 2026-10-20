@@ -1,0 +1,769 @@
+{
+  "feature": "m3-substrate",
+  "version": 1,
+  "architecture": {
+    "approach": "Add four single-purpose library crates to the existing Cargo workspace. platform-core owns tenant/provider identity, capabilities, an explicit registry, a token-store contract, secret redaction, and one IntegrationError. quota-ledger reuses platform-core identity types and implements reserve/commit/release over an in-memory store and an optional Postgres backend. hookgate reuses platform-core identity types and implements raw-byte HMAC verification, replay-window checks, durable dedupe, an outbox, and dead-letter replay. syncforge implements a durable action queue, UUID v7 idempotency, per-action batch results, and explicit conflict strategies over Storage and Transport traits. One example inside crates/hookgate/examples composes platform-core, quota-ledger, and hookgate without changing the workspace member glob.",
+    "components": [
+      {
+        "name": "Cargo.toml",
+        "action": "modify",
+        "description": "Add [workspace.dependencies] for shared third-party versions while keeping members = [\"crates/*\"]."
+      },
+      {
+        "name": "crates/platform-core/Cargo.toml",
+        "action": "create",
+        "description": "Package metadata, inherited edition/MSRV/licence, registry and memory features, async-trait, secrecy, thiserror, uuid, tracing."
+      },
+      {
+        "name": "crates/platform-core/src/lib.rs",
+        "action": "create",
+        "description": "Crate docs, feature table, forbid unsafe_code, deny missing_docs, re-exports."
+      },
+      {
+        "name": "crates/platform-core/src/id.rs",
+        "action": "create",
+        "description": "TenantId and ProviderId newtypes."
+      },
+      {
+        "name": "crates/platform-core/src/capability.rs",
+        "action": "create",
+        "description": "ProvisioningMode and Capability types."
+      },
+      {
+        "name": "crates/platform-core/src/provider.rs",
+        "action": "create",
+        "description": "Provider trait returning id and a static capability slice."
+      },
+      {
+        "name": "crates/platform-core/src/registry.rs",
+        "action": "create",
+        "description": "Explicit Registry with register, get, iter, capabilities, duplicate detection, and instance-scoped state."
+      },
+      {
+        "name": "crates/platform-core/src/token.rs",
+        "action": "create",
+        "description": "Secret wrapper, async TokenStore trait, and MemoryTokenStore."
+      },
+      {
+        "name": "crates/platform-core/src/error.rs",
+        "action": "create",
+        "description": "IntegrationError with stable codes, Display, and std::error::Error."
+      },
+      {
+        "name": "crates/platform-core/README.md",
+        "action": "create",
+        "description": "Purpose, feature table, example, and non-goals."
+      },
+      {
+        "name": "crates/quota-ledger/Cargo.toml",
+        "action": "create",
+        "description": "Path dependency on platform-core; optional postgres feature and sqlx dependency."
+      },
+      {
+        "name": "crates/quota-ledger/src/lib.rs",
+        "action": "create",
+        "description": "Crate docs, feature table, lints, re-exports."
+      },
+      {
+        "name": "crates/quota-ledger/src/types.rs",
+        "action": "create",
+        "description": "Metric, Window, Budget, QuotaKey, Reservation, ReservationId, Usage, ReserveOutcome, ExhaustionPolicy."
+      },
+      {
+        "name": "crates/quota-ledger/src/window.rs",
+        "action": "create",
+        "description": "Reset computation for fixed daily/monthly windows with timezone and rolling windows."
+      },
+      {
+        "name": "crates/quota-ledger/src/policy.rs",
+        "action": "create",
+        "description": "ExhaustionPolicy outcomes for HardStop, Overage, Degrade, and Queue."
+      },
+      {
+        "name": "crates/quota-ledger/src/store.rs",
+        "action": "create",
+        "description": "Async QuotaStore trait with reserve, commit, release, usage."
+      },
+      {
+        "name": "crates/quota-ledger/src/memory.rs",
+        "action": "create",
+        "description": "MemoryQuotaStore with atomic reservation, idempotency keys, settlement, and reclaim."
+      },
+      {
+        "name": "crates/quota-ledger/src/postgres/mod.rs",
+        "action": "create",
+        "description": "PostgresQuotaStore behind the postgres feature using parameterized SQL and atomic conditional update."
+      },
+      {
+        "name": "crates/quota-ledger/src/postgres/schema.sql",
+        "action": "create",
+        "description": "Budget and reservation tables, unique indexes, and the TTL reclaim query."
+      },
+      {
+        "name": "crates/quota-ledger/src/error.rs",
+        "action": "create",
+        "description": "QuotaError with stable codes and redacted connection details."
+      },
+      {
+        "name": "crates/quota-ledger/README.md",
+        "action": "create",
+        "description": "Purpose, backend setup, schema, feature table, and non-goals."
+      },
+      {
+        "name": "crates/hookgate/Cargo.toml",
+        "action": "create",
+        "description": "HMAC, digest, constant-time, encoding, http, bytes dependencies; dev-dependencies on platform-core and quota-ledger."
+      },
+      {
+        "name": "crates/hookgate/src/lib.rs",
+        "action": "create",
+        "description": "Crate docs, feature table, lints, re-exports."
+      },
+      {
+        "name": "crates/hookgate/src/types.rs",
+        "action": "create",
+        "description": "DeliveryId, IdempotencyKey, InboundRequest, VerifiedEvent."
+      },
+      {
+        "name": "crates/hookgate/src/verify/mod.rs",
+        "action": "create",
+        "description": "Verifier trait, VerifyError, ReplayWindow, and size limits."
+      },
+      {
+        "name": "crates/hookgate/src/verify/presets.rs",
+        "action": "create",
+        "description": "Meta, Stripe, Shopify, Twilio, Slack, GitHub, and generic HMAC presets over raw bytes."
+      },
+      {
+        "name": "crates/hookgate/src/store.rs",
+        "action": "create",
+        "description": "DeliveryStore, Outbox, DeliveryRecord, InsertOutcome, StoreError."
+      },
+      {
+        "name": "crates/hookgate/src/memory.rs",
+        "action": "create",
+        "description": "In-memory dedupe, transactional insert plus enqueue, dead-letter, and replay."
+      },
+      {
+        "name": "crates/hookgate/src/error.rs",
+        "action": "create",
+        "description": "HookgateError and DeadLetterRecord with redacted error text."
+      },
+      {
+        "name": "crates/hookgate/examples/substrate_integration.rs",
+        "action": "create",
+        "description": "Registers a provider, reserves and commits quota, and verifies and enqueues a signed webhook."
+      },
+      {
+        "name": "crates/hookgate/README.md",
+        "action": "create",
+        "description": "Purpose, presets, flow, at-least-once contract, and non-goals."
+      },
+      {
+        "name": "crates/syncforge/Cargo.toml",
+        "action": "create",
+        "description": "uuid v7, serde, serde_json, async-trait, tracing, thiserror."
+      },
+      {
+        "name": "crates/syncforge/src/lib.rs",
+        "action": "create",
+        "description": "Crate docs, feature table, lints, re-exports."
+      },
+      {
+        "name": "crates/syncforge/src/action.rs",
+        "action": "create",
+        "description": "ActionId, Action, EntityType, Operation; UUID v7 generation."
+      },
+      {
+        "name": "crates/syncforge/src/batch.rs",
+        "action": "create",
+        "description": "Batch, BatchResult, ActionResult, ActionStatus."
+      },
+      {
+        "name": "crates/syncforge/src/conflict.rs",
+        "action": "create",
+        "description": "LastWriteWins, ServerWins, ClientWins, Custom; ConflictInfo."
+      },
+      {
+        "name": "crates/syncforge/src/storage.rs",
+        "action": "create",
+        "description": "Async Storage trait and deterministic MemoryStorage."
+      },
+      {
+        "name": "crates/syncforge/src/transport.rs",
+        "action": "create",
+        "description": "Async Transport trait and scripted MockTransport."
+      },
+      {
+        "name": "crates/syncforge/src/engine.rs",
+        "action": "create",
+        "description": "SyncEngine enqueue and replay with batching, per-action results, bounded backoff, and dead-lettering."
+      },
+      {
+        "name": "crates/syncforge/src/timestamp.rs",
+        "action": "create",
+        "description": "Client and server audit timestamps with configurable tolerance."
+      },
+      {
+        "name": "crates/syncforge/src/error.rs",
+        "action": "create",
+        "description": "SyncError with stable codes."
+      },
+      {
+        "name": "crates/syncforge/README.md",
+        "action": "create",
+        "description": "Purpose, replay model, at-least-once contract, and non-goals."
+      },
+      {
+        "name": "README.md",
+        "action": "modify",
+        "description": "List the four crates in the package table and update current status."
+      }
+    ],
+    "referencedRequirementIds": [
+      "FR-001", "FR-002", "FR-003", "FR-004", "FR-005", "FR-006", "FR-007",
+      "FR-008", "FR-009", "FR-010", "FR-011", "FR-012", "FR-013", "FR-014",
+      "FR-015", "FR-016", "FR-017", "FR-018", "FR-019", "FR-020", "FR-021",
+      "FR-022", "FR-023", "FR-024", "FR-025", "FR-026", "FR-027", "FR-028",
+      "FR-029",
+      "NFR-001", "NFR-002", "NFR-003", "NFR-004", "NFR-005", "NFR-006",
+      "NFR-007", "NFR-008", "NFR-009", "NFR-010", "NFR-011", "NFR-012"
+    ]
+  },
+  "dataModel": {
+    "entities": [
+      {
+        "name": "platform_core::TenantId",
+        "action": "create",
+        "fields": [
+          { "name": "0", "type": "Uuid", "nullable": false, "action": "add" }
+        ]
+      },
+      {
+        "name": "platform_core::ProviderId",
+        "action": "create",
+        "fields": [
+          { "name": "0", "type": "&'static str", "nullable": false, "action": "add" }
+        ]
+      },
+      {
+        "name": "platform_core::ProvisioningMode",
+        "action": "create",
+        "fields": [
+          { "name": "Api", "type": "variant", "nullable": false, "action": "add" },
+          { "name": "Partner", "type": "variant", "nullable": false, "action": "add" },
+          { "name": "Manual", "type": "variant", "nullable": false, "action": "add" },
+          { "name": "Unsupported", "type": "variant", "nullable": false, "action": "add" }
+        ]
+      },
+      {
+        "name": "platform_core::Capability",
+        "action": "create",
+        "fields": [
+          { "name": "key", "type": "&'static str", "nullable": false, "action": "add" },
+          { "name": "mode", "type": "ProvisioningMode", "nullable": false, "action": "add" }
+        ]
+      },
+      {
+        "name": "platform_core::Registry",
+        "action": "create",
+        "fields": [
+          { "name": "providers", "type": "Vec<Arc<dyn Provider>>", "nullable": false, "action": "add" },
+          { "name": "index", "type": "HashMap<ProviderId, usize>", "nullable": false, "action": "add" }
+        ]
+      },
+      {
+        "name": "platform_core::Secret",
+        "action": "create",
+        "fields": [
+          { "name": "inner", "type": "secrecy::SecretString", "nullable": false, "action": "add" }
+        ]
+      },
+      {
+        "name": "platform_core::IntegrationError",
+        "action": "create",
+        "fields": [
+          { "name": "Auth", "type": "variant", "nullable": false, "action": "add" },
+          { "name": "Scope", "type": "variant", "nullable": false, "action": "add" },
+          { "name": "RateLimit", "type": "variant", "nullable": false, "action": "add" },
+          { "name": "Quota", "type": "variant", "nullable": false, "action": "add" },
+          { "name": "Provider", "type": "variant", "nullable": false, "action": "add" },
+          { "name": "Transport", "type": "variant", "nullable": false, "action": "add" },
+          { "name": "Unsupported", "type": "variant", "nullable": false, "action": "add" },
+          { "name": "DuplicateProvider", "type": "variant", "nullable": false, "action": "add" },
+          { "name": "Config", "type": "variant", "nullable": false, "action": "add" }
+        ]
+      },
+      {
+        "name": "quota_ledger::Metric",
+        "action": "create",
+        "fields": [
+          { "name": "0", "type": "&'static str", "nullable": false, "action": "add" }
+        ]
+      },
+      {
+        "name": "quota_ledger::Window",
+        "action": "create",
+        "fields": [
+          { "name": "Fixed", "type": "{ period, timezone }", "nullable": false, "action": "add" },
+          { "name": "Rolling", "type": "{ duration }", "nullable": false, "action": "add" }
+        ]
+      },
+      {
+        "name": "quota_ledger::Budget",
+        "action": "create",
+        "fields": [
+          { "name": "tenant", "type": "TenantId", "nullable": false, "action": "add" },
+          { "name": "provider", "type": "ProviderId", "nullable": false, "action": "add" },
+          { "name": "metric", "type": "Metric", "nullable": false, "action": "add" },
+          { "name": "limit", "type": "u64", "nullable": false, "action": "add" },
+          { "name": "window", "type": "Window", "nullable": false, "action": "add" },
+          { "name": "policy", "type": "ExhaustionPolicy", "nullable": false, "action": "add" }
+        ]
+      },
+      {
+        "name": "quota_ledger::QuotaKey",
+        "action": "create",
+        "fields": [
+          { "name": "tenant", "type": "TenantId", "nullable": false, "action": "add" },
+          { "name": "provider", "type": "ProviderId", "nullable": false, "action": "add" },
+          { "name": "metric", "type": "Metric", "nullable": false, "action": "add" },
+          { "name": "window_start", "type": "DateTime<Utc>", "nullable": false, "action": "add" }
+        ]
+      },
+      {
+        "name": "quota_ledger::Reservation",
+        "action": "create",
+        "fields": [
+          { "name": "id", "type": "ReservationId", "nullable": false, "action": "add" },
+          { "name": "key", "type": "QuotaKey", "nullable": false, "action": "add" },
+          { "name": "units", "type": "u64", "nullable": false, "action": "add" },
+          { "name": "idempotency_key", "type": "Option<String>", "nullable": true, "action": "add" },
+          { "name": "expires_at", "type": "DateTime<Utc>", "nullable": false, "action": "add" },
+          { "name": "policy", "type": "ExhaustionPolicy", "nullable": false, "action": "add" }
+        ]
+      },
+      {
+        "name": "quota_ledger::Usage",
+        "action": "create",
+        "fields": [
+          { "name": "limit", "type": "u64", "nullable": false, "action": "add" },
+          { "name": "used", "type": "u64", "nullable": false, "action": "add" },
+          { "name": "held", "type": "u64", "nullable": false, "action": "add" },
+          { "name": "overage", "type": "u64", "nullable": false, "action": "add" },
+          { "name": "overage_cents", "type": "u64", "nullable": false, "action": "add" },
+          { "name": "reset_at", "type": "DateTime<Utc>", "nullable": false, "action": "add" }
+        ]
+      },
+      {
+        "name": "quota_ledger::ExhaustionPolicy",
+        "action": "create",
+        "fields": [
+          { "name": "HardStop", "type": "variant", "nullable": false, "action": "add" },
+          { "name": "Overage", "type": "{ unit_cost_cents }", "nullable": false, "action": "add" },
+          { "name": "Degrade", "type": "variant", "nullable": false, "action": "add" },
+          { "name": "Queue", "type": "variant", "nullable": false, "action": "add" }
+        ]
+      },
+      {
+        "name": "quota_ledger::ReserveOutcome",
+        "action": "create",
+        "fields": [
+          { "name": "Reserved", "type": "{ reservation }", "nullable": false, "action": "add" },
+          { "name": "Overage", "type": "{ reservation, cost_cents }", "nullable": false, "action": "add" },
+          { "name": "Denied", "type": "{ reset_at, requested, remaining }", "nullable": false, "action": "add" },
+          { "name": "Degraded", "type": "{ reset_at }", "nullable": false, "action": "add" },
+          { "name": "Queued", "type": "{ reset_at }", "nullable": false, "action": "add" }
+        ]
+      },
+      {
+        "name": "quota_ledger::QuotaError",
+        "action": "create",
+        "fields": [
+          { "name": "Exceeded", "type": "variant", "nullable": false, "action": "add" },
+          { "name": "UnknownBudget", "type": "variant", "nullable": false, "action": "add" },
+          { "name": "ReservationNotFound", "type": "variant", "nullable": false, "action": "add" },
+          { "name": "AlreadySettled", "type": "variant", "nullable": false, "action": "add" },
+          { "name": "IdempotencyConflict", "type": "variant", "nullable": false, "action": "add" },
+          { "name": "Backend", "type": "variant", "nullable": false, "action": "add" },
+          { "name": "Config", "type": "variant", "nullable": false, "action": "add" }
+        ]
+      },
+      {
+        "name": "hookgate::DeliveryId",
+        "action": "create",
+        "fields": [
+          { "name": "0", "type": "Uuid", "nullable": false, "action": "add" }
+        ]
+      },
+      {
+        "name": "hookgate::IdempotencyKey",
+        "action": "create",
+        "fields": [
+          { "name": "0", "type": "String", "nullable": false, "action": "add" }
+        ]
+      },
+      {
+        "name": "hookgate::InboundRequest",
+        "action": "create",
+        "fields": [
+          { "name": "tenant", "type": "TenantId", "nullable": false, "action": "add" },
+          { "name": "provider", "type": "ProviderId", "nullable": false, "action": "add" },
+          { "name": "headers", "type": "HeaderMap", "nullable": false, "action": "add" },
+          { "name": "body", "type": "Bytes", "nullable": false, "action": "add" },
+          { "name": "received_at", "type": "DateTime<Utc>", "nullable": false, "action": "add" }
+        ]
+      },
+      {
+        "name": "hookgate::VerifiedEvent",
+        "action": "create",
+        "fields": [
+          { "name": "delivery", "type": "DeliveryId", "nullable": false, "action": "add" },
+          { "name": "tenant", "type": "TenantId", "nullable": false, "action": "add" },
+          { "name": "provider", "type": "ProviderId", "nullable": false, "action": "add" },
+          { "name": "event_id", "type": "Option<String>", "nullable": true, "action": "add" },
+          { "name": "event_type", "type": "String", "nullable": false, "action": "add" },
+          { "name": "payload", "type": "serde_json::Value", "nullable": false, "action": "add" },
+          { "name": "raw", "type": "Bytes", "nullable": false, "action": "add" }
+        ]
+      },
+      {
+        "name": "hookgate::DeliveryRecord",
+        "action": "create",
+        "fields": [
+          { "name": "delivery", "type": "DeliveryId", "nullable": false, "action": "add" },
+          { "name": "tenant", "type": "TenantId", "nullable": false, "action": "add" },
+          { "name": "provider", "type": "ProviderId", "nullable": false, "action": "add" },
+          { "name": "event_id", "type": "String", "nullable": false, "action": "add" },
+          { "name": "event_type", "type": "String", "nullable": false, "action": "add" },
+          { "name": "raw", "type": "Bytes", "nullable": false, "action": "add" },
+          { "name": "status", "type": "DeliveryStatus", "nullable": false, "action": "add" },
+          { "name": "attempts", "type": "u32", "nullable": false, "action": "add" }
+        ]
+      },
+      {
+        "name": "hookgate::DeadLetterRecord",
+        "action": "create",
+        "fields": [
+          { "name": "delivery", "type": "DeliveryId", "nullable": false, "action": "add" },
+          { "name": "tenant", "type": "TenantId", "nullable": false, "action": "add" },
+          { "name": "provider", "type": "ProviderId", "nullable": false, "action": "add" },
+          { "name": "raw", "type": "Bytes", "nullable": false, "action": "add" },
+          { "name": "error", "type": "String", "nullable": false, "action": "add" },
+          { "name": "dead_lettered_at", "type": "DateTime<Utc>", "nullable": false, "action": "add" }
+        ]
+      },
+      {
+        "name": "hookgate::InsertOutcome",
+        "action": "create",
+        "fields": [
+          { "name": "Inserted", "type": "variant", "nullable": false, "action": "add" },
+          { "name": "Duplicate", "type": "variant", "nullable": false, "action": "add" }
+        ]
+      },
+      {
+        "name": "syncforge::ActionId",
+        "action": "create",
+        "fields": [
+          { "name": "0", "type": "Uuid", "nullable": false, "action": "add" }
+        ]
+      },
+      {
+        "name": "syncforge::Action",
+        "action": "create",
+        "fields": [
+          { "name": "id", "type": "ActionId", "nullable": false, "action": "add" },
+          { "name": "entity", "type": "EntityType", "nullable": false, "action": "add" },
+          { "name": "operation", "type": "Operation", "nullable": false, "action": "add" },
+          { "name": "payload", "type": "serde_json::Value", "nullable": false, "action": "add" },
+          { "name": "client_timestamp", "type": "DateTime<Utc>", "nullable": false, "action": "add" },
+          { "name": "idempotency_key", "type": "Uuid", "nullable": false, "action": "add" },
+          { "name": "attempts", "type": "u32", "nullable": false, "action": "add" }
+        ]
+      },
+      {
+        "name": "syncforge::Batch",
+        "action": "create",
+        "fields": [
+          { "name": "actions", "type": "Vec<Action>", "nullable": false, "action": "add" }
+        ]
+      },
+      {
+        "name": "syncforge::BatchResult",
+        "action": "create",
+        "fields": [
+          { "name": "results", "type": "Vec<ActionResult>", "nullable": false, "action": "add" }
+        ]
+      },
+      {
+        "name": "syncforge::ActionResult",
+        "action": "create",
+        "fields": [
+          { "name": "action_id", "type": "ActionId", "nullable": false, "action": "add" },
+          { "name": "status", "type": "ActionStatus", "nullable": false, "action": "add" },
+          { "name": "server_timestamp", "type": "Option<DateTime<Utc>>", "nullable": true, "action": "add" },
+          { "name": "conflict", "type": "Option<ConflictInfo>", "nullable": true, "action": "add" }
+        ]
+      },
+      {
+        "name": "syncforge::ActionStatus",
+        "action": "create",
+        "fields": [
+          { "name": "Applied", "type": "variant", "nullable": false, "action": "add" },
+          { "name": "Duplicate", "type": "variant", "nullable": false, "action": "add" },
+          { "name": "Conflict", "type": "variant", "nullable": false, "action": "add" },
+          { "name": "Rejected", "type": "variant", "nullable": false, "action": "add" },
+          { "name": "Retry", "type": "variant", "nullable": false, "action": "add" }
+        ]
+      },
+      {
+        "name": "syncforge::ConflictInfo",
+        "action": "create",
+        "fields": [
+          { "name": "client_timestamp", "type": "DateTime<Utc>", "nullable": false, "action": "add" },
+          { "name": "server_timestamp", "type": "DateTime<Utc>", "nullable": false, "action": "add" },
+          { "name": "resolution", "type": "Resolution", "nullable": false, "action": "add" },
+          { "name": "server_state", "type": "Option<serde_json::Value>", "nullable": true, "action": "add" }
+        ]
+      },
+      {
+        "name": "syncforge::ConflictStrategy",
+        "action": "create",
+        "fields": [
+          { "name": "LastWriteWins", "type": "variant", "nullable": false, "action": "add" },
+          { "name": "ServerWins", "type": "variant", "nullable": false, "action": "add" },
+          { "name": "ClientWins", "type": "variant", "nullable": false, "action": "add" },
+          { "name": "Custom", "type": "Arc<dyn CustomMerger>", "nullable": false, "action": "add" }
+        ]
+      },
+      {
+        "name": "syncforge::SyncEngine",
+        "action": "create",
+        "fields": [
+          { "name": "storage", "type": "Arc<dyn Storage>", "nullable": false, "action": "add" },
+          { "name": "transport", "type": "Arc<dyn Transport>", "nullable": false, "action": "add" },
+          { "name": "conflict", "type": "ConflictStrategy", "nullable": false, "action": "add" },
+          { "name": "max_attempts", "type": "u32", "nullable": false, "action": "add" },
+          { "name": "batch_size", "type": "usize", "nullable": false, "action": "add" },
+          { "name": "tolerance", "type": "chrono::Duration", "nullable": false, "action": "add" }
+        ]
+      }
+    ],
+    "flowDescription": "platform-core holds no rows. quota-ledger rows are keyed by tenant, provider, metric, and window start, with budget, reservation, and settlement state in Postgres or memory. hookgate rows are delivery records unique on tenant, provider, and event id, plus outbox and dead-letter rows. syncforge rows are actions with payload, client timestamp, idempotency key, status, and attempts. All identifiers are UUIDs and all timestamps are UTC with an explicit client or server source."
+  },
+  "apiContracts": [],
+  "securityConsiderations": [
+    {
+      "requirementId": "NFR-001",
+      "description": "Tenant is part of every store key and every SQL predicate; memory stores key on (TenantId, ProviderId, ...), so no lookup can cross tenants."
+    },
+    {
+      "requirementId": "NFR-002",
+      "description": "Secret and connection strings redact in Debug and Display; secrets do not implement Serialize; errors never include the secret value."
+    },
+    {
+      "requirementId": "NFR-003",
+      "description": "Raw bytes are length-checked, signatures are constant-time compared, timestamps are bounded, and every malformed input returns a typed error."
+    },
+    {
+      "requirementId": "NFR-004",
+      "description": "Parameterized SQL only; fixed table and column names; no caller-supplied identifiers."
+    },
+    {
+      "requirementId": "NFR-005",
+      "description": "One atomic conditional statement per reservation; idempotency enforced by a unique index; settlement is idempotent."
+    },
+    {
+      "requirementId": "NFR-007",
+      "description": "forbid unsafe_code and deny missing_docs in every crate root; rustdoc warnings are denied in verification."
+    },
+    {
+      "requirementId": "NFR-009",
+      "description": "Postgres TLS is required by default; an insecure mode is an explicit test-only opt-in and is documented."
+    }
+  ],
+  "performanceConsiderations": [
+    {
+      "requirementId": "NFR-004",
+      "strategy": "Indexes on (tenant, provider, metric, window_start) and (tenant, provider, event_id) keep lookups logarithmic."
+    },
+    {
+      "requirementId": "NFR-005",
+      "strategy": "A single conditional UPDATE avoids an application-level read-modify-write round trip."
+    },
+    {
+      "requirementId": "NFR-010",
+      "strategy": "Ordered in-memory structures, bounded batches, and capped backoff keep replay deterministic and bounded."
+    }
+  ],
+  "dependencies": [
+    {
+      "name": "uuid",
+      "type": "library",
+      "action": "add",
+      "notes": "v4, v7, and serde features. No skill expected; standard crate."
+    },
+    {
+      "name": "chrono",
+      "type": "library",
+      "action": "add",
+      "notes": "UTC timestamps, timezone-aware windows, serde feature."
+    },
+    {
+      "name": "serde",
+      "type": "library",
+      "action": "add",
+      "notes": "Serialization for events, actions, and payloads."
+    },
+    {
+      "name": "serde_json",
+      "type": "library",
+      "action": "add",
+      "notes": "Event and action payloads."
+    },
+    {
+      "name": "async-trait",
+      "type": "library",
+      "action": "add",
+      "notes": "Object-safe async traits for stores and transports."
+    },
+    {
+      "name": "thiserror",
+      "type": "library",
+      "action": "add",
+      "notes": "Error enums with stable codes and std::error::Error."
+    },
+    {
+      "name": "tracing",
+      "type": "library",
+      "action": "add",
+      "notes": "Queue, replay, conflict, and webhook metrics."
+    },
+    {
+      "name": "secrecy",
+      "type": "library",
+      "action": "add",
+      "notes": "Redacted secret wrapper for tokens and signing keys."
+    },
+    {
+      "name": "hmac",
+      "type": "library",
+      "action": "add",
+      "notes": "HMAC construction for webhook presets."
+    },
+    {
+      "name": "sha2",
+      "type": "library",
+      "action": "add",
+      "notes": "SHA-256 for HMAC presets."
+    },
+    {
+      "name": "sha1",
+      "type": "library",
+      "action": "add",
+      "notes": "SHA-1 for the Twilio preset."
+    },
+    {
+      "name": "subtle",
+      "type": "library",
+      "action": "add",
+      "notes": "Constant-time signature comparison."
+    },
+    {
+      "name": "hex",
+      "type": "library",
+      "action": "add",
+      "notes": "Hex signature decoding."
+    },
+    {
+      "name": "base64",
+      "type": "library",
+      "action": "add",
+      "notes": "Base64 signature decoding for the Shopify preset."
+    },
+    {
+      "name": "http",
+      "type": "library",
+      "action": "add",
+      "notes": "HeaderMap in InboundRequest."
+    },
+    {
+      "name": "bytes",
+      "type": "library",
+      "action": "add",
+      "notes": "Raw body preservation without re-serialization."
+    },
+    {
+      "name": "sqlx",
+      "type": "library",
+      "action": "add",
+      "notes": "Optional, postgres feature only: postgres, runtime-tokio-rustls, chrono, uuid, migrate. Skill expected: sqlx migrations."
+    },
+    {
+      "name": "tokio",
+      "type": "library",
+      "action": "add",
+      "notes": "Dev-dependency for async tests: macros and rt-multi-thread."
+    },
+    {
+      "name": "platform-core",
+      "type": "internal",
+      "action": "add",
+      "notes": "Path dependency from quota-ledger, hookgate, and the integration example for TenantId and ProviderId."
+    },
+    {
+      "name": "crates.io",
+      "type": "service",
+      "action": "no_change",
+      "notes": "Existing publication target; check every crate name immediately before publish."
+    },
+    {
+      "name": "wirekit",
+      "type": "internal",
+      "action": "no_change",
+      "notes": "Deliberately not added in this version; wirekit is not present on the main base."
+    }
+  ],
+  "risks": [
+    {
+      "description": "Four crates in one feature create review fatigue and a long-lived branch.",
+      "mitigation": "One crate per phase; each phase compiles and documents its public surface independently."
+    },
+    {
+      "description": "Async trait objects break object safety or add hidden allocation costs.",
+      "mitigation": "async-trait everywhere, object-safe traits, contract suites against memory and mock implementations."
+    },
+    {
+      "description": "No Postgres server is available in every environment or CI.",
+      "mitigation": "Backend behind a feature; DATABASE_URL opt-in tests; /sdrive:test decides CI provisioning."
+    },
+    {
+      "description": "SQL injection through dynamic SQL or caller identifiers.",
+      "mitigation": "Fixed schema and parameterized values only; review every query."
+    },
+    {
+      "description": "Timing or replay weaknesses in verification and dedupe.",
+      "mitigation": "Constant-time comparison, raw bytes, unique constraints, and replay-window checks."
+    },
+    {
+      "description": "Crate names are taken on crates.io.",
+      "mitigation": "Check immediately before publish; stop on a collision and choose a fallback."
+    },
+    {
+      "description": "New dependencies raise the effective MSRV above 1.85.",
+      "mitigation": "Existing MSRV CI job; pin or downgrade with a recorded decision."
+    },
+    {
+      "description": "The trait surface becomes too abstract or absorbs product nouns.",
+      "mitigation": "Review every public type against the catalogue non-goals and the out-of-scope list."
+    },
+    {
+      "description": "Replay duplicates actions.",
+      "mitigation": "UUID v7 keys, per-action results, deterministic mock tests, and a documented at-least-once contract."
+    },
+    {
+      "description": "Scope creep from deferred features (Redis, SQLite, HTTP, axum, SendGrid).",
+      "mitigation": "Deferred items are explicit; additions require a new version."
+    }
+  ]
+}

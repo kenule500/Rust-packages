@@ -1,0 +1,842 @@
+{
+  "feature": "m3-substrate",
+  "title": "M3 Integration Substrate - platform-core, quota-ledger, hookgate, and syncforge 0.1",
+  "version": 1,
+  "overview": {
+    "problemStatement": "The workspace ships only dado. A product that integrates many providers must still invent tenant and provider identity, an explicit provider registry, cross-process quota state, webhook ingress state, and an offline action queue. Each consumer rebuilds those primitives slightly differently, and the failure modes are expensive: a token read across tenants, two pods spending the same last quota unit, a replayed webhook processed twice, or an offline job marked complete twice. The catalogue specifies four crates for this work, but none exists in code.",
+    "proposedSolution": "Add four library crates to the existing Cargo workspace, each with one job: platform-core (traits, registry, token-store contract), quota-ledger (reserve/commit/release ledger with an optional Postgres backend), hookgate (raw-byte webhook verification, dedupe, replay window, outbox and dead-letter), and syncforge (durable action queue, UUID v7 idempotency, conflict strategies, storage and transport traits). Ship each at 0.1.0 with feature-gated dependencies, rustdoc, and a README, plus one integration example that composes platform-core, quota-ledger, and hookgate.",
+    "targetAudience": "External Rust developers building multi-tenant products that integrate third-party providers, including server-side services, desktop tools, and Tauri or edge clients that need offline replay. The first internal consumer is a field-service application, but no product nouns enter these crates.",
+    "assumptions": [
+      "The scope was confirmed by the user on 2026-10-20: BP-017, BP-018, BP-020, and BP-021 in one feature; BP-019 (Redis) deferred.",
+      "platform-core, quota-ledger, hookgate, and syncforge are not yet implemented; only crates/dado exists. The specification is based on the catalogue and user decisions, not on existing crate code.",
+      "The feature is based on main, which does not yet contain wirekit, so no crate in this feature may depend on wirekit. The IntegrationError mapping from wirekit variants is deferred until wirekit is on the base branch.",
+      "Rust 1.85 and edition 2021 remain the MSRV and edition, inherited from [workspace.package].",
+      "Async traits use async-trait so that TokenStore, QuotaStore, DeliveryStore, Outbox, Storage, and Transport remain usable as trait objects.",
+      "Crate names must be re-checked on crates.io immediately before publication (CON-111). Publication itself is a manual post-merge step.",
+      "no_std for the quota-ledger core is deferred; 0.1 targets std.",
+      "Test authoring and test execution belong to /sdrive:test, not to this feature's implementation tasks."
+    ],
+    "outOfScope": [
+      "The Redis quota backend (BP-019) and any Redis dependency.",
+      "platform-core sqlx token storage and the axum tenant extractor.",
+      "syncforge SQLite storage, HTTP transport, connectivity detection adapters, and WASM packaging.",
+      "hookgate SendGrid ECDSA verification, the axum integration, and a standalone binary.",
+      "Any dependency on wirekit, including IntegrationError mapping from wirekit variants. That mapping is a later version once wirekit is on the base branch.",
+      "Provider-specific quota presets (YouTube, WhatsApp, X, Twitch) as code; they are data supplied by callers.",
+      "Billing, invoicing, currency conversion, dunning, or tax logic.",
+      "A dashboard, UI, design tokens, or operator console for quota, webhooks, or sync.",
+      "no_std support for quota-ledger.",
+      "Publishing any crate to crates.io from the feature branch; publication is manual and post-merge.",
+      "Changes to dado or its public API.",
+      "A second error type per crate; each crate exposes one error enum with stable codes."
+    ]
+  },
+  "userStories": [
+    {
+      "id": "US-001",
+      "title": "Model tenant and provider identity",
+      "role": "application developer",
+      "want": "typed tenant and provider identifiers with a declared provisioning mode",
+      "benefit": "identity is explicit and no crate infers support from a dependency",
+      "acceptanceCriteria": [
+        {
+          "id": "AC-001",
+          "text": "Given tokens stored for two tenants, when one tenant reads a provider token, then it never receives the other tenant's token."
+        },
+        {
+          "id": "AC-002",
+          "text": "Given a provider that is not registered, when the registry is queried by id, then it returns None and does not panic."
+        },
+        {
+          "id": "AC-003",
+          "text": "Given a provider registered with a capability slice, when capabilities are queried, then the registry returns exactly the declared keys and provisioning modes."
+        }
+      ]
+    },
+    {
+      "id": "US-002",
+      "title": "Build an explicit provider registry",
+      "role": "application developer",
+      "want": "register provider families explicitly at startup",
+      "benefit": "there is no global mutable singleton and no accidental duplication",
+      "acceptanceCriteria": [
+        {
+          "id": "AC-004",
+          "text": "Given a registry that already contains a provider, when the same provider id is registered again, then the second registration returns a typed duplicate error and the original entry is unchanged."
+        },
+        {
+          "id": "AC-005",
+          "text": "Given providers registered in a known order, when the registry is iterated, then providers are yielded in registration order deterministically."
+        },
+        {
+          "id": "AC-006",
+          "text": "Given two registries built in the same process, when one registers a provider, then the other registry is unaffected and no global mutable state is shared."
+        }
+      ]
+    },
+    {
+      "id": "US-003",
+      "title": "Store and revoke credentials behind a contract",
+      "role": "application developer",
+      "want": "a storage-agnostic token-store trait plus a memory implementation",
+      "benefit": "the adapter can supply KMS-backed storage without the crate owning encryption",
+      "acceptanceCriteria": [
+        {
+          "id": "AC-007",
+          "text": "Given the memory token store, when a token is put, read, revoked, and read again, then the first read returns the token and the second returns None."
+        },
+        {
+          "id": "AC-008",
+          "text": "Given a token stored in the memory backend, when Debug or Display is printed for the store or the token, then the token value is redacted."
+        },
+        {
+          "id": "AC-009",
+          "text": "Given a backend that returns an error, when get, put, or revoke runs, then the error is surfaced as a typed TokenError and the call does not panic."
+        }
+      ]
+    },
+    {
+      "id": "US-004",
+      "title": "Reserve and settle shared provider quota",
+      "role": "service developer",
+      "want": "reserve quota before an outbound call and commit or release afterwards",
+      "benefit": "two processes cannot spend the same last unit",
+      "acceptanceCriteria": [
+        {
+          "id": "AC-010",
+          "text": "Given a budget with limit N, when N reservations are requested, then each request returns a distinct reservation id and usage equals N."
+        },
+        {
+          "id": "AC-011",
+          "text": "Given a budget at its limit under HardStop, when another reservation is requested, then it is denied with the reset time and usage is unchanged."
+        },
+        {
+          "id": "AC-012",
+          "text": "Given a reservation, when it is committed then usage is consumed exactly once; when it is released then usage is not consumed."
+        },
+        {
+          "id": "AC-013",
+          "text": "Given a repeated caller idempotency key, when reserve is called twice with the same key and payload, then the same reservation is returned and usage is counted once."
+        }
+      ]
+    },
+    {
+      "id": "US-005",
+      "title": "Enforce an explicit exhaustion policy",
+      "role": "service developer",
+      "want": "each exhausted budget to produce the policy's declared outcome",
+      "benefit": "hard stops, overage, degradation, and queueing are never accidental",
+      "acceptanceCriteria": [
+        {
+          "id": "AC-014",
+          "text": "Given HardStop, when the budget is exhausted, then reserve returns QuotaExceeded with the reset time and an upgrade hint."
+        },
+        {
+          "id": "AC-015",
+          "text": "Given Overage with a unit cost, when the budget is exhausted, then reserve succeeds, records overage units, and reports the accumulated cost in cents."
+        },
+        {
+          "id": "AC-016",
+          "text": "Given Degrade, when the budget is exhausted, then reserve returns a Degraded outcome naming the reset time and consumes no units."
+        },
+        {
+          "id": "AC-017",
+          "text": "Given Queue, when the budget is exhausted, then reserve returns a Queued outcome with the reset time and consumes no units."
+        }
+      ]
+    },
+    {
+      "id": "US-006",
+      "title": "Persist quota in Postgres",
+      "role": "service developer",
+      "want": "an optional Postgres backend with atomic reservations",
+      "benefit": "quota survives restarts and is shared across pods",
+      "acceptanceCriteria": [
+        {
+          "id": "AC-018",
+          "text": "Given the postgres feature disabled, when the crate builds, then no sqlx or Postgres dependency is compiled."
+        },
+        {
+          "id": "AC-019",
+          "text": "Given two concurrent tasks reserving the last unit against Postgres, when both run, then exactly one succeeds and usage never exceeds the limit."
+        },
+        {
+          "id": "AC-020",
+          "text": "Given a reservation that was never committed or released, when its TTL expires and reclaim runs, then the held units return to the budget exactly once."
+        },
+        {
+          "id": "AC-021",
+          "text": "Given rows belonging to two tenants, when usage is queried for one tenant, then only that tenant's usage is returned."
+        }
+      ]
+    },
+    {
+      "id": "US-007",
+      "title": "Verify inbound webhooks on raw bytes",
+      "role": "webhook-edge developer",
+      "want": "signature verification over the raw request bytes with a replay window",
+      "benefit": "tampered or stale deliveries are rejected before parsing",
+      "acceptanceCriteria": [
+        {
+          "id": "AC-022",
+          "text": "Given a request whose signature is valid over its raw bytes, when the provider verifier runs, then the event is accepted."
+        },
+        {
+          "id": "AC-023",
+          "text": "Given a body that is JSON-parsed and re-serialized after signing, when verification runs, then it fails."
+        },
+        {
+          "id": "AC-024",
+          "text": "Given a timestamp outside the configured tolerance, when verification runs, then the request is rejected as stale."
+        },
+        {
+          "id": "AC-025",
+          "text": "Given each shipped HMAC preset, when the provider's documented signature is computed for a fixture, then the valid signature passes and a one-byte tampered body fails."
+        }
+      ]
+    },
+    {
+      "id": "US-008",
+      "title": "Deduplicate deliveries per tenant",
+      "role": "webhook-edge developer",
+      "want": "durable deduplication",
+      "benefit": "a retried delivery is reported as a duplicate instead of being processed twice",
+      "acceptanceCriteria": [
+        {
+          "id": "AC-026",
+          "text": "Given the same provider event id delivered twice for one tenant, when the second insert runs, then it returns Duplicate and no second outbox row is written."
+        },
+        {
+          "id": "AC-027",
+          "text": "Given the same provider event id from two different tenants, when both arrive, then both are accepted."
+        },
+        {
+          "id": "AC-028",
+          "text": "Given a delivery already marked processed, when the same event arrives again, then it is reported as Duplicate and is not re-enqueued."
+        }
+      ]
+    },
+    {
+      "id": "US-009",
+      "title": "Hand off to an outbox and dead-letter failures",
+      "role": "webhook-edge developer",
+      "want": "the delivery record and outbox row committed together",
+      "benefit": "an accepted webhook is never lost and a poison event is isolated",
+      "acceptanceCriteria": [
+        {
+          "id": "AC-029",
+          "text": "Given a verified event and a backend with transactions, when the delivery insert and outbox enqueue succeed, then both rows are visible after commit; when either fails, then neither row is visible."
+        },
+        {
+          "id": "AC-030",
+          "text": "Given a handler that fails beyond the configured maximum attempts, when the delivery is marked failed, then a dead-letter record contains the raw body and the error text."
+        },
+        {
+          "id": "AC-031",
+          "text": "Given at-least-once processing, when a delivery is replayed from the dead-letter record, then the handler observes the same delivery id and the store reports Duplicate if it had already succeeded."
+        }
+      ]
+    },
+    {
+      "id": "US-010",
+      "title": "Queue actions durably on the client",
+      "role": "offline-first application developer",
+      "want": "actions persisted before acknowledgement",
+      "benefit": "a crash or lost connection does not lose a completed field action",
+      "acceptanceCriteria": [
+        {
+          "id": "AC-032",
+          "text": "Given an action, when enqueue returns Ok, then the action is readable from the configured storage before the call returns."
+        },
+        {
+          "id": "AC-033",
+          "text": "Given N queued actions, when pending actions are listed, then they are returned in enqueue order."
+        },
+        {
+          "id": "AC-034",
+          "text": "Given a storage write failure, when enqueue runs, then it returns a typed error and no success is reported."
+        },
+        {
+          "id": "AC-035",
+          "text": "Given an action created without an explicit id, when its id is generated, then it is a UUID v7 whose timestamp component is monotonic within the process."
+        }
+      ]
+    },
+    {
+      "id": "US-011",
+      "title": "Replay a batch with per-action results",
+      "role": "offline-first application developer",
+      "want": "partial failure handled per action",
+      "benefit": "one poison or retrying action does not duplicate or block the rest",
+      "acceptanceCriteria": [
+        {
+          "id": "AC-036",
+          "text": "Given a batch in which every action is applied, when replay completes, then each action is marked sent and BatchResult contains one Applied result per action."
+        },
+        {
+          "id": "AC-037",
+          "text": "Given a batch where one action returns Retry, when replay completes, then the other actions are marked sent and only the retrying action stays pending with attempts incremented."
+        },
+        {
+          "id": "AC-038",
+          "text": "Given a batch where the server reports Conflict, when replay completes, then the configured conflict strategy is applied and the result records ConflictInfo."
+        },
+        {
+          "id": "AC-039",
+          "text": "Given an action that always fails validation, when it reaches the maximum attempt count, then it is marked failed and later pending actions still replay."
+        },
+        {
+          "id": "AC-040",
+          "text": "Given the mock transport and in-memory storage, when the same batch is replayed twice, then the second run applies no action twice and pending duplicates are reported."
+        }
+      ]
+    },
+    {
+      "id": "US-012",
+      "title": "Choose a conflict strategy per entity",
+      "role": "offline-first application developer",
+      "want": "explicit conflict strategies",
+      "benefit": "resolution is a declared policy rather than an accidental merge",
+      "acceptanceCriteria": [
+        {
+          "id": "AC-041",
+          "text": "Given LastWriteWins, when client and server timestamps differ, then the later timestamp wins and the decision is recorded."
+        },
+        {
+          "id": "AC-042",
+          "text": "Given ServerWins, when a conflict is reported, then the server value is selected unchanged."
+        },
+        {
+          "id": "AC-043",
+          "text": "Given ClientWins, when a conflict is reported, then the client payload is selected."
+        },
+        {
+          "id": "AC-044",
+          "text": "Given Custom, when a conflict is reported, then the caller's merger returns the resolution and it is recorded in the result."
+        }
+      ]
+    },
+    {
+      "id": "US-013",
+      "title": "Compose the substrate without a framework",
+      "role": "external Rust developer",
+      "want": "one example that composes the crates",
+      "benefit": "the intended integration is visible without adopting a framework or a database for every consumer",
+      "acceptanceCriteria": [
+        {
+          "id": "AC-045",
+          "text": "Given the integration example, when it runs, then it registers a tenant-scoped provider, reserves and commits quota, and verifies and enqueues a signed webhook."
+        },
+        {
+          "id": "AC-046",
+          "text": "Given the workspace, when cargo build --workspace --all-features runs on Rust 1.85, then all four crates and the example compile."
+        },
+        {
+          "id": "AC-047",
+          "text": "Given each crate root, when it is inspected, then crate-level forbid unsafe_code and deny missing_docs are present and rustdoc builds with warnings denied."
+        },
+        {
+          "id": "AC-048",
+          "text": "Given each crate, when built with --no-default-features, then it compiles without a database, HTTP framework, or native dependency."
+        },
+        {
+          "id": "AC-049",
+          "text": "Given a Postgres connection string that disables TLS, when the backend connects in the default mode, then it refuses unless the caller explicitly enables an insecure test mode."
+        },
+        {
+          "id": "AC-050",
+          "text": "Given any crate with its features enabled in any combination required by the feature set, when it builds, then no feature disables another."
+        },
+        {
+          "id": "AC-051",
+          "text": "Given any crate's error type, when Display is formatted, then it includes a stable code and the type implements std::error::Error."
+        },
+        {
+          "id": "AC-052",
+          "text": "Given a replay and a webhook flow with tracing enabled, when they run, then queue depth, replay outcome, conflict count, duration, and webhook outcome events are emitted."
+        },
+        {
+          "id": "AC-053",
+          "text": "Given each crate, when cargo package --list runs, then the README, license files, and 0.1.0 metadata are included."
+        }
+      ]
+    }
+  ],
+  "functionalRequirements": [
+    {
+      "id": "FR-001",
+      "text": "platform-core MUST define TenantId, ProviderId, ProvisioningMode, Capability, Provider, TokenStore, Secret, and one IntegrationError type with stable error codes.",
+      "linkedAcceptanceCriteria": ["AC-003"]
+    },
+    {
+      "id": "FR-002",
+      "text": "platform-core MUST provide a Registry with explicit register, get, iter, and capability lookup, and MUST reject duplicate provider registration.",
+      "linkedAcceptanceCriteria": ["AC-002", "AC-004", "AC-005"]
+    },
+    {
+      "id": "FR-003",
+      "text": "The registry MUST be instance-scoped; the crate MUST NOT expose a global mutable singleton or implicit registration.",
+      "linkedAcceptanceCriteria": ["AC-006"]
+    },
+    {
+      "id": "FR-004",
+      "text": "TokenStore MUST be storage-agnostic with async get, put, and revoke, and MUST ship an in-memory implementation for tests and single-binary tools.",
+      "linkedAcceptanceCriteria": ["AC-007", "AC-009"]
+    },
+    {
+      "id": "FR-005",
+      "text": "Secret material MUST be redacted in Debug and Display, MUST NOT implement Serialize, and MUST NOT be logged.",
+      "linkedAcceptanceCriteria": ["AC-008"]
+    },
+    {
+      "id": "FR-006",
+      "text": "IntegrationError MUST distinguish Auth, Scope, RateLimit, Quota, Provider, Transport, and Unsupported, and MUST implement Display and std::error::Error.",
+      "linkedAcceptanceCriteria": ["AC-051"]
+    },
+    {
+      "id": "FR-007",
+      "text": "quota-ledger MUST define TenantId, ProviderId, Metric, Window, Budget, QuotaKey, Reservation, ReservationId, Usage, ExhaustionPolicy, and QuotaError.",
+      "linkedAcceptanceCriteria": ["AC-010", "AC-014"]
+    },
+    {
+      "id": "FR-008",
+      "text": "QuotaStore MUST implement async reserve, commit, release, and usage, with a caller idempotency key on reserve.",
+      "linkedAcceptanceCriteria": ["AC-012", "AC-013"]
+    },
+    {
+      "id": "FR-009",
+      "text": "Reservation MUST be atomic: the store MUST check remaining capacity and record the hold in one operation, and MUST NOT allow concurrent reserves to exceed the limit.",
+      "linkedAcceptanceCriteria": ["AC-011", "AC-019"]
+    },
+    {
+      "id": "FR-010",
+      "text": "commit MUST consume a reservation exactly once and release MUST consume nothing; repeated or late calls MUST be typed no-ops rather than double counts.",
+      "linkedAcceptanceCriteria": ["AC-012", "AC-020"]
+    },
+    {
+      "id": "FR-011",
+      "text": "Each ExhaustionPolicy MUST produce its declared outcome: HardStop denies, Overage records overage and cost, Degrade returns a degraded outcome, and Queue returns a queued outcome.",
+      "linkedAcceptanceCriteria": ["AC-014", "AC-015", "AC-016", "AC-017"]
+    },
+    {
+      "id": "FR-012",
+      "text": "Window MUST support fixed daily and monthly windows with an explicit timezone plus a rolling window, and reset boundaries MUST use the configured timezone rather than the host clock's.",
+      "linkedAcceptanceCriteria": ["AC-011"]
+    },
+    {
+      "id": "FR-013",
+      "text": "quota-ledger MUST provide an optional postgres backend that uses parameterized SQL only, an atomic conditional update or row lock for reservation, and TTL-based reclaim of abandoned reservations.",
+      "linkedAcceptanceCriteria": ["AC-018", "AC-019", "AC-020", "AC-021"]
+    },
+    {
+      "id": "FR-014",
+      "text": "hookgate MUST define InboundRequest, VerifiedEvent, DeliveryId, IdempotencyKey, Verifier, DeliveryStore, Outbox, and typed verify, store, and outbox errors.",
+      "linkedAcceptanceCriteria": ["AC-022"]
+    },
+    {
+      "id": "FR-015",
+      "text": "Verification MUST operate on the raw request bytes, use constant-time comparison, and enforce a configurable timestamp tolerance or replay window.",
+      "linkedAcceptanceCriteria": ["AC-022", "AC-023", "AC-024", "AC-025"]
+    },
+    {
+      "id": "FR-016",
+      "text": "hookgate MUST ship HMAC verifier presets for Meta Graph, Stripe, Shopify, Twilio, Slack, GitHub, and a configurable generic HMAC-SHA256 verifier.",
+      "linkedAcceptanceCriteria": ["AC-025"]
+    },
+    {
+      "id": "FR-017",
+      "text": "DeliveryStore MUST deduplicate on the tuple of tenant, provider, and provider event id, and MUST report Duplicate without enqueueing again.",
+      "linkedAcceptanceCriteria": ["AC-026", "AC-027", "AC-028"]
+    },
+    {
+      "id": "FR-018",
+      "text": "Delivery insert and outbox enqueue MUST commit as one transaction when the backend supports transactions.",
+      "linkedAcceptanceCriteria": ["AC-029"]
+    },
+    {
+      "id": "FR-019",
+      "text": "A delivery that exceeds the maximum attempts MUST be recorded as dead-lettered with its raw body and error text, and MUST be replayable with the same delivery identity.",
+      "linkedAcceptanceCriteria": ["AC-030", "AC-031"]
+    },
+    {
+      "id": "FR-020",
+      "text": "syncforge MUST define Action, ActionId, EntityType, Operation, Batch, BatchResult, ActionResult, ActionStatus, and ConflictInfo.",
+      "linkedAcceptanceCriteria": ["AC-032", "AC-036"]
+    },
+    {
+      "id": "FR-021",
+      "text": "ActionId MUST be a UUID v7 generated at action creation, with a monotonic timestamp component within the process.",
+      "linkedAcceptanceCriteria": ["AC-035"]
+    },
+    {
+      "id": "FR-022",
+      "text": "Storage MUST persist append, list pending, mark sent, mark failed, and attempt counts, and MUST ship an in-memory implementation with deterministic ordering.",
+      "linkedAcceptanceCriteria": ["AC-032", "AC-033", "AC-034"]
+    },
+    {
+      "id": "FR-023",
+      "text": "Transport MUST send a batch and return per-action results, and MUST ship a mock transport for deterministic tests.",
+      "linkedAcceptanceCriteria": ["AC-036", "AC-040"]
+    },
+    {
+      "id": "FR-024",
+      "text": "The replay engine MUST process actions in order, return one result per action, retry retryable failures with bounded backoff, and dead-letter an action after the configured maximum attempts without blocking later actions.",
+      "linkedAcceptanceCriteria": ["AC-037", "AC-039", "AC-040"]
+    },
+    {
+      "id": "FR-025",
+      "text": "syncforge MUST implement LastWriteWins, ServerWins, ClientWins, and Custom conflict strategies selectable per entity or action.",
+      "linkedAcceptanceCriteria": ["AC-038", "AC-041", "AC-042", "AC-043", "AC-044"]
+    },
+    {
+      "id": "FR-026",
+      "text": "Actions MUST carry the client timestamp, the server MUST record its own timestamp, and the server MUST apply a configurable tolerance rather than silently rewriting the client time.",
+      "linkedAcceptanceCriteria": ["AC-041"]
+    },
+    {
+      "id": "FR-027",
+      "text": "The feature MUST emit tracing events for queue depth, replay outcome, conflict count, and duration.",
+      "linkedAcceptanceCriteria": ["AC-052"]
+    },
+    {
+      "id": "FR-028",
+      "text": "The workspace MUST add crates/platform-core, crates/quota-ledger, crates/hookgate, and crates/syncforge as 0.1.0 members, and MUST include one integration example that composes platform-core, quota-ledger, and hookgate.",
+      "linkedAcceptanceCriteria": ["AC-045", "AC-046"]
+    },
+    {
+      "id": "FR-029",
+      "text": "Each crate MUST ship a README with a documented default feature set, rustdoc module comments that state scope and non-goals, and publishable metadata inherited from the workspace.",
+      "linkedAcceptanceCriteria": ["AC-047", "AC-053"]
+    }
+  ],
+  "nonFunctionalRequirements": [
+    {
+      "id": "NFR-001",
+      "text": "Tenant isolation MUST hold in every store: no key, query, or delivery lookup may return another tenant's token, usage, or event.",
+      "linkedAcceptanceCriteria": ["AC-001", "AC-021", "AC-027"]
+    },
+    {
+      "id": "NFR-002",
+      "text": "Secrets, signatures, and connection strings MUST be redacted in Debug, Display, logs, traces, and error payloads.",
+      "linkedAcceptanceCriteria": ["AC-008"]
+    },
+    {
+      "id": "NFR-003",
+      "text": "All external input MUST be treated as untrusted; malformed bytes, missing headers, oversized bodies, bad timestamps, and malformed actions MUST return typed errors, never panic or hang.",
+      "linkedAcceptanceCriteria": ["AC-022", "AC-023", "AC-024", "AC-026", "AC-034"]
+    },
+    {
+      "id": "NFR-004",
+      "text": "All SQL MUST be parameterized. Dynamic identifiers or string-built queries MUST NOT be used with caller input.",
+      "linkedAcceptanceCriteria": ["AC-019", "AC-020", "AC-021"]
+    },
+    {
+      "id": "NFR-005",
+      "text": "Quota enforcement MUST remain correct under concurrency: concurrent reservations MUST NOT exceed the limit, and settlement MUST be idempotent.",
+      "linkedAcceptanceCriteria": ["AC-011", "AC-019"]
+    },
+    {
+      "id": "NFR-006",
+      "text": "Every crate MUST compile on Rust 1.85 with edition 2021.",
+      "linkedAcceptanceCriteria": ["AC-046"]
+    },
+    {
+      "id": "NFR-007",
+      "text": "Every crate MUST keep crate-level forbid unsafe_code and deny missing_docs, and rustdoc MUST build with warnings denied.",
+      "linkedAcceptanceCriteria": ["AC-047"]
+    },
+    {
+      "id": "NFR-008",
+      "text": "Features MUST be additive and MUST NOT force a database or HTTP framework on a consumer; --no-default-features MUST build every crate.",
+      "linkedAcceptanceCriteria": ["AC-018", "AC-048", "AC-050"]
+    },
+    {
+      "id": "NFR-009",
+      "text": "Postgres connections MUST require TLS by default; a non-TLS mode MUST be explicit, documented as test-only, and never the default.",
+      "linkedAcceptanceCriteria": ["AC-049"]
+    },
+    {
+      "id": "NFR-010",
+      "text": "Replay MUST be deterministic with the in-memory storage and mock transport so that duplicate and partial-failure behavior is reproducible.",
+      "linkedAcceptanceCriteria": ["AC-040"]
+    },
+    {
+      "id": "NFR-011",
+      "text": "Every acceptance criterion MUST be covered by at least one test supplied by /sdrive:test.",
+      "linkedAcceptanceCriteria": [
+        "AC-001", "AC-002", "AC-003", "AC-004", "AC-005", "AC-006", "AC-007", "AC-008", "AC-009", "AC-010",
+        "AC-011", "AC-012", "AC-013", "AC-014", "AC-015", "AC-016", "AC-017", "AC-018", "AC-019", "AC-020",
+        "AC-021", "AC-022", "AC-023", "AC-024", "AC-025", "AC-026", "AC-027", "AC-028", "AC-029", "AC-030",
+        "AC-031", "AC-032", "AC-033", "AC-034", "AC-035", "AC-036", "AC-037", "AC-038", "AC-039", "AC-040",
+        "AC-041", "AC-042", "AC-043", "AC-044", "AC-045", "AC-046", "AC-047", "AC-048", "AC-049", "AC-050",
+        "AC-051", "AC-052", "AC-053"
+      ]
+    },
+    {
+      "id": "NFR-012",
+      "text": "Registration and configuration MUST be explicit; no crate may rely on ambient global state to discover providers, storage, or transports.",
+      "linkedAcceptanceCriteria": ["AC-006"]
+    }
+  ],
+  "edgeCases": [
+    {
+      "id": "EC-001",
+      "description": "Empty registry",
+      "expectedBehavior": "get returns None, iter yields nothing, and no panic or global fallback registration occurs."
+    },
+    {
+      "id": "EC-002",
+      "description": "Duplicate provider registration",
+      "expectedBehavior": "Typed duplicate error; the existing entry is preserved."
+    },
+    {
+      "id": "EC-003",
+      "description": "Unknown provider id",
+      "expectedBehavior": "None; capability lookup never infers support from crate presence."
+    },
+    {
+      "id": "EC-004",
+      "description": "Token backend failure",
+      "expectedBehavior": "Typed TokenError; no partial write is reported as success."
+    },
+    {
+      "id": "EC-005",
+      "description": "Budget limit of zero",
+      "expectedBehavior": "Every reserve follows the configured policy; HardStop denies immediately and Overage requires an explicit non-zero allowance."
+    },
+    {
+      "id": "EC-006",
+      "description": "Requested units greater than the remaining budget",
+      "expectedBehavior": "Typed denial that states requested and remaining."
+    },
+    {
+      "id": "EC-007",
+      "description": "Reservation TTL expiry",
+      "expectedBehavior": "Held units are reclaimed exactly once; a late commit is a typed no-op."
+    },
+    {
+      "id": "EC-008",
+      "description": "Same idempotency key with a different payload",
+      "expectedBehavior": "Typed conflict error, not a silent second reservation."
+    },
+    {
+      "id": "EC-009",
+      "description": "Window boundary or provider timezone",
+      "expectedBehavior": "Reset uses the configured timezone; the usage query reports the next reset instant."
+    },
+    {
+      "id": "EC-010",
+      "description": "Missing or empty signature header",
+      "expectedBehavior": "Typed verification error; the body is not parsed."
+    },
+    {
+      "id": "EC-011",
+      "description": "Body above the configured maximum",
+      "expectedBehavior": "Typed size error before verification."
+    },
+    {
+      "id": "EC-012",
+      "description": "Signature in uppercase or lowercase hex, or with the documented prefix",
+      "expectedBehavior": "Normalized per preset; an unknown format fails."
+    },
+    {
+      "id": "EC-013",
+      "description": "Timestamp in the future beyond tolerance",
+      "expectedBehavior": "Rejected as stale or invalid, with the same typed error family."
+    },
+    {
+      "id": "EC-014",
+      "description": "Two deliveries with the same event id racing",
+      "expectedBehavior": "Exactly one insert wins; the other reports Duplicate."
+    },
+    {
+      "id": "EC-015",
+      "description": "Outbox enqueue fails after delivery insert",
+      "expectedBehavior": "The transaction rolls back and the request is not acknowledged."
+    },
+    {
+      "id": "EC-016",
+      "description": "Empty queue",
+      "expectedBehavior": "Replay returns an empty BatchResult and emits no transport call."
+    },
+    {
+      "id": "EC-017",
+      "description": "Transport returns a whole-batch failure",
+      "expectedBehavior": "No action is marked sent; retryable actions stay pending with bounded backoff."
+    },
+    {
+      "id": "EC-018",
+      "description": "Conflict reported without server state",
+      "expectedBehavior": "Typed error rather than an invented resolution."
+    },
+    {
+      "id": "EC-019",
+      "description": "Poison action reaches maximum attempts",
+      "expectedBehavior": "Dead-lettered; later actions still replay."
+    },
+    {
+      "id": "EC-020",
+      "description": "Client clock far in the past or future",
+      "expectedBehavior": "Client time is preserved, server time is recorded, and the tolerance decision is visible in the result."
+    },
+    {
+      "id": "EC-021",
+      "description": "--no-default-features build",
+      "expectedBehavior": "Core types and traits compile with no database or HTTP dependency."
+    },
+    {
+      "id": "EC-022",
+      "description": "Insecure Postgres connection string in default mode",
+      "expectedBehavior": "Refused with a typed configuration error unless the explicit test-only mode is enabled."
+    }
+  ],
+  "dependencies": [
+    {
+      "name": "uuid",
+      "type": "library",
+      "notes": "Tenant and delivery identifiers, UUID v7 action ids; v4, v7, and serde features."
+    },
+    {
+      "name": "chrono",
+      "type": "library",
+      "notes": "UTC timestamps, windows, and timezone-aware reset boundaries; serde feature."
+    },
+    {
+      "name": "serde",
+      "type": "library",
+      "notes": "Serialization for events, actions, and payloads."
+    },
+    {
+      "name": "serde_json",
+      "type": "library",
+      "notes": "Event payloads and action payloads."
+    },
+    {
+      "name": "async-trait",
+      "type": "library",
+      "notes": "Object-safe async traits for stores and transports."
+    },
+    {
+      "name": "thiserror",
+      "type": "library",
+      "notes": "Error enums with stable codes and std::error::Error."
+    },
+    {
+      "name": "tracing",
+      "type": "library",
+      "notes": "Queue, replay, conflict, and webhook metrics."
+    },
+    {
+      "name": "secrecy",
+      "type": "library",
+      "notes": "Redacted secret wrapper for tokens and signing keys."
+    },
+    {
+      "name": "hmac",
+      "type": "library",
+      "notes": "HMAC construction for webhook presets."
+    },
+    {
+      "name": "sha2",
+      "type": "library",
+      "notes": "SHA-256 for HMAC webhook presets."
+    },
+    {
+      "name": "sha1",
+      "type": "library",
+      "notes": "SHA-1 for the Twilio preset."
+    },
+    {
+      "name": "subtle",
+      "type": "library",
+      "notes": "Constant-time signature comparison."
+    },
+    {
+      "name": "hex",
+      "type": "library",
+      "notes": "Hex signature decoding."
+    },
+    {
+      "name": "base64",
+      "type": "library",
+      "notes": "Base64 signature decoding for the Shopify preset."
+    },
+    {
+      "name": "http",
+      "type": "library",
+      "notes": "HeaderMap in InboundRequest."
+    },
+    {
+      "name": "bytes",
+      "type": "library",
+      "notes": "Raw body retention without re-serialization."
+    },
+    {
+      "name": "sqlx",
+      "type": "library",
+      "notes": "Optional Postgres backend: postgres, runtime-tokio-rustls, chrono, uuid, migrate."
+    },
+    {
+      "name": "tokio",
+      "type": "library",
+      "notes": "Dev-dependency for async tests: macros and rt-multi-thread."
+    },
+    {
+      "name": "crates.io",
+      "type": "service",
+      "notes": "Publication target; every crate name must be checked immediately before publish."
+    }
+  ],
+  "risks": [
+    {
+      "id": "RISK-001",
+      "description": "Four crates in one feature create review fatigue and a long-lived branch.",
+      "mitigation": "One crate per plan phase, each phase compiles and documents its public surface on its own, and the integration example comes last."
+    },
+    {
+      "id": "RISK-002",
+      "description": "Async traits used as trait objects can break object safety or add hidden allocation costs.",
+      "mitigation": "Standardize on async-trait, keep traits object-safe, and prove the contract suites against the memory and mock implementations."
+    },
+    {
+      "id": "RISK-003",
+      "description": "Postgres integration cannot run everywhere because no local server or CI service exists.",
+      "mitigation": "Keep the backend behind postgres, provide a SQL schema, require a contract test suite runnable with DATABASE_URL, and let /sdrive:test decide CI provisioning."
+    },
+    {
+      "id": "RISK-004",
+      "description": "Database identifiers or caller data could be interpolated into SQL.",
+      "mitigation": "Fixed schema, parameterized values only, and a review check for string-built queries (NFR-004)."
+    },
+    {
+      "id": "RISK-005",
+      "description": "Signature comparison or deduplication could leak timing or allow replay.",
+      "mitigation": "Constant-time comparison, raw-byte verification, unique constraints, and replay-window tests."
+    },
+    {
+      "id": "RISK-006",
+      "description": "One or more crate names are taken on crates.io.",
+      "mitigation": "Check each name immediately before publication (CON-111); if taken, stop and choose a fallback before coding the publish step."
+    },
+    {
+      "id": "RISK-007",
+      "description": "New dependencies raise the effective MSRV above 1.85.",
+      "mitigation": "The existing MSRV CI job covers the workspace; pin or downgrade with a recorded decision."
+    },
+    {
+      "id": "RISK-008",
+      "description": "The trait surface becomes too abstract or absorbs product nouns.",
+      "mitigation": "Enforce the catalogue non-goals, keep capability and metric keys opaque, and review every public type against the out-of-scope list."
+    },
+    {
+      "id": "RISK-009",
+      "description": "syncforge replay and conflict logic silently duplicates actions.",
+      "mitigation": "Per-action results, UUID v7 idempotency keys, deterministic mock transport tests, and an explicit at-least-once contract in the docs."
+    },
+    {
+      "id": "RISK-010",
+      "description": "Scope creep from the deferred list (Redis, SQLite, HTTP, axum, SendGrid).",
+      "mitigation": "Deferred items are explicit in this specification; adding one requires a new version, not a silent expansion."
+    }
+  ]
+}

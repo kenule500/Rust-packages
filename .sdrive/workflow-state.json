@@ -62,6 +62,52 @@
           ]
         }
       ]
+    },
+    {
+      "name": "m3-substrate",
+      "branch": "feature/m3-substrate",
+      "base": "main",
+      "currentVersion": "v1",
+      "versions": [
+        {
+          "id": "v1",
+          "phase": "backlog",
+          "currentStep": "planning",
+          "gates": {
+            "specification": "approved",
+            "planning": "approved",
+            "implementation": "pending",
+            "review": "pending"
+          },
+          "history": [
+            {
+              "event": "Feature branch feature/m3-substrate confirmed from main; base invariant clean (no commits between main and the branch)",
+              "by": "SpecDrive",
+              "timestamp": "2026-10-20T21:43:01Z"
+            },
+            {
+              "event": "Scope confirmed: BP-017 platform-core, BP-018 quota-ledger (Postgres only), BP-020 hookgate, BP-021 syncforge; BP-019 Redis deferred",
+              "by": "kenule500",
+              "timestamp": "2026-10-20T21:43:01Z"
+            },
+            {
+              "event": "Gate 1 approved: specification and traceability",
+              "by": "kenule500",
+              "timestamp": "2026-10-20T21:48:00Z"
+            },
+            {
+              "event": "Plan, tasks, and traceability drafted for review at Gate 2",
+              "by": "SpecDrive",
+              "timestamp": "2026-10-20T21:55:00Z"
+            },
+            {
+              "event": "Gate 2 approved: technical plan and tasks",
+              "by": "kenule500",
+              "timestamp": "2026-10-20T22:00:00Z"
+            }
+          ]
+        }
+      ]
     }
   ]
 }

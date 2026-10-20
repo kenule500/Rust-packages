@@ -1,0 +1,616 @@
+{
+  "feature": "m3-substrate",
+  "version": 1,
+  "rows": [
+    {
+      "requirementId": "FR-001",
+      "acceptanceCriteriaIds": [
+        "AC-003"
+      ],
+      "planSection": "P2 - platform-core identity and capability types",
+      "taskIds": [
+        "T2.1"
+      ],
+      "testIds": [],
+      "status": "not_started"
+    },
+    {
+      "requirementId": "FR-002",
+      "acceptanceCriteriaIds": [
+        "AC-002",
+        "AC-004",
+        "AC-005"
+      ],
+      "planSection": "P2 - explicit registry",
+      "taskIds": [
+        "T2.2"
+      ],
+      "testIds": [],
+      "status": "not_started"
+    },
+    {
+      "requirementId": "FR-003",
+      "acceptanceCriteriaIds": [
+        "AC-006"
+      ],
+      "planSection": "P2 - explicit registry",
+      "taskIds": [
+        "T2.2"
+      ],
+      "testIds": [],
+      "status": "not_started"
+    },
+    {
+      "requirementId": "FR-004",
+      "acceptanceCriteriaIds": [
+        "AC-007",
+        "AC-009"
+      ],
+      "planSection": "P2 - token store contract",
+      "taskIds": [
+        "T2.3"
+      ],
+      "testIds": [],
+      "status": "not_started"
+    },
+    {
+      "requirementId": "FR-005",
+      "acceptanceCriteriaIds": [
+        "AC-008"
+      ],
+      "planSection": "P2 - secret redaction",
+      "taskIds": [
+        "T2.3"
+      ],
+      "testIds": [],
+      "status": "not_started"
+    },
+    {
+      "requirementId": "FR-006",
+      "acceptanceCriteriaIds": [
+        "AC-051"
+      ],
+      "planSection": "P2 - error taxonomy",
+      "taskIds": [
+        "T2.4"
+      ],
+      "testIds": [],
+      "status": "not_started"
+    },
+    {
+      "requirementId": "FR-007",
+      "acceptanceCriteriaIds": [
+        "AC-010",
+        "AC-014"
+      ],
+      "planSection": "P3 - quota type model",
+      "taskIds": [
+        "T3.1"
+      ],
+      "testIds": [],
+      "status": "not_started"
+    },
+    {
+      "requirementId": "FR-008",
+      "acceptanceCriteriaIds": [
+        "AC-012",
+        "AC-013"
+      ],
+      "planSection": "P3 - in-memory quota store",
+      "taskIds": [
+        "T3.2"
+      ],
+      "testIds": [],
+      "status": "not_started"
+    },
+    {
+      "requirementId": "FR-009",
+      "acceptanceCriteriaIds": [
+        "AC-011",
+        "AC-019"
+      ],
+      "planSection": "P3 - atomic reservation",
+      "taskIds": [
+        "T3.2"
+      ],
+      "testIds": [],
+      "status": "not_started"
+    },
+    {
+      "requirementId": "FR-010",
+      "acceptanceCriteriaIds": [
+        "AC-012",
+        "AC-020"
+      ],
+      "planSection": "P3/P4 - settlement",
+      "taskIds": [
+        "T3.2",
+        "T4.3"
+      ],
+      "testIds": [],
+      "status": "not_started"
+    },
+    {
+      "requirementId": "FR-011",
+      "acceptanceCriteriaIds": [
+        "AC-014",
+        "AC-015",
+        "AC-016",
+        "AC-017"
+      ],
+      "planSection": "P3 - exhaustion policies",
+      "taskIds": [
+        "T3.4"
+      ],
+      "testIds": [],
+      "status": "not_started"
+    },
+    {
+      "requirementId": "FR-012",
+      "acceptanceCriteriaIds": [
+        "AC-011"
+      ],
+      "planSection": "P3 - window reset",
+      "taskIds": [
+        "T3.3"
+      ],
+      "testIds": [],
+      "status": "not_started"
+    },
+    {
+      "requirementId": "FR-013",
+      "acceptanceCriteriaIds": [
+        "AC-018",
+        "AC-019",
+        "AC-020",
+        "AC-021"
+      ],
+      "planSection": "P4 - Postgres backend",
+      "taskIds": [
+        "T4.1",
+        "T4.2",
+        "T4.3"
+      ],
+      "testIds": [],
+      "status": "not_started"
+    },
+    {
+      "requirementId": "FR-014",
+      "acceptanceCriteriaIds": [
+        "AC-022"
+      ],
+      "planSection": "P5 - hookgate types",
+      "taskIds": [
+        "T5.1"
+      ],
+      "testIds": [],
+      "status": "not_started"
+    },
+    {
+      "requirementId": "FR-015",
+      "acceptanceCriteriaIds": [
+        "AC-022",
+        "AC-023",
+        "AC-024",
+        "AC-025"
+      ],
+      "planSection": "P5 - verification",
+      "taskIds": [
+        "T5.2",
+        "T5.3"
+      ],
+      "testIds": [],
+      "status": "not_started"
+    },
+    {
+      "requirementId": "FR-016",
+      "acceptanceCriteriaIds": [
+        "AC-025"
+      ],
+      "planSection": "P5 - verifier presets",
+      "taskIds": [
+        "T5.2"
+      ],
+      "testIds": [],
+      "status": "not_started"
+    },
+    {
+      "requirementId": "FR-017",
+      "acceptanceCriteriaIds": [
+        "AC-026",
+        "AC-027",
+        "AC-028"
+      ],
+      "planSection": "P5 - dedupe",
+      "taskIds": [
+        "T5.4"
+      ],
+      "testIds": [],
+      "status": "not_started"
+    },
+    {
+      "requirementId": "FR-018",
+      "acceptanceCriteriaIds": [
+        "AC-029"
+      ],
+      "planSection": "P5 - transactional outbox",
+      "taskIds": [
+        "T5.4"
+      ],
+      "testIds": [],
+      "status": "not_started"
+    },
+    {
+      "requirementId": "FR-019",
+      "acceptanceCriteriaIds": [
+        "AC-030",
+        "AC-031"
+      ],
+      "planSection": "P5 - dead-letter and replay",
+      "taskIds": [
+        "T5.5"
+      ],
+      "testIds": [],
+      "status": "not_started"
+    },
+    {
+      "requirementId": "FR-020",
+      "acceptanceCriteriaIds": [
+        "AC-032",
+        "AC-036"
+      ],
+      "planSection": "P6 - action model",
+      "taskIds": [
+        "T6.1"
+      ],
+      "testIds": [],
+      "status": "not_started"
+    },
+    {
+      "requirementId": "FR-021",
+      "acceptanceCriteriaIds": [
+        "AC-035"
+      ],
+      "planSection": "P6 - UUID v7 identifiers",
+      "taskIds": [
+        "T6.1"
+      ],
+      "testIds": [],
+      "status": "not_started"
+    },
+    {
+      "requirementId": "FR-022",
+      "acceptanceCriteriaIds": [
+        "AC-032",
+        "AC-033",
+        "AC-034"
+      ],
+      "planSection": "P6 - storage contract",
+      "taskIds": [
+        "T6.2"
+      ],
+      "testIds": [],
+      "status": "not_started"
+    },
+    {
+      "requirementId": "FR-023",
+      "acceptanceCriteriaIds": [
+        "AC-036",
+        "AC-040"
+      ],
+      "planSection": "P6 - transport contract",
+      "taskIds": [
+        "T6.3"
+      ],
+      "testIds": [],
+      "status": "not_started"
+    },
+    {
+      "requirementId": "FR-024",
+      "acceptanceCriteriaIds": [
+        "AC-037",
+        "AC-039",
+        "AC-040"
+      ],
+      "planSection": "P6 - replay engine",
+      "taskIds": [
+        "T6.4"
+      ],
+      "testIds": [],
+      "status": "not_started"
+    },
+    {
+      "requirementId": "FR-025",
+      "acceptanceCriteriaIds": [
+        "AC-038",
+        "AC-041",
+        "AC-042",
+        "AC-043",
+        "AC-044"
+      ],
+      "planSection": "P6 - conflict strategies",
+      "taskIds": [
+        "T6.5"
+      ],
+      "testIds": [],
+      "status": "not_started"
+    },
+    {
+      "requirementId": "FR-026",
+      "acceptanceCriteriaIds": [
+        "AC-041"
+      ],
+      "planSection": "P6 - audit timestamps",
+      "taskIds": [
+        "T6.6"
+      ],
+      "testIds": [],
+      "status": "not_started"
+    },
+    {
+      "requirementId": "FR-027",
+      "acceptanceCriteriaIds": [
+        "AC-052"
+      ],
+      "planSection": "P6 - tracing metrics",
+      "taskIds": [
+        "T6.7"
+      ],
+      "testIds": [],
+      "status": "not_started"
+    },
+    {
+      "requirementId": "FR-028",
+      "acceptanceCriteriaIds": [
+        "AC-045",
+        "AC-046"
+      ],
+      "planSection": "P1/P7 - workspace and integration example",
+      "taskIds": [
+        "T1.1",
+        "T7.1"
+      ],
+      "testIds": [],
+      "status": "not_started"
+    },
+    {
+      "requirementId": "FR-029",
+      "acceptanceCriteriaIds": [
+        "AC-047",
+        "AC-053"
+      ],
+      "planSection": "P1-P7 - crate documentation",
+      "taskIds": [
+        "T1.3",
+        "T2.5",
+        "T3.5",
+        "T4.5",
+        "T5.6",
+        "T6.8",
+        "T7.2"
+      ],
+      "testIds": [],
+      "status": "not_started"
+    },
+    {
+      "requirementId": "NFR-001",
+      "acceptanceCriteriaIds": [
+        "AC-001",
+        "AC-021",
+        "AC-027"
+      ],
+      "planSection": "P2/P3/P4/P5 - tenant isolation",
+      "taskIds": [
+        "T2.3",
+        "T3.2",
+        "T4.3",
+        "T5.4"
+      ],
+      "testIds": [],
+      "status": "not_started"
+    },
+    {
+      "requirementId": "NFR-002",
+      "acceptanceCriteriaIds": [
+        "AC-008"
+      ],
+      "planSection": "P2/P4 - redaction",
+      "taskIds": [
+        "T2.3",
+        "T4.4"
+      ],
+      "testIds": [],
+      "status": "not_started"
+    },
+    {
+      "requirementId": "NFR-003",
+      "acceptanceCriteriaIds": [
+        "AC-022",
+        "AC-023",
+        "AC-024",
+        "AC-026",
+        "AC-034"
+      ],
+      "planSection": "P5/P6 - untrusted input",
+      "taskIds": [
+        "T5.1",
+        "T5.3",
+        "T6.4"
+      ],
+      "testIds": [],
+      "status": "not_started"
+    },
+    {
+      "requirementId": "NFR-004",
+      "acceptanceCriteriaIds": [
+        "AC-019",
+        "AC-020",
+        "AC-021"
+      ],
+      "planSection": "P4 - parameterized SQL",
+      "taskIds": [
+        "T4.2",
+        "T4.3"
+      ],
+      "testIds": [],
+      "status": "not_started"
+    },
+    {
+      "requirementId": "NFR-005",
+      "acceptanceCriteriaIds": [
+        "AC-011",
+        "AC-019"
+      ],
+      "planSection": "P3/P4 - atomicity",
+      "taskIds": [
+        "T3.2",
+        "T4.2"
+      ],
+      "testIds": [],
+      "status": "not_started"
+    },
+    {
+      "requirementId": "NFR-006",
+      "acceptanceCriteriaIds": [
+        "AC-046"
+      ],
+      "planSection": "P1/P7 - MSRV",
+      "taskIds": [
+        "T1.1",
+        "T7.3"
+      ],
+      "testIds": [],
+      "status": "not_started"
+    },
+    {
+      "requirementId": "NFR-007",
+      "acceptanceCriteriaIds": [
+        "AC-047"
+      ],
+      "planSection": "P1/P7 - lints and docs",
+      "taskIds": [
+        "T1.1",
+        "T7.3"
+      ],
+      "testIds": [],
+      "status": "not_started"
+    },
+    {
+      "requirementId": "NFR-008",
+      "acceptanceCriteriaIds": [
+        "AC-018",
+        "AC-048",
+        "AC-050"
+      ],
+      "planSection": "P1/P4 - feature independence",
+      "taskIds": [
+        "T1.2",
+        "T4.1"
+      ],
+      "testIds": [],
+      "status": "not_started"
+    },
+    {
+      "requirementId": "NFR-009",
+      "acceptanceCriteriaIds": [
+        "AC-049"
+      ],
+      "planSection": "P4 - TLS default",
+      "taskIds": [
+        "T4.4"
+      ],
+      "testIds": [],
+      "status": "not_started"
+    },
+    {
+      "requirementId": "NFR-010",
+      "acceptanceCriteriaIds": [
+        "AC-040"
+      ],
+      "planSection": "P6 - deterministic replay",
+      "taskIds": [
+        "T6.2",
+        "T6.3",
+        "T6.4"
+      ],
+      "testIds": [],
+      "status": "not_started"
+    },
+    {
+      "requirementId": "NFR-011",
+      "acceptanceCriteriaIds": [
+        "AC-001",
+        "AC-002",
+        "AC-003",
+        "AC-004",
+        "AC-005",
+        "AC-006",
+        "AC-007",
+        "AC-008",
+        "AC-009",
+        "AC-010",
+        "AC-011",
+        "AC-012",
+        "AC-013",
+        "AC-014",
+        "AC-015",
+        "AC-016",
+        "AC-017",
+        "AC-018",
+        "AC-019",
+        "AC-020",
+        "AC-021",
+        "AC-022",
+        "AC-023",
+        "AC-024",
+        "AC-025",
+        "AC-026",
+        "AC-027",
+        "AC-028",
+        "AC-029",
+        "AC-030",
+        "AC-031",
+        "AC-032",
+        "AC-033",
+        "AC-034",
+        "AC-035",
+        "AC-036",
+        "AC-037",
+        "AC-038",
+        "AC-039",
+        "AC-040",
+        "AC-041",
+        "AC-042",
+        "AC-043",
+        "AC-044",
+        "AC-045",
+        "AC-046",
+        "AC-047",
+        "AC-048",
+        "AC-049",
+        "AC-050",
+        "AC-051",
+        "AC-052",
+        "AC-053"
+      ],
+      "planSection": "Out of scope - /sdrive:test handoff",
+      "taskIds": [],
+      "testIds": [],
+      "status": "not_started"
+    },
+    {
+      "requirementId": "NFR-012",
+      "acceptanceCriteriaIds": [
+        "AC-006"
+      ],
+      "planSection": "P2/P3/P6 - explicit configuration",
+      "taskIds": [
+        "T2.2",
+        "T3.2",
+        "T6.2"
+      ],
+      "testIds": [],
+      "status": "not_started"
+    }
+  ]
+}

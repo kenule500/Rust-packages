@@ -1,3 +1,40 @@
 {
-  "features": []
+  "features": [
+    {
+      "name": "m0-foundation",
+      "branch": "feature/m0-foundation",
+      "base": "main",
+      "currentVersion": "v1",
+      "versions": [
+        {
+          "id": "v1",
+          "phase": "backlog",
+          "currentStep": "specification",
+          "gates": {
+            "specification": "approved",
+            "planning": "approved",
+            "implementation": "pending",
+            "review": "pending"
+          },
+          "history": [
+            {
+              "event": "Feature branch feature/m0-foundation created from main",
+              "by": "SpecDrive",
+              "timestamp": "2026-10-20T14:47:06Z"
+            },
+            {
+              "event": "Gate 1 approved: specification and traceability",
+              "by": "kenule500",
+              "timestamp": "2026-10-20T15:03:13Z"
+            },
+            {
+              "event": "Gate 2 approved: technical plan and tasks",
+              "by": "kenule500",
+              "timestamp": "2026-10-20T15:03:13Z"
+            }
+          ]
+        }
+      ]
+    }
+  ]
 }

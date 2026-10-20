@@ -1,0 +1,237 @@
+{
+  "feature": "m0-foundation",
+  "version": 1,
+  "architecture": {
+    "approach": "Parse a strict YAML 1.2 core subset into an ordered value tree, deserialize it through serde, and keep yaml::Error independent of diag with line, column, and byte offset. Add GitHub Actions CI, contributor and security surfaces, license files, complete package metadata, and a manual release runbook.",
+    "components": [
+      {
+        "name": "catalogue/crates/dado/src/yaml.rs",
+        "action": "modify",
+        "description": "Replace the D0001 scaffold with the lexer, parser, YamlValue tree, scalar resolution, serde deserializer, rejection rules, depth limit, and error construction."
+      },
+      {
+        "name": "catalogue/crates/dado/src/lib.rs",
+        "action": "reuse",
+        "description": "Keep the feature gates and crate-level lints; update crate docs only if the public surface changes."
+      },
+      {
+        "name": "catalogue/crates/dado/Cargo.toml",
+        "action": "modify",
+        "description": "Keep existing dependencies and features; add package metadata and docs.rs all-features configuration."
+      },
+      {
+        "name": "catalogue/Cargo.toml",
+        "action": "modify",
+        "description": "Add shared repository metadata if the crate inherits it."
+      },
+      {
+        "name": ".github/workflows/ci.yml",
+        "action": "create",
+        "description": "Format, clippy, docs, package, cross-platform test, and MSRV jobs with caching and concurrency cancellation."
+      },
+      {
+        "name": "CONTRIBUTING.md",
+        "action": "create",
+        "description": "Setup, build and test commands, branch naming, commit convention, SpecDrive workflow, and pull request checklist."
+      },
+      {
+        "name": "SECURITY.md",
+        "action": "create",
+        "description": "Private advisory path, supported versions, response targets, and disclosure policy."
+      },
+      {
+        "name": ".github/ISSUE_TEMPLATE/bug_report.yml",
+        "action": "create",
+        "description": "Bug report issue form."
+      },
+      {
+        "name": ".github/ISSUE_TEMPLATE/feature_request.yml",
+        "action": "create",
+        "description": "Feature request issue form."
+      },
+      {
+        "name": ".github/ISSUE_TEMPLATE/config.yml",
+        "action": "create",
+        "description": "Issue template chooser configuration."
+      },
+      {
+        "name": ".github/pull_request_template.md",
+        "action": "create",
+        "description": "Summary, linked spec or backlog item, test evidence, and checklist."
+      },
+      {
+        "name": "LICENSE-MIT",
+        "action": "create",
+        "description": "MIT license text matching the workspace license."
+      },
+      {
+        "name": "LICENSE-APACHE",
+        "action": "create",
+        "description": "Apache-2.0 license text matching the workspace license."
+      },
+      {
+        "name": "RELEASING.md",
+        "action": "create",
+        "description": "Manual dado-v0.1.0 release runbook covering pre-flight, dry-run, tag, publish, verification, and yank or rollback."
+      },
+      {
+        "name": "catalogue/crates/dado/CHANGELOG.md",
+        "action": "create",
+        "description": "Keep a Changelog entry for dado 0.1.0."
+      }
+    ],
+    "referencedRequirementIds": [
+      "FR-001", "FR-002", "FR-003", "FR-004", "FR-005", "FR-006", "FR-007",
+      "FR-008", "FR-009", "FR-010", "FR-011", "FR-012", "FR-013", "FR-014",
+      "FR-015", "FR-016", "FR-017", "FR-018", "FR-019", "FR-020", "FR-021",
+      "NFR-001", "NFR-002", "NFR-003", "NFR-004", "NFR-005", "NFR-006",
+      "NFR-007", "NFR-008", "NFR-009", "NFR-010"
+    ]
+  },
+  "dataModel": {
+    "entities": [
+      {
+        "name": "YamlValue",
+        "action": "create",
+        "fields": [
+          { "name": "Null", "type": "unit", "nullable": false, "action": "add" },
+          { "name": "Bool", "type": "bool", "nullable": false, "action": "add" },
+          { "name": "Integer", "type": "i64", "nullable": false, "action": "add" },
+          { "name": "Float", "type": "f64", "nullable": false, "action": "add" },
+          { "name": "String", "type": "String", "nullable": false, "action": "add" },
+          { "name": "Sequence", "type": "Vec<YamlValue>", "nullable": false, "action": "add" },
+          { "name": "Mapping", "type": "IndexMap<String, YamlValue>", "nullable": false, "action": "add" }
+        ]
+      },
+      {
+        "name": "yaml::Error",
+        "action": "update",
+        "fields": [
+          { "name": "code", "type": "&'static str", "nullable": false, "action": "no_change" },
+          { "name": "message", "type": "String", "nullable": false, "action": "no_change" },
+          { "name": "line", "type": "usize", "nullable": false, "action": "no_change" },
+          { "name": "column", "type": "usize", "nullable": false, "action": "no_change" },
+          { "name": "offset", "type": "usize", "nullable": false, "action": "add" }
+        ]
+      }
+    ],
+    "flowDescription": "Source text flows through a lexer and parser into an ordered YamlValue tree, then through a serde deserializer into the target type. Failures become yaml::Error with a stable code, message, line, column, and byte offset. No data is stored or transmitted."
+  },
+  "apiContracts": [],
+  "securityConsiderations": [
+    {
+      "requirementId": "NFR-001",
+      "description": "Treat YAML as untrusted input; enforce a depth limit of 128; return positioned errors instead of panicking or hanging."
+    },
+    {
+      "requirementId": "NFR-002",
+      "description": "Every parse error carries line, column, and byte offset for precise diagnostics."
+    },
+    {
+      "requirementId": "NFR-003",
+      "description": "Keep dado I/O-free so parsing cannot fetch, write, or exfiltrate data."
+    },
+    {
+      "requirementId": "NFR-007",
+      "description": "Error messages never echo scalar values; no secret file or committed token is introduced."
+    },
+    {
+      "requirementId": "NFR-008",
+      "description": "CARGO_REGISTRY_TOKEN comes from the environment or GitHub Secrets only."
+    }
+  ],
+  "performanceConsiderations": [
+    {
+      "requirementId": "NFR-001",
+      "strategy": "Bound recursive descent with a depth limit of 128 and avoid unbounded backtracking in the supported grammar."
+    },
+    {
+      "requirementId": "NFR-010",
+      "strategy": "Cache Cargo dependencies and cancel superseded CI runs to keep the three-OS matrix practical."
+    }
+  ],
+  "dependencies": [
+    {
+      "name": "serde",
+      "type": "library",
+      "action": "no_change",
+      "notes": "Version 1.0.229, already optional under the yaml feature."
+    },
+    {
+      "name": "winnow",
+      "type": "library",
+      "action": "no_change",
+      "notes": "Version 1.0.4, already optional under the yaml feature."
+    },
+    {
+      "name": "indexmap",
+      "type": "library",
+      "action": "no_change",
+      "notes": "Version 2.14.2, already optional under the yaml feature."
+    },
+    {
+      "name": "actions/checkout",
+      "type": "external",
+      "action": "add",
+      "notes": "CI checkout action."
+    },
+    {
+      "name": "dtolnay/rust-toolchain",
+      "type": "external",
+      "action": "add",
+      "notes": "Stable, MSRV, and component installation."
+    },
+    {
+      "name": "Swatinem/rust-cache",
+      "type": "external",
+      "action": "add",
+      "notes": "Cargo dependency caching."
+    },
+    {
+      "name": "GitHub Actions",
+      "type": "service",
+      "action": "add",
+      "notes": "CI execution."
+    },
+    {
+      "name": "crates.io",
+      "type": "service",
+      "action": "no_change",
+      "notes": "Existing publication target; check the name immediately before publish."
+    }
+  ],
+  "risks": [
+    {
+      "description": "YAML grammar complexity causes parser bugs or ambiguous behavior.",
+      "mitigation": "Implement the documented subset only; reject the rest with positioned errors; test every edge case in the specification."
+    },
+    {
+      "description": "MSRV 1.85 breaks because a dependency raises its minimum Rust version.",
+      "mitigation": "Run a dedicated MSRV job; pin or downgrade only with a recorded decision."
+    },
+    {
+      "description": "dado is taken on crates.io before publication.",
+      "mitigation": "Check the name immediately before publish; stop and ask for a fallback if taken."
+    },
+    {
+      "description": "Publishing is irreversible and a bad release cannot be deleted.",
+      "mitigation": "Require a dry-run, clean main, review, manual runbook, and cargo yank for rollback."
+    },
+    {
+      "description": "Three-OS CI increases cost and runtime.",
+      "mitigation": "Use dependency caching and concurrency cancellation."
+    },
+    {
+      "description": "Scope creeps into wirekit or other crates.",
+      "mitigation": "Enforce the out-of-scope list; later work becomes a new feature."
+    },
+    {
+      "description": "Release or CI credentials leak.",
+      "mitigation": "Use CARGO_REGISTRY_TOKEN from the environment or GitHub Secrets; never commit .env or tokens."
+    },
+    {
+      "description": "Deeply nested input overflows the stack.",
+      "mitigation": "Enforce a depth limit of 128 and return a positioned error."
+    }
+  ]
+}

@@ -1,0 +1,605 @@
+{
+  "feature": "m0-foundation",
+  "title": "M0 Foundation - dado 0.1.0 and repository baseline",
+  "version": 1,
+  "overview": {
+    "problemStatement": "The repository has one crate, dado, with four implemented modules and a YAML parser that returns D0001. There is no CI, no test suite, no contributor or security documentation, no release runbook, and no license files. External developers cannot install a working YAML parser, and maintainers cannot verify or publish changes repeatably.",
+    "proposedSolution": "Finish the strict YAML 1.2 core parser, add GitHub Actions CI for format, clippy, tests, docs, packaging, and MSRV 1.85, add contributor and security documentation plus issue and pull request templates, add MIT and Apache license files, complete package metadata, and document a manual dado 0.1.0 release runbook. Actual publication happens from main after review and archive.",
+    "targetAudience": "External Rust developers who need strict YAML parsing into typed structs, plus maintainers and contributors to the GIA Packages workspace.",
+    "assumptions": [
+      "The crate name remains dado. The crates.io API returned 404 on 2026-10-20; the name must be checked again immediately before publication.",
+      "The Cargo workspace remains rooted at catalogue/ with members crates/*.",
+      "Rust 1.85 remains the MSRV.",
+      "GitHub is the source host and CI platform.",
+      "The YAML subset documented in catalogue/crates/dado/README.md is authoritative.",
+      "No CLA and no DCO are required for contributions.",
+      "The 0.1.0 release is manual, not automated.",
+      "Test authoring belongs to /sdrive:test, not this feature's implementation tasks."
+    ],
+    "outOfScope": [
+      "wirekit, its provider modules, and all other crates in the workspace",
+      "Changes to diag, graph, emit, or glob beyond documentation and tests required by the baseline",
+      "YAML tags, anchors, aliases, merge keys, directives, multi-document streams, complex keys, multi-line flow collections, .inf, .nan, and numeric underscores",
+      "YAML serialization or emission",
+      "from_slice or from_reader APIs",
+      "Benchmarks, fuzzing, and property tests authored by this feature",
+      "Automated publishing from CI, cargo-release, or release-plz",
+      "CODE_OF_CONDUCT.md, a CLA, or a DCO",
+      "A documentation site, Turborepo, or JavaScript tooling",
+      "Publishing dado from the feature branch; publish is a manual post-merge step"
+    ]
+  },
+  "userStories": [
+    {
+      "id": "US-001",
+      "title": "Parse strict YAML into typed Rust values",
+      "role": "external Rust developer",
+      "want": "parse YAML configuration into typed Rust structs with positioned errors",
+      "benefit": "invalid configuration fails clearly instead of being silently guessed",
+      "acceptanceCriteria": [
+        {
+          "id": "AC-001",
+          "text": "Given a document with block mappings and sequences, plain and quoted scalars, single-line flow collections, block scalars with chomping, comments, and multi-line plain scalars, when from_str is called, then it returns the expected typed value."
+        },
+        {
+          "id": "AC-002",
+          "text": "Given null, tilde, true, false, decimal, hexadecimal, octal, and binary integers, and finite floats, when parsed into matching Rust types, then the values are correct."
+        },
+        {
+          "id": "AC-003",
+          "text": "Given the strings yes, no, on, and off, when parsed into a string field, then they remain strings."
+        },
+        {
+          "id": "AC-004",
+          "text": "Given a duplicate mapping key, when parsed, then a positioned error is returned and no value is produced."
+        },
+        {
+          "id": "AC-005",
+          "text": "Given a tab used for indentation, when parsed, then a positioned error is returned."
+        },
+        {
+          "id": "AC-006",
+          "text": "Given a tag, directive, anchor, alias, merge key, multi-document stream, or complex key, when parsed, then a positioned error names the unsupported construct."
+        },
+        {
+          "id": "AC-007",
+          "text": "Given .inf or .nan in any casing, when parsed, then a positioned error is returned."
+        },
+        {
+          "id": "AC-008",
+          "text": "Given a YAML value that does not match the target type, when deserialization runs, then a positioned error is returned instead of a panic."
+        },
+        {
+          "id": "AC-009",
+          "text": "Given nesting deeper than the depth limit, when parsed, then a positioned error is returned instead of a stack overflow."
+        },
+        {
+          "id": "AC-010",
+          "text": "Given an empty or comment-only document, when parsed into Option or a unit-like type, then it succeeds; when parsed into a type that rejects null, then it returns a positioned error."
+        }
+      ]
+    },
+    {
+      "id": "US-002",
+      "title": "Render precise diagnostics",
+      "role": "developer integrating dado with an editor or CI",
+      "want": "stable error codes and byte offsets",
+      "benefit": "a precise caret and CI annotation can point at the failing construct",
+      "acceptanceCriteria": [
+        {
+          "id": "AC-011",
+          "text": "Given a parse error, when Display is used, then the output includes the stable code, message, line, column, and byte offset."
+        },
+        {
+          "id": "AC-012",
+          "text": "Given a parse error offset, when converted to a diag Span and rendered with diag::render, then the caret underlines the failing construct."
+        },
+        {
+          "id": "AC-013",
+          "text": "Given a parse error, when Debug or Display is printed, then it does not echo the full source or any scalar value, so secrets in configuration are not leaked."
+        }
+      ]
+    },
+    {
+      "id": "US-003",
+      "title": "Enforce the quality baseline in CI",
+      "role": "maintainer",
+      "want": "every push and pull request to run format, clippy, tests, docs, packaging, and MSRV checks",
+      "benefit": "regressions are caught before review",
+      "acceptanceCriteria": [
+        {
+          "id": "AC-014",
+          "text": "Given a push or pull request, when GitHub Actions runs, then format, clippy, test, docs, package, and MSRV jobs execute."
+        },
+        {
+          "id": "AC-015",
+          "text": "Given a formatting violation, when the format job runs, then it fails."
+        },
+        {
+          "id": "AC-016",
+          "text": "Given a clippy warning, when the clippy job runs with -D warnings, then it fails."
+        },
+        {
+          "id": "AC-017",
+          "text": "Given the workspace, when cargo test --workspace --all-features runs, then all tests pass."
+        },
+        {
+          "id": "AC-018",
+          "text": "Given Rust 1.85, when the MSRV job runs, then the workspace builds and tests pass."
+        },
+        {
+          "id": "AC-019",
+          "text": "Given a documentation warning, when cargo doc runs with RUSTDOCFLAGS set to -D warnings, then the job fails."
+        },
+        {
+          "id": "AC-020",
+          "text": "Given a packaging problem, when cargo package --workspace runs, then CI fails before any publish."
+        },
+        {
+          "id": "AC-021",
+          "text": "Given a newer commit on the same pull request, when a CI run is already in progress, then the older run is cancelled."
+        }
+      ]
+    },
+    {
+      "id": "US-004",
+      "title": "Contribute and report vulnerabilities safely",
+      "role": "contributor or security reporter",
+      "want": "clear contribution and disclosure instructions",
+      "benefit": "work and reports arrive through the correct path",
+      "acceptanceCriteria": [
+        {
+          "id": "AC-022",
+          "text": "Given CONTRIBUTING.md, when a contributor reads it, then it states prerequisites, build and test commands, branch naming, commit convention, the SpecDrive workflow, and a pull request checklist."
+        },
+        {
+          "id": "AC-023",
+          "text": "Given SECURITY.md, when a reporter reads it, then it states GitHub private advisories, supported versions, response targets, and a no-public-disclosure request."
+        },
+        {
+          "id": "AC-024",
+          "text": "Given a new issue, when the user chooses bug or feature, then the matching issue template appears."
+        },
+        {
+          "id": "AC-025",
+          "text": "Given a new pull request, when it opens, then the pull request template asks for a summary, linked backlog or spec, test evidence, and a checklist."
+        },
+        {
+          "id": "AC-026",
+          "text": "Given the repository root, when a user checks licensing, then LICENSE-MIT and LICENSE-APACHE exist and match MIT OR Apache-2.0."
+        }
+      ]
+    },
+    {
+      "id": "US-005",
+      "title": "Release dado 0.1.0 repeatably",
+      "role": "maintainer",
+      "want": "a manual release runbook and a publish-ready package",
+      "benefit": "the first publish is safe, verifiable, and repeatable",
+      "acceptanceCriteria": [
+        {
+          "id": "AC-027",
+          "text": "Given RELEASING.md, when followed, then it covers pre-flight checks, version and changelog, dry-run, tag naming, publish, verification, and yank or rollback."
+        },
+        {
+          "id": "AC-028",
+          "text": "Given a clean main after merge, when cargo publish -p dado --dry-run runs, then it succeeds."
+        },
+        {
+          "id": "AC-029",
+          "text": "Given the published crate, when a new project runs cargo add dado@0.1.0, then the crate resolves and the YAML example compiles."
+        },
+        {
+          "id": "AC-030",
+          "text": "Given the published release, when the repository is inspected, then tag dado-v0.1.0 exists and the changelog entry is present."
+        },
+        {
+          "id": "AC-031",
+          "text": "Given RELEASING.md, when a token is required, then it documents CARGO_REGISTRY_TOKEN as an environment or CI secret and contains no committed token."
+        }
+      ]
+    },
+    {
+      "id": "US-006",
+      "title": "Publish a complete crate page",
+      "role": "external developer",
+      "want": "complete crate metadata and docs.rs configuration",
+      "benefit": "the crate is discoverable, trustworthy, and navigable",
+      "acceptanceCriteria": [
+        {
+          "id": "AC-032",
+          "text": "Given the published package metadata, when inspected, then repository, readme, keywords, categories, license, and rust-version resolve correctly."
+        },
+        {
+          "id": "AC-033",
+          "text": "Given cargo package -p dado --list, when run, then the package includes Cargo.toml, README.md, src/**, and the license files."
+        },
+        {
+          "id": "AC-034",
+          "text": "Given the published crate, when docs.rs builds it, then it builds with all features enabled."
+        }
+      ]
+    },
+    {
+      "id": "US-007",
+      "title": "Keep the crate safe and dependency-light",
+      "role": "security-conscious developer",
+      "want": "dado to remain I/O-free, feature-independent, and lint-clean",
+      "benefit": "it can be embedded in any tool without pulling in a runtime or network stack",
+      "acceptanceCriteria": [
+        {
+          "id": "AC-035",
+          "text": "Given the dado dependency tree, when inspected, then it contains no networking, filesystem, or async runtime dependency."
+        },
+        {
+          "id": "AC-036",
+          "text": "Given each feature, when built independently with --no-default-features --features feature, then it compiles, and yaml does not require diag."
+        },
+        {
+          "id": "AC-037",
+          "text": "Given the crate root, when compiled, then forbid unsafe_code and deny missing_docs are present."
+        }
+      ]
+    }
+  ],
+  "functionalRequirements": [
+    {
+      "id": "FR-001",
+      "text": "dado::yaml::from_str with a DeserializeOwned bound MUST parse the supported YAML subset into the target type.",
+      "linkedAcceptanceCriteria": ["AC-001", "AC-002", "AC-008"]
+    },
+    {
+      "id": "FR-002",
+      "text": "The parser MUST support block mappings and sequences, single-line flow collections, plain and quoted scalars, block scalars with chomping, comments, and multi-line plain scalars.",
+      "linkedAcceptanceCriteria": ["AC-001"]
+    },
+    {
+      "id": "FR-003",
+      "text": "The parser MUST support null, tilde, true, false, decimal, hexadecimal, octal, and binary integers, and finite floats. It MUST reject .inf and .nan.",
+      "linkedAcceptanceCriteria": ["AC-002", "AC-007"]
+    },
+    {
+      "id": "FR-004",
+      "text": "The strings yes, no, on, and off MUST parse as strings, not booleans.",
+      "linkedAcceptanceCriteria": ["AC-003"]
+    },
+    {
+      "id": "FR-005",
+      "text": "Tags, directives, anchors, aliases, merge keys, multi-document streams, complex keys, tab indentation, duplicate keys, and unterminated constructs MUST produce a positioned error with a stable code.",
+      "linkedAcceptanceCriteria": ["AC-004", "AC-005", "AC-006"]
+    },
+    {
+      "id": "FR-006",
+      "text": "yaml::Error MUST expose code, message, line, column, and offset, and MUST implement Display and std::error::Error.",
+      "linkedAcceptanceCriteria": ["AC-011", "AC-013"]
+    },
+    {
+      "id": "FR-007",
+      "text": "The parser MUST enforce a default nesting depth limit of 128 and return a positioned error when exceeded.",
+      "linkedAcceptanceCriteria": ["AC-009"]
+    },
+    {
+      "id": "FR-008",
+      "text": "The parser MUST NOT perform I/O, spawn a runtime, read URLs, or write files.",
+      "linkedAcceptanceCriteria": ["AC-035"]
+    },
+    {
+      "id": "FR-009",
+      "text": "The yaml feature MUST remain additive and independent of diag, graph, emit, and glob.",
+      "linkedAcceptanceCriteria": ["AC-036"]
+    },
+    {
+      "id": "FR-010",
+      "text": "The crate MUST retain forbid unsafe_code and deny missing_docs.",
+      "linkedAcceptanceCriteria": ["AC-037"]
+    },
+    {
+      "id": "FR-011",
+      "text": "The crate MUST build with no default features and with each feature enabled independently.",
+      "linkedAcceptanceCriteria": ["AC-036"]
+    },
+    {
+      "id": "FR-012",
+      "text": "The repository MUST include a GitHub Actions workflow that runs format, clippy, test, docs, package, and MSRV jobs on push and pull request.",
+      "linkedAcceptanceCriteria": ["AC-014"]
+    },
+    {
+      "id": "FR-013",
+      "text": "CI MUST run stable Rust on ubuntu, windows, and macos, and Rust 1.85 on ubuntu.",
+      "linkedAcceptanceCriteria": ["AC-014", "AC-018"]
+    },
+    {
+      "id": "FR-014",
+      "text": "CI MUST use concurrency cancellation per ref.",
+      "linkedAcceptanceCriteria": ["AC-021"]
+    },
+    {
+      "id": "FR-015",
+      "text": "The repository MUST include CONTRIBUTING.md, SECURITY.md, bug and feature issue templates, an issue template config, and a pull request template.",
+      "linkedAcceptanceCriteria": ["AC-022", "AC-023", "AC-024", "AC-025"]
+    },
+    {
+      "id": "FR-016",
+      "text": "The repository MUST include LICENSE-MIT and LICENSE-APACHE.",
+      "linkedAcceptanceCriteria": ["AC-026"]
+    },
+    {
+      "id": "FR-017",
+      "text": "The repository MUST include RELEASING.md and catalogue/crates/dado/CHANGELOG.md.",
+      "linkedAcceptanceCriteria": ["AC-027", "AC-030"]
+    },
+    {
+      "id": "FR-018",
+      "text": "The published package metadata MUST resolve repository to the GitHub URL, include readme, keywords, categories, license, and rust-version, and set docs.rs all-features.",
+      "linkedAcceptanceCriteria": ["AC-032", "AC-033", "AC-034"]
+    },
+    {
+      "id": "FR-019",
+      "text": "The release runbook MUST cover pre-flight, version and changelog, cargo publish dry-run, tag naming, publish, verification, and yank or rollback.",
+      "linkedAcceptanceCriteria": ["AC-027", "AC-028", "AC-031"]
+    },
+    {
+      "id": "FR-020",
+      "text": "The release runbook MUST document CARGO_REGISTRY_TOKEN as an environment or CI secret and MUST NOT include a real token.",
+      "linkedAcceptanceCriteria": ["AC-031"]
+    },
+    {
+      "id": "FR-021",
+      "text": "The release tag MUST be dado-v0.1.0.",
+      "linkedAcceptanceCriteria": ["AC-030"]
+    }
+  ],
+  "nonFunctionalRequirements": [
+    {
+      "id": "NFR-001",
+      "text": "The parser MUST treat all input as untrusted and MUST NOT panic, abort, or hang on malformed input. It MUST return a positioned error.",
+      "linkedAcceptanceCriteria": ["AC-006", "AC-008", "AC-009"]
+    },
+    {
+      "id": "NFR-002",
+      "text": "Every parse error MUST include line, column, and byte offset.",
+      "linkedAcceptanceCriteria": ["AC-011", "AC-012"]
+    },
+    {
+      "id": "NFR-003",
+      "text": "dado MUST remain I/O-free with no sockets, URLs, runtime, or file writes.",
+      "linkedAcceptanceCriteria": ["AC-035"]
+    },
+    {
+      "id": "NFR-004",
+      "text": "The crate MUST compile on Rust 1.85 with edition 2021.",
+      "linkedAcceptanceCriteria": ["AC-018"]
+    },
+    {
+      "id": "NFR-005",
+      "text": "The crate MUST keep forbid unsafe_code and deny missing_docs, and docs MUST build with warnings denied.",
+      "linkedAcceptanceCriteria": ["AC-019", "AC-037"]
+    },
+    {
+      "id": "NFR-006",
+      "text": "Features MUST be additive; enabling yaml MUST NOT enable or disable another feature.",
+      "linkedAcceptanceCriteria": ["AC-036"]
+    },
+    {
+      "id": "NFR-007",
+      "text": "Error messages and logs MUST NOT echo scalar values or credentials. The feature MUST NOT introduce secret files or committed tokens.",
+      "linkedAcceptanceCriteria": ["AC-013", "AC-031"]
+    },
+    {
+      "id": "NFR-008",
+      "text": "Release and CI credentials MUST come from environment variables or GitHub Secrets only.",
+      "linkedAcceptanceCriteria": ["AC-031"]
+    },
+    {
+      "id": "NFR-009",
+      "text": "Every acceptance criterion MUST be covered by at least one test, supplied by the Test agent.",
+      "linkedAcceptanceCriteria": [
+        "AC-001", "AC-002", "AC-003", "AC-004", "AC-005", "AC-006", "AC-007", "AC-008", "AC-009", "AC-010",
+        "AC-011", "AC-012", "AC-013", "AC-014", "AC-015", "AC-016", "AC-017", "AC-018", "AC-019", "AC-020",
+        "AC-021", "AC-022", "AC-023", "AC-024", "AC-025", "AC-026", "AC-027", "AC-028", "AC-029", "AC-030",
+        "AC-031", "AC-032", "AC-033", "AC-034", "AC-035", "AC-036", "AC-037"
+      ]
+    },
+    {
+      "id": "NFR-010",
+      "text": "CI MUST use dependency caching and concurrency cancellation to keep runs practical.",
+      "linkedAcceptanceCriteria": ["AC-014", "AC-021"]
+    }
+  ],
+  "edgeCases": [
+    {
+      "id": "EC-001",
+      "description": "Empty or comment-only document",
+      "expectedBehavior": "Parses as null; succeeds for Option or unit-like types, otherwise returns a type-mismatch error."
+    },
+    {
+      "id": "EC-002",
+      "description": "Duplicate mapping key",
+      "expectedBehavior": "Positioned error with a stable code; no value produced."
+    },
+    {
+      "id": "EC-003",
+      "description": "Tab used for indentation",
+      "expectedBehavior": "Positioned error naming tab indentation."
+    },
+    {
+      "id": "EC-004",
+      "description": "Unterminated single- or double-quoted scalar",
+      "expectedBehavior": "Positioned error at the opening quote."
+    },
+    {
+      "id": "EC-005",
+      "description": "Unterminated flow collection",
+      "expectedBehavior": "Positioned error at the opening bracket or brace."
+    },
+    {
+      "id": "EC-006",
+      "description": "Block scalar with pipe, greater-than, or chomping indicators",
+      "expectedBehavior": "Correct trailing-newline behavior for the chomping indicator."
+    },
+    {
+      "id": "EC-007",
+      "description": "Multi-line plain scalar",
+      "expectedBehavior": "Folds line breaks into spaces according to the documented subset."
+    },
+    {
+      "id": "EC-008",
+      "description": "Inline comment versus a hash inside a scalar",
+      "expectedBehavior": "A space followed by a hash starts a comment; a hash without preceding whitespace and a quoted hash are preserved."
+    },
+    {
+      "id": "EC-009",
+      "description": "CRLF and lone CR line endings",
+      "expectedBehavior": "Line and column numbers remain correct."
+    },
+    {
+      "id": "EC-010",
+      "description": "UTF-8 BOM at the start",
+      "expectedBehavior": "A single leading BOM is skipped and is not part of the first scalar."
+    },
+    {
+      "id": "EC-011",
+      "description": "Nesting deeper than 128",
+      "expectedBehavior": "Positioned depth-limit error, not a stack overflow."
+    },
+    {
+      "id": "EC-012",
+      "description": ".inf or .nan in any casing",
+      "expectedBehavior": "Positioned error; no float is produced."
+    },
+    {
+      "id": "EC-013",
+      "description": "Malformed numeric literal such as 0x, 0o8, 0b2, or 1_000",
+      "expectedBehavior": "Positioned error; no silent fallback to a string."
+    },
+    {
+      "id": "EC-014",
+      "description": "Flow collection spanning multiple lines",
+      "expectedBehavior": "Positioned error; only single-line flow collections are supported."
+    },
+    {
+      "id": "EC-015",
+      "description": "Multi-document stream",
+      "expectedBehavior": "Positioned error; only one document is supported."
+    },
+    {
+      "id": "EC-016",
+      "description": "Tag, directive, anchor, alias, or merge key",
+      "expectedBehavior": "Positioned error naming the unsupported construct."
+    },
+    {
+      "id": "EC-017",
+      "description": "Complex key using the question-mark syntax",
+      "expectedBehavior": "Positioned error; only scalar keys are supported."
+    },
+    {
+      "id": "EC-018",
+      "description": "Trailing content after the document",
+      "expectedBehavior": "Positioned error; trailing comments and whitespace are allowed."
+    },
+    {
+      "id": "EC-019",
+      "description": "Non-string mapping key deserialized into a string-keyed map",
+      "expectedBehavior": "Positioned error explaining the key type mismatch."
+    },
+    {
+      "id": "EC-020",
+      "description": "Empty mapping or sequence",
+      "expectedBehavior": "Parses successfully as an empty collection."
+    },
+    {
+      "id": "EC-021",
+      "description": "Scalar yes, no, on, or off",
+      "expectedBehavior": "Remains a string."
+    },
+    {
+      "id": "EC-022",
+      "description": "Very long scalar",
+      "expectedBehavior": "Parses within memory proportional to input; no arbitrary truncation."
+    }
+  ],
+  "dependencies": [
+    {
+      "name": "serde",
+      "type": "library",
+      "notes": "Version 1.0.229, already optional under the yaml feature."
+    },
+    {
+      "name": "winnow",
+      "type": "library",
+      "notes": "Version 1.0.4, already optional under the yaml feature."
+    },
+    {
+      "name": "indexmap",
+      "type": "library",
+      "notes": "Version 2.14.2, already optional under the yaml feature."
+    },
+    {
+      "name": "actions/checkout",
+      "type": "external",
+      "notes": "CI checkout action."
+    },
+    {
+      "name": "dtolnay/rust-toolchain",
+      "type": "external",
+      "notes": "Stable, MSRV, and component installation."
+    },
+    {
+      "name": "Swatinem/rust-cache",
+      "type": "external",
+      "notes": "Cargo dependency caching."
+    },
+    {
+      "name": "crates.io",
+      "type": "service",
+      "notes": "Publication target; name check required immediately before publish."
+    },
+    {
+      "name": "GitHub Actions",
+      "type": "service",
+      "notes": "CI execution."
+    }
+  ],
+  "risks": [
+    {
+      "id": "RISK-001",
+      "description": "YAML grammar complexity causes parser bugs or ambiguous behavior.",
+      "mitigation": "Implement the documented subset only; reject everything else with a positioned error; test every edge case in this specification."
+    },
+    {
+      "id": "RISK-002",
+      "description": "MSRV 1.85 breaks because a dependency raises its minimum Rust version.",
+      "mitigation": "Run an MSRV CI job on every push; pin or downgrade a dependency only with a recorded decision."
+    },
+    {
+      "id": "RISK-003",
+      "description": "dado is taken on crates.io before publication.",
+      "mitigation": "Check the name immediately before publish; if taken, stop and ask for a fallback name."
+    },
+    {
+      "id": "RISK-004",
+      "description": "Publishing is irreversible and a bad release cannot be deleted.",
+      "mitigation": "Require cargo publish --dry-run, a clean main, review, and a manual runbook; use cargo yank for rollback."
+    },
+    {
+      "id": "RISK-005",
+      "description": "Three-OS CI increases cost and runtime.",
+      "mitigation": "Use dependency caching and concurrency cancellation; keep the matrix to stable plus one MSRV job."
+    },
+    {
+      "id": "RISK-006",
+      "description": "Scope creeps into wirekit or other crates.",
+      "mitigation": "Enforce the out-of-scope list; later work becomes a new feature."
+    },
+    {
+      "id": "RISK-007",
+      "description": "Release or CI credentials leak.",
+      "mitigation": "Use CARGO_REGISTRY_TOKEN from the environment or GitHub Secrets; never commit .env or tokens."
+    },
+    {
+      "id": "RISK-008",
+      "description": "Deeply nested input overflows the stack.",
+      "mitigation": "Enforce a depth limit of 128 and return a positioned error."
+    }
+  ]
+}

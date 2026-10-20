@@ -1,0 +1,5 @@
+# SpecDrive gate artifacts are regenerated locally at the current HEAD.
+# A committed test-evidence.json cannot also contain its own commit hash.
+.sdrive/governance/*/*/test-evidence.json
+.sdrive/governance/*/*/verification.json
+.sdrive/audit-log.json

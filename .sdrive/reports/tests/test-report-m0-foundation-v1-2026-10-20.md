@@ -66,5 +66,6 @@
 - `cargo package --workspace` packaged 14 files (94.0 KiB) and verified the package. Cargo warned that the new integration test target is not in the published package; that is intentional because `include` lists only the crate sources and release files.
 - `cargo publish -p dado --dry-run --allow-dirty` completed and aborted the upload as expected. The crates.io index had transient DNS/timeout warnings; packaging and verification succeeded.
 - Feature independence was rechecked with `cargo check -p dado --no-default-features` and with each of `yaml`, `diag`, `graph`, `emit`, and `glob` enabled alone. All combinations passed.
-- `sdrive verify m0-foundation` still reports `No source folders detected` and 37 missing items because its detector hardcodes JavaScript/TypeScript source roots and does not scan `catalogue/`. Every referenced path and symbol exists, and the Cargo checks above pass; this is a verifier limitation, not a test failure. The run rewrote generated dashboard files, which remain unstaged.
+- `sdrive verify m0-foundation` passes after adding Rust-aware source, path, symbol, and dependency detection to `.sdrive/scripts/verify.js`: 37 matched, 0 missing, 0 renamed, 0 extra, status `pass`.
+- `test-evidence.json` and `verification.json` are local gate artifacts. They are ignored and regenerated at the current `HEAD` because a committed evidence file cannot also name the commit that contains it.
 - No production code was modified by this test phase. The only source-tree additions are the integration test files.

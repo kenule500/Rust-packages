@@ -156,42 +156,42 @@ Depends on: P2
 
 Depends on: P1
 
-- [ ] **T6.1 - Define action and batch types with UUID v7 identifiers**
+- [x] **T6.1 - Define action and batch types with UUID v7 identifiers**
   - Description: Add `ActionId`, `Action`, `EntityType`, `Operation`, `Batch`, `BatchResult`, `ActionResult`, `ActionStatus`, and `ConflictInfo`. Generate action ids with `Uuid::now_v7()` and keep the timestamp component non-decreasing within the process.
   - Requirements: FR-020, FR-021
   - Acceptance criteria: AC-032, AC-035, AC-036
 
-- [ ] **T6.2 - Implement the Storage trait and MemoryStorage**
+- [x] **T6.2 - Implement the Storage trait and MemoryStorage**
   - Description: Add an `#[async_trait]` `Storage` with `append`, `pending`, `mark_sent`, `mark_failed`, and `record_attempt`. `MemoryStorage` preserves enqueue order deterministically and returns typed errors on failure. Storage is injected explicitly.
   - Requirements: FR-022, NFR-010, NFR-012
   - Acceptance criteria: AC-032, AC-033, AC-034
 
-- [ ] **T6.3 - Implement the Transport trait and MockTransport**
+- [x] **T6.3 - Implement the Transport trait and MockTransport**
   - Description: Add an `#[async_trait]` `Transport` that sends a batch and returns per-action results. `MockTransport` scripts whole-batch and per-action outcomes for deterministic replay.
   - Requirements: FR-023, NFR-010
   - Acceptance criteria: AC-036, AC-040
 
-- [ ] **T6.4 - Implement the replay engine**
+- [x] **T6.4 - Implement the replay engine**
   - Description: Drain pending actions in order and in bounded batches. Return one result per action, mark `Applied` and `Duplicate` as sent, retry `Retry` with capped exponential backoff, and dead-letter after `max_attempts` without blocking later actions. An empty queue returns an empty result without a transport call.
   - Requirements: FR-024, NFR-003, NFR-010
   - Acceptance criteria: AC-036, AC-037, AC-039, AC-040
 
-- [ ] **T6.5 - Implement conflict strategies**
+- [x] **T6.5 - Implement conflict strategies**
   - Description: Add `LastWriteWins`, `ServerWins`, `ClientWins`, and `Custom(Arc<dyn CustomMerger>)`, selectable per entity or action. Record the resolution in `ConflictInfo`. A conflict without server state is a typed error.
   - Requirements: FR-025
   - Acceptance criteria: AC-038, AC-041, AC-042, AC-043, AC-044
 
-- [ ] **T6.6 - Implement audit timestamps and tolerance**
+- [x] **T6.6 - Implement audit timestamps and tolerance**
   - Description: Preserve `client_timestamp`, record `server_timestamp`, and apply a configurable tolerance without rewriting client time. Expose the tolerance decision in the result.
   - Requirements: FR-026
   - Acceptance criteria: AC-020, AC-041
 
-- [ ] **T6.7 - Emit tracing metrics**
+- [x] **T6.7 - Emit tracing metrics**
   - Description: Emit events for enqueue, replay start/finish, per-action outcome, conflict resolution, queue depth, and duration.
   - Requirements: FR-027
   - Acceptance criteria: AC-052
 
-- [ ] **T6.8 - Document syncforge**
+- [x] **T6.8 - Document syncforge**
   - Description: Write crate docs, the replay model, the at-least-once contract, the conflict-strategy table, feature table, and the README.
   - Requirements: FR-029
   - Acceptance criteria: AC-053

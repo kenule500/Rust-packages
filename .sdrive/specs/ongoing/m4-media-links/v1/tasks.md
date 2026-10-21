@@ -97,14 +97,14 @@ Document the real-time rules, the buffer contract, latency, and the meter model.
 
 | ID | Task | Requirements | Acceptance criteria |
 |---|---|---|---|
-| T3.1 | Scaffold `crates/replay-recorder` with track types and the packet API | FR-013, FR-019 | AC-018 |
-| T3.2 | Implement the spool layout, ID path safety, and atomic index | FR-018, NFR-015 | AC-014 |
-| T3.3 | Implement segment writing and monotonic timestamps | FR-013, FR-014, FR-019 | AC-015, AC-018, AC-019 |
-| T3.4 | Implement the tee sink | FR-014 | AC-017 |
-| T3.5 | Implement ring rotation and clip extraction | FR-014, FR-015 | AC-015 |
-| T3.6 | Implement the disk budget and pressure policies | FR-016, NFR-005 | AC-016 |
-| T3.7 | Implement crash recovery | FR-017 | AC-014 |
-| T3.8 | Add the replay-recorder README, changelog, and record-and-clip example | FR-042 | AC-042 |
+| [x] T3.1 | Scaffold `crates/replay-recorder` with track types and the packet API | FR-013, FR-019 | AC-018 |
+| [x] T3.2 | Implement the spool layout, ID path safety, and atomic index | FR-018, NFR-015 | AC-014 |
+| [x] T3.3 | Implement segment writing and monotonic timestamps | FR-013, FR-014, FR-019 | AC-015, AC-018, AC-019 |
+| [x] T3.4 | Implement the tee sink | FR-014 | AC-017 |
+| [x] T3.5 | Implement ring rotation and clip extraction | FR-014, FR-015 | AC-015 |
+| [x] T3.6 | Implement the disk budget and pressure policies | FR-016, NFR-005 | AC-016 |
+| [x] T3.7 | Implement crash recovery | FR-017 | AC-014 |
+| [x] T3.8 | Add the replay-recorder README, changelog, and record-and-clip example | FR-042 | AC-042 |
 
 ### T3.1 — Scaffold `crates/replay-recorder` with track types and the packet API
 

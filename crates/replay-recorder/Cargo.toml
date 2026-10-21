@@ -1,0 +1,19 @@
+[package]
+name = "replay-recorder"
+version = "0.1.0"
+edition.workspace = true
+rust-version.workspace = true
+license.workspace = true
+repository.workspace = true
+readme = "README.md"
+description = "Packet-in replay recording: isolated tracks, segment/tee/ring sinks, atomic index, disk budget, and crash recovery."
+keywords = ["recording", "replay", "mkv", "streaming", "media"]
+categories = ["multimedia::video", "filesystem"]
+include = ["Cargo.toml", "README.md", "CHANGELOG.md", "src/**", "examples/**"]
+
+[package.metadata.docs.rs]
+all-features = true
+
+[dependencies]
+serde = { workspace = true }
+serde_json = { workspace = true }

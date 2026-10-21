@@ -234,7 +234,7 @@
           "linkedAcceptanceCriteria": [
             "AC-018"
           ],
-          "completed": false
+          "completed": true
         },
         {
           "id": "T4.2",
@@ -248,7 +248,7 @@
           "linkedAcceptanceCriteria": [
             "AC-019"
           ],
-          "completed": false
+          "completed": true
         },
         {
           "id": "T4.3",
@@ -264,7 +264,7 @@
             "AC-020",
             "AC-021"
           ],
-          "completed": false
+          "completed": true
         },
         {
           "id": "T4.4",
@@ -277,7 +277,7 @@
           "linkedAcceptanceCriteria": [
             "AC-049"
           ],
-          "completed": false
+          "completed": true
         },
         {
           "id": "T4.5",
@@ -289,7 +289,7 @@
           "linkedAcceptanceCriteria": [
             "AC-053"
           ],
-          "completed": false
+          "completed": true
         }
       ]
     },

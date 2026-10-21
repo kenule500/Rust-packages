@@ -529,7 +529,7 @@
           "linkedAcceptanceCriteria": [
             "AC-045"
           ],
-          "completed": false
+          "completed": true
         },
         {
           "id": "T7.2",
@@ -541,7 +541,7 @@
           "linkedAcceptanceCriteria": [
             "AC-053"
           ],
-          "completed": false
+          "completed": true
         },
         {
           "id": "T7.3",
@@ -557,7 +557,7 @@
             "AC-048",
             "AC-050"
           ],
-          "completed": false
+          "completed": true
         }
       ]
     }

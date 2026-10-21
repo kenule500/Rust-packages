@@ -200,17 +200,17 @@ Depends on: P1
 
 Depends on: P2, P3, P5
 
-- [ ] **T7.1 - Add the substrate integration example**
+- [x] **T7.1 - Add the substrate integration example**
   - Description: Add `crates/hookgate/examples/substrate_integration.rs` with dev-dependencies on `platform-core` and `quota-ledger`. Register one provider, reserve and commit quota, verify a generic-HMAC webhook, insert and enqueue it, and print the outbox result.
   - Requirements: FR-028
   - Acceptance criteria: AC-045
 
-- [ ] **T7.2 - Finalize the root and crate documentation**
+- [x] **T7.2 - Finalize the root and crate documentation**
   - Description: Update the root README package table and status, cross-link the crate READMEs, and confirm every crate documents its default feature set and non-goals.
   - Requirements: FR-029
   - Acceptance criteria: AC-053
 
-- [ ] **T7.3 - Run production verification**
+- [x] **T7.3 - Run production verification**
   - Description: Run `cargo fmt --all --check`, `cargo clippy --workspace --all-features -- -D warnings`, `cargo build --workspace --all-features`, `cargo build --workspace --no-default-features`, `RUSTDOCFLAGS="-D warnings" cargo doc --workspace --all-features --no-deps`, `cargo package --workspace --list`, `node .sdrive/scripts/validate-governance.js`, and `sdrive verify m3-substrate`. This task does not write or run tests.
   - Requirements: NFR-006, NFR-007
   - Acceptance criteria: AC-046, AC-047, AC-048, AC-050

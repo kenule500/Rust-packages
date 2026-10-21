@@ -71,8 +71,8 @@
       "versions": [
         {
           "id": "v1",
-          "phase": "backlog",
-          "currentStep": "planning",
+          "phase": "ongoing",
+          "currentStep": "implementation",
           "gates": {
             "specification": "approved",
             "planning": "approved",
@@ -104,6 +104,11 @@
               "event": "Gate 2 approved: technical plan and tasks",
               "by": "kenule500",
               "timestamp": "2026-10-20T22:00:00Z"
+            },
+            {
+              "event": "Lifecycle transition: moved m3-substrate v1 from backlog to ongoing; implementation started",
+              "by": "SpecDrive",
+              "timestamp": "2026-10-21T00:00:00Z"
             }
           ]
         }

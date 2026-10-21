@@ -16,17 +16,17 @@ Verification tasks are limited to formatter, linter, documentation build, packag
 
 Depends on: none
 
-- [ ] **T1.1 - Create the four crate packages with inherited metadata and lints**
+- [x] **T1.1 - Create the four crate packages with inherited metadata and lints**
   - Description: Add `crates/platform-core`, `crates/quota-ledger`, `crates/hookgate`, and `crates/syncforge` with `version = "0.1.0"`, `edition.workspace = true`, `rust-version.workspace = true`, `license.workspace = true`, description, readme, keywords, categories, and docs.rs all-features metadata. Each crate root declares `#![forbid(unsafe_code)]` and `#![deny(missing_docs)]`. Keep `members = ["crates/*"]` unchanged.
   - Requirements: FR-028, FR-029, NFR-006, NFR-007
   - Acceptance criteria: AC-046, AC-047, AC-048, AC-053
 
-- [ ] **T1.2 - Add the workspace dependency table and feature conventions**
+- [x] **T1.2 - Add the workspace dependency table and feature conventions**
   - Description: Add `[workspace.dependencies]` for the shared crates and per-crate additive features. Every crate keeps `default = []` where a database or native dependency is optional. Document the default feature set in each README.
   - Requirements: FR-028, NFR-008
   - Acceptance criteria: AC-046, AC-048, AC-050
 
-- [ ] **T1.3 - Update the root README for the new crates**
+- [x] **T1.3 - Update the root README for the new crates**
   - Description: Add the four crates to the package table with one-line responsibilities and mark their status as in development. Do not claim publication before it happens.
   - Requirements: FR-029
   - Acceptance criteria: AC-053

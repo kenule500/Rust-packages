@@ -130,3 +130,15 @@ the field workflow. `quota-ledger` and `hookgate` are standalone because they
 own state that `wirekit` must not own. The media and link packages are public
 candidates whose APIs must freeze before publish. `dado` 0.1.0 is implemented
 and tested; the remaining packages are still blueprints.
+
+The M3 substrate crates are in development on `feature/m3-substrate`:
+
+| Crate | Status | Responsibility |
+|---|---|---|
+| `platform-core` | in development, 0.1.0 | Tenant/provider identity, capabilities, explicit registry, token-store contract |
+| `quota-ledger` | in development, 0.1.0 | Reserve/commit/release quota state with an optional Postgres backend |
+| `hookgate` | in development, 0.1.0 | Raw-byte webhook verification, dedupe, replay window, outbox, dead-letter |
+| `syncforge` | in development, 0.1.0 | Durable action queue, UUID v7 idempotency, conflict strategies |
+
+None of the four is published. Publication is a manual post-merge step.
+

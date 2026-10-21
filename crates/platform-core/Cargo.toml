@@ -1,0 +1,32 @@
+[package]
+name = "platform-core"
+version = "0.1.0"
+edition.workspace = true
+rust-version.workspace = true
+license.workspace = true
+repository.workspace = true
+readme = "README.md"
+description = "Tenant and provider identity, capabilities, an explicit provider registry, and a token-store contract for multi-provider Rust services."
+keywords = ["multi-tenant", "provider", "registry", "traits"]
+categories = ["development-tools"]
+include = [
+    "Cargo.toml",
+    "README.md",
+    "LICENSE-MIT",
+    "LICENSE-APACHE",
+    "src/**",
+]
+
+[package.metadata.docs.rs]
+all-features = true
+
+[features]
+default = ["registry", "memory"]
+registry = []
+memory = []
+
+[dependencies]
+async-trait.workspace = true
+secrecy.workspace = true
+thiserror.workspace = true
+uuid.workspace = true

@@ -1,0 +1,36 @@
+[package]
+name = "quota-ledger"
+version = "0.1.0"
+edition.workspace = true
+rust-version.workspace = true
+license.workspace = true
+repository.workspace = true
+readme = "README.md"
+description = "Per-tenant, per-provider quota reservations with commit, release, exhaustion policies, and an optional Postgres ledger."
+keywords = ["quota", "multi-tenant", "postgres", "rate-limit"]
+categories = ["database", "development-tools"]
+include = [
+    "Cargo.toml",
+    "README.md",
+    "LICENSE-MIT",
+    "LICENSE-APACHE",
+    "src/**",
+]
+
+[package.metadata.docs.rs]
+all-features = true
+
+[features]
+default = []
+postgres = ["dep:sqlx"]
+
+[dependencies]
+async-trait.workspace = true
+chrono.workspace = true
+platform-core.workspace = true
+thiserror.workspace = true
+uuid.workspace = true
+sqlx = { workspace = true, optional = true }
+
+[dev-dependencies]
+tokio.workspace = true

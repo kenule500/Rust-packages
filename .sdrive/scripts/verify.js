@@ -214,10 +214,23 @@ function filesContainRustDefinition(files, name) {
 // Dependencies in a Rust repository live in Cargo.toml and the CI workflow,
 // not package.json. Services such as GitHub Actions and crates.io are named in
 // the docs. A mention is enough for the verifier's existence check.
+function workspaceCrateManifests() {
+  const cratesDir = path.join(projectRoot, "crates");
+
+  if (!fs.existsSync(cratesDir)) return [];
+
+  return fs
+    .readdirSync(cratesDir, { withFileTypes: true })
+    .filter((entry) => entry.isDirectory())
+    .map((entry) => `crates/${entry.name}/Cargo.toml`)
+    .filter((relative) => fs.existsSync(path.join(projectRoot, relative)));
+}
 function repositoryMentionsDependency(name) {
   const candidates = [
     "Cargo.toml",
-    "crates/dado/Cargo.toml",
+    // Workspace members declare their own dependencies; the root manifest does
+    // not repeat them, so every crate manifest counts as evidence.
+    ...workspaceCrateManifests(),
     ".github/workflows/ci.yml",
     "README.md",
     "CONTRIBUTING.md",

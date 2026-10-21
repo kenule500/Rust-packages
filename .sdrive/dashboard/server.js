@@ -395,7 +395,7 @@ function loadJson(filePath, fallback = null) {
 // obvious which project a dashboard belongs to when several are running.
 function apiProjectInfo() {
   const name = path.basename(projectRoot) || "project";
-  return { name, root: projectRoot };
+  return { service: "specdrive-dashboard", name, root: projectRoot };
 }
 
 // Classify the project so the dashboard can tell the user which workflow they
@@ -1164,6 +1164,148 @@ function isSdriveProject(root) {
   return fs.existsSync(path.join(root, ".sdrive", "config.json"));
 }
 
+function registryPath() {
+  return path.join(os.homedir(), ".sdrive", "projects.json");
+}
+
+// The registry keeps its own shape: an array of paths or `{ "projects": [...] }`.
+// Rewriting it as the other shape would be a silent format change to a file the
+// user may also maintain by hand.
+function readProjectRegistry() {
+  const file = registryPath();
+
+  if (!fs.existsSync(file)) {
+    return { asArray: false, entries: [], paths: [] };
+  }
+
+  try {
+    const registry = JSON.parse(fs.readFileSync(file, "utf8"));
+    const entries = Array.isArray(registry) ? registry : registry.projects || [];
+
+    return {
+      asArray: Array.isArray(registry),
+      // Keep the raw entries so a registration write does not drop fields a
+      // hand-edited `{ "path": ..., "name": ... }` entry carries.
+      entries,
+      paths: entries
+        .map((entry) => (typeof entry === "string" ? entry : entry && entry.path))
+        .filter((entry) => typeof entry === "string" && entry.trim())
+    };
+  } catch (error) {
+    // A malformed registry must not break the dashboard or block a project.
+    return { asArray: false, entries: [], paths: [] };
+  }
+}
+
+function samePath(a, b) {
+  // Windows paths are case-insensitive; two spellings are one project.
+  return process.platform === "win32"
+    ? a.toLowerCase() === b.toLowerCase()
+    : a === b;
+}
+
+// Discovery can only see the current folder and its siblings, so projects that
+// live in different trees (one repo per client, the usual layout) never meet and
+// each needed its own dashboard tab. Recording a project the first time its
+// dashboard starts makes the registry a shared list: open each project once,
+// then switch between all of them from a single tab.
+//
+// A dashboard can start at the same time as another (one per project, opened
+// together). Read-merge-write is not atomic across processes: A reads {}, B
+// reads {}, A writes [a], B writes [b] and the last writer erases the other.
+// Re-reading only rescues the writer that notices; if A already returned, a is
+// gone. Serialize the whole read/write with an exclusive lock file instead.
+//
+// The wait is bounded and a stale lock (a process that died while holding it) is
+// broken after ten seconds, so a locked registry can never stop a dashboard from
+// starting. If the lock still cannot be taken, fall back to a best-effort write:
+// losing a registry entry is worse than not starting at all.
+const REGISTRY_LOCK_TIMEOUT_MS = 2000;
+const REGISTRY_LOCK_STALE_MS = 10000;
+
+// There is no synchronous sleep; Atomics.wait on a throwaway buffer gives one
+// without spinning the CPU.
+function sleepSync(ms) {
+  Atomics.wait(new Int32Array(new SharedArrayBuffer(4)), 0, 0, ms);
+}
+
+function withRegistryLock(callback) {
+  const file = registryPath();
+  const lockPath = `${file}.lock`;
+
+  try {
+    fs.mkdirSync(path.dirname(file), { recursive: true });
+  } catch (error) {
+    return callback();
+  }
+
+  const startedAt = Date.now();
+  let handle = null;
+
+  while (Date.now() - startedAt < REGISTRY_LOCK_TIMEOUT_MS) {
+    try {
+      handle = fs.openSync(lockPath, "wx");
+      break;
+    } catch (error) {
+      if (error.code !== "EEXIST") return callback();
+
+      try {
+        if (Date.now() - fs.statSync(lockPath).mtimeMs > REGISTRY_LOCK_STALE_MS) {
+          fs.unlinkSync(lockPath);
+        }
+      } catch (ignored) {
+        // The holder released it between the open and the stat.
+      }
+
+      sleepSync(25);
+    }
+  }
+
+  if (handle === null) return callback();
+
+  try {
+    return callback();
+  } finally {
+    try {
+      fs.closeSync(handle);
+    } catch (ignored) {
+      // Already closed.
+    }
+
+    try {
+      fs.unlinkSync(lockPath);
+    } catch (ignored) {
+      // Another process broke a stale lock and took over.
+    }
+  }
+}
+
+function registerProject(root) {
+  if (process.env.SDRIVE_NO_REGISTRY === "1") return;
+  if (!isSdriveProject(root)) return;
+
+  const resolved = path.resolve(root);
+  const file = registryPath();
+  const known = (paths) => paths.some((entry) => samePath(path.resolve(entry), resolved));
+
+  withRegistryLock(() => {
+    const { asArray, entries, paths } = readProjectRegistry();
+    if (known(paths)) return;
+
+    const next = [...entries, resolved];
+
+    try {
+      fs.mkdirSync(path.dirname(file), { recursive: true });
+      fs.writeFileSync(
+        file,
+        `${JSON.stringify(asArray ? next : { projects: next }, null, 2)}\n`
+      );
+    } catch (error) {
+      // A read-only home directory must not stop the dashboard.
+    }
+  });
+}
+
 // A dashboard can move between projects without restarting. Discovery is
 // deliberately local and explicit: the current project, SDRIVE_PROJECTS, an
 // optional ~/.sdrive/projects.json, and immediately sibling projects. The
@@ -1186,16 +1328,7 @@ function discoverProjectRoots() {
   const configured = process.env.SDRIVE_PROJECTS || "";
   for (const candidate of configured.split(path.delimiter)) add(candidate);
 
-  const registryPath = path.join(os.homedir(), ".sdrive", "projects.json");
-  if (fs.existsSync(registryPath)) {
-    try {
-      const registry = JSON.parse(fs.readFileSync(registryPath, "utf8"));
-      const entries = Array.isArray(registry) ? registry : registry.projects || [];
-      for (const entry of entries) add(typeof entry === "string" ? entry : entry.path);
-    } catch (error) {
-      // A malformed registry must not break the dashboard.
-    }
-  }
+  for (const entry of readProjectRegistry().paths) add(entry);
 
   const parent = path.dirname(projectRoot);
   try {
@@ -1237,6 +1370,107 @@ function apiProjects() {
   };
 }
 
+// The portfolio is what makes the switcher optional: one page showing every
+// project's state, so you look instead of switching. It reads only JSON files
+// (workflow state and audit log) - no git spawns - because a landing page that
+// takes two seconds per project would be worse than the tabs it replaces.
+const PORTFOLIO_CACHE_MS = 3000;
+let portfolioMemo = { at: 0, value: null };
+
+function timestampOf(value) {
+  const parsed = Date.parse(value || "");
+  return Number.isFinite(parsed) ? parsed : 0;
+}
+
+function summarizeProject(root) {
+  const projectSdrive = path.join(root, ".sdrive");
+  const state = loadJson(path.join(projectSdrive, "workflow-state.json"), { features: [] });
+  const features = Array.isArray(state.features) ? state.features : [];
+  const gates = gateAccessors();
+  const live = liveVersions(state);
+
+  let lastActivity = 0;
+
+  for (const feature of features) {
+    for (const version of feature.versions || []) {
+      for (const entry of version.history || []) {
+        lastActivity = Math.max(lastActivity, timestampOf(entry.timestamp));
+      }
+    }
+  }
+
+  const audit = loadJson(path.join(projectSdrive, "audit-log.json"), { events: [] });
+  for (const event of audit.events || []) {
+    lastActivity = Math.max(lastActivity, timestampOf(event.timestamp));
+  }
+
+  // A live version is what the project is working on. When nothing is live,
+  // show the version touched most recently so the card still says something.
+  const all = features.flatMap((feature) =>
+    (feature.versions || []).map((version) => ({ feature, version }))
+  );
+  const newest = (entries) =>
+    entries
+      .slice()
+      .sort(
+        (a, b) =>
+          Math.max(...(b.version.history || []).map((h) => timestampOf(h.timestamp)), 0) -
+          Math.max(...(a.version.history || []).map((h) => timestampOf(h.timestamp)), 0)
+      )[0] || null;
+
+  const focus = newest(live) || newest(all);
+  const outstandingGates =
+    focus && gates && focus.version.phase !== "completed"
+      ? gates.GATE_ORDER.filter((gate) => !gates.isGateApprovedFor(focus.version, gate))
+      : [];
+  // A pending gate is the next step, not a problem. Only a rejected gate means
+  // someone has to act before the feature can move.
+  const rejectedGates =
+    focus && gates
+      ? gates.GATE_ORDER.filter(
+          (gate) => gates.gateStatusFor(focus.version, gate) === "rejected"
+        )
+      : [];
+
+  return {
+    name: path.basename(root) || "project",
+    path: root,
+    active: path.resolve(root) === path.resolve(projectRoot),
+    features: features.length,
+    live: live.length,
+    focus: focus
+      ? {
+          feature: focus.feature.name,
+          version: focus.version.id,
+          phase: focus.version.phase || "unknown",
+          step: focus.version.currentStep || null,
+          approvedGates: gates
+            ? gates.GATE_ORDER.filter((gate) => gates.isGateApprovedFor(focus.version, gate)).length
+            : 0,
+          totalGates: gates ? gates.GATE_ORDER.length : 0
+        }
+      : null,
+    outstandingGates,
+    rejectedGates,
+    lastActivity: lastActivity ? new Date(lastActivity).toISOString() : null,
+    status: rejectedGates.length ? "blocked" : live.length ? "active" : "idle"
+  };
+}
+
+function apiPortfolio() {
+  if (portfolioMemo.value && Date.now() - portfolioMemo.at < PORTFOLIO_CACHE_MS) {
+    return portfolioMemo.value;
+  }
+
+  const projects = discoverProjectRoots()
+    .map(summarizeProject)
+    .sort((a, b) => Number(b.active) - Number(a.active) || a.name.localeCompare(b.name));
+
+  const value = { active: path.resolve(projectRoot), projects };
+  portfolioMemo = { at: Date.now(), value };
+  return value;
+}
+
 function switchProject(target) {
   const resolved = path.resolve(String(target || ""));
 
@@ -1251,10 +1485,15 @@ function switchProject(target) {
   sdriveRoot = path.join(projectRoot, ".sdrive");
   projectsMemo = { at: 0, roots: [] };
 
+  // A project reached through SDRIVE_PROJECTS or a sibling scan joins the
+  // registry too, so it stays switchable after this server restarts.
+  registerProject(resolved);
+
   // Every cached answer was built from the previous project's files.
   gitCache.clear();
   healthMemo = { at: 0, value: null };
   stampMemo = { at: 0, value: null };
+  portfolioMemo = { at: 0, value: null };
 
   return { ok: true, project: path.basename(projectRoot) };
 }
@@ -1771,9 +2010,51 @@ function parseBacklog(markdown) {
   if (!markdown) return [];
 
   const rows = [];
+  let section = "";
+  let columns = null;
+
+  // Map header text to fields instead of trusting column positions. A product
+  // backlog is hand-written Markdown, and the columns have drifted (this file
+  // gained `User value` and `Confidence / source`), which used to push the user
+  // value into the Milestone column.
+  const headerKey = (value) => {
+    const key = String(value || "")
+      .toLowerCase()
+      .replace(/\s+/g, " ")
+      .trim();
+
+    if (key === "id") return "id";
+    if (key === "feature") return "feature";
+    if (key === "user value") return "userValue";
+    if (key === "milestone") return "milestone";
+    if (key === "priority") return "priority";
+    if (key === "depends on" || key === "dependencies" || key === "dependency") {
+      return "dependencies";
+    }
+    if (key === "status") return "status";
+    if (key === "confidence / source" || key === "confidence" || key === "source") {
+      return "confidence";
+    }
+    return null;
+  };
+
   for (const line of markdown.split(/\r?\n/)) {
     const trimmed = line.trim();
-    if (!trimmed.startsWith("|")) continue;
+
+    // The milestone lives in the section heading (`## M0 - Foundation`), not in
+    // every row. Track it so each item can say which milestone it belongs to.
+    const heading = trimmed.match(/^##\s+(.+?)\s*$/);
+    if (heading) {
+      section = heading[1];
+      columns = null;
+      continue;
+    }
+
+    if (!trimmed.startsWith("|")) {
+      columns = null;
+      continue;
+    }
+
     if (/^\|[\s:|-]+\|$/.test(trimmed)) continue;
 
     const cells = trimmed
@@ -1781,23 +2062,140 @@ function parseBacklog(markdown) {
       .slice(1, -1)
       .map((cell) => cell.trim());
 
-    if (cells.length < 3) continue;
-    if (/^id$/i.test(cells[0])) continue;
+    // A table is a backlog table only if it has both an ID and a Feature
+    // header. This keeps the summary and legend tables out of the item list.
+    if (!columns) {
+      const keys = cells.map(headerKey);
+      if (keys.includes("id") && keys.includes("feature")) columns = keys;
+      continue;
+    }
 
-    // Backlog table columns: ID | Feature | Milestone | Priority | Dependencies | Status
-    // Older/simpler tables may only have: ID | Feature | Status
-    const hasFullColumns = cells.length >= 6;
+    if (cells.length < columns.length) continue;
+
+    const item = {};
+    columns.forEach((key, index) => {
+      if (key) item[key] = cells[index];
+    });
+
+    if (!item.id || !item.feature) continue;
+
     rows.push({
-      id: cells[0],
-      feature: cells[1],
-      milestone: hasFullColumns ? cells[2] : "",
-      priority: hasFullColumns ? cells[3] : "",
-      dependencies: hasFullColumns ? cells[4] : "",
-      status: hasFullColumns ? cells[5] : cells[2]
+      id: item.id,
+      feature: item.feature,
+      userValue: item.userValue || "",
+      milestone: item.milestone || section,
+      priority: item.priority || "",
+      dependencies: item.dependencies || "",
+      status: item.status || "",
+      confidence: item.confidence || ""
     });
   }
 
   return rows;
+}
+
+// `Depends on` mixes feature IDs (`BP-005`, `BP-011 to BP-015`) with external
+// prerequisites (`app review`, `partner access`). Separate the two: only the
+// feature IDs form edges in the dependency graph.
+function parseDependencyCell(raw) {
+  const text = String(raw || "").replace(/[\u2013\u2014]/g, "-");
+  const ids = [];
+
+  const add = (id) => {
+    if (!ids.includes(id)) ids.push(id);
+  };
+
+  let remainder = text.replace(
+    /\bBP-(\d{3})\s*(?:to|through|-)\s*BP-(\d{3})\b/gi,
+    (match, from, to) => {
+      const start = Number(from);
+      const end = Number(to);
+
+      if (start <= end) {
+        for (let n = start; n <= end; n += 1) add(`BP-${String(n).padStart(3, "0")}`);
+      } else {
+        for (let n = start; n >= end; n -= 1) add(`BP-${String(n).padStart(3, "0")}`);
+      }
+
+      return " ";
+    }
+  );
+
+  remainder = remainder.replace(/\bBP-(\d{3})\b/gi, (match) => {
+    add(match.toUpperCase());
+    return " ";
+  });
+
+  const external = remainder
+    .split(/[;,]/)
+    .map((part) => part.replace(/^[-\u2013\u2014]\s*/, "").trim())
+    .filter((part) => part && part !== "-");
+
+  return { ids, external };
+}
+
+// The dashboard answers three questions the raw Markdown cannot:
+//   - What does this item depend on?           -> dependsOn
+//   - What builds on it (its base targets)?    -> baseFor
+//   - What can be worked on at the same time?  -> wave
+// Wave is the longest dependency path from an item with no prerequisites.
+// Items on the same wave cannot depend on each other, so they can be developed
+// in parallel. External prerequisites do not create a wave; they are listed
+// beside the feature dependencies instead.
+function annotateBacklog(items) {
+  const known = new Set(items.map((item) => item.id));
+  const dependsOn = new Map();
+  const external = new Map();
+
+  for (const item of items) {
+    const parsed = parseDependencyCell(item.dependencies);
+    dependsOn.set(item.id, parsed.ids);
+    external.set(item.id, parsed.external);
+  }
+
+  const featureDeps = (id) =>
+    (dependsOn.get(id) || []).filter((dep) => known.has(dep) && dep !== id);
+
+  const baseFor = new Map(items.map((item) => [item.id, []]));
+
+  for (const item of items) {
+    for (const dep of featureDeps(item.id)) {
+      baseFor.get(dep).push(item.id);
+    }
+  }
+
+  const waves = new Map();
+  const visiting = new Set();
+
+  const waveOf = (id) => {
+    if (waves.has(id)) return waves.get(id);
+    // A malformed backlog can contain a cycle. Do not recurse forever; report
+    // the item as a root and let the dependency lists show the links.
+    if (visiting.has(id)) return 0;
+
+    visiting.add(id);
+    const deps = featureDeps(id);
+    const wave = deps.length ? Math.max(...deps.map((dep) => waveOf(dep) + 1)) : 0;
+    visiting.delete(id);
+
+    waves.set(id, wave);
+    return wave;
+  };
+
+  return items.map((item) => {
+    const wave = waveOf(item.id);
+
+    return {
+      ...item,
+      dependsOn: dependsOn.get(item.id) || [],
+      externalDependencies: external.get(item.id) || [],
+      baseFor: baseFor.get(item.id) || [],
+      wave,
+      parallelWith: items
+        .filter((other) => other.id !== item.id && waveOf(other.id) === wave)
+        .map((other) => other.id)
+    };
+  });
 }
 
 function apiProduct() {
@@ -1815,7 +2213,7 @@ function apiProduct() {
     mockup,
     designSystem,
     roadmap,
-    backlog: parseBacklog(backlogMarkdown),
+    backlog: annotateBacklog(parseBacklog(backlogMarkdown)),
     summary: parseProductOverview(overview)
   };
 }
@@ -2559,6 +2957,10 @@ async function routeRequest(req, res) {
       return res.end(JSON.stringify(apiProjects()));
     }
 
+    if (url === "/api/portfolio") {
+      return res.end(JSON.stringify(apiPortfolio()));
+    }
+
     if (url === "/api/switch-project") {
       if (req.method !== "POST") {
         res.writeHead(405);
@@ -2621,7 +3023,7 @@ async function routeRequest(req, res) {
   // Path-based page routes. Each dashboard view is its own URL (e.g.
   // /product-plan, /features, /team). They all serve the same single-page shell;
   // the client router in app.js decides which section to display.
-  const PAGE_ROUTES = ["/overview", "/product-plan", "/features", "/quality", "/team", "/activity", "/commands", "/skills"];
+  const PAGE_ROUTES = ["/projects", "/overview", "/product-plan", "/features", "/quality", "/team", "/activity", "/commands", "/skills"];
   if (PAGE_ROUTES.includes(url)) {
     return serveStatic(res, path.join(__dirname, "index.html"), "text/html");
   }
@@ -2697,6 +3099,10 @@ function listenOnFreePort(port, attemptsLeft, host = PREFERRED_HOST) {
 
   server.listen(port, host, () => {
     const shown = isLoopback(host) ? "localhost" : host;
+
+    // Only after the port is ours: a failed start should not leave a project
+    // in the shared list.
+    registerProject(projectRoot);
     console.log(`\n🚀 SpecDrive Dashboard running at http://${shown}:${port}\n`);
 
     if (!isLoopback(host)) {

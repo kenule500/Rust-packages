@@ -282,31 +282,156 @@ async function renderProjectSwitcher() {
   select.dataset.bound = "true";
 }
 
+// Switch the server's active project, then land somewhere that exists in the
+// new project. A feature detail route (/features/x) belongs to the old project,
+// so it falls back to the overview; every other page is project-independent.
+async function switchActiveProject(target, destination) {
+  const response = await fetch("/api/switch-project", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ path: target })
+  });
+
+  if (!response.ok) {
+    const data = await response.json().catch(() => ({}));
+    throw new Error(data.error || "Could not switch project");
+  }
+
+  const { route } = parseLocation();
+  const next =
+    destination || (route === "feature-detail" ? "/overview" : window.location.pathname);
+  window.location.assign(next);
+}
+
 function setupProjectSwitcher() {
   const select = document.getElementById("project-switcher");
   if (!select) return;
 
   select.addEventListener("change", async () => {
-    const target = select.value;
     select.disabled = true;
 
     try {
-      const response = await fetch("/api/switch-project", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ path: target })
-      });
-
-      if (!response.ok) {
-        const data = await response.json().catch(() => ({}));
-        throw new Error(data.error || "Could not switch project");
-      }
-
-      window.location.reload();
+      await switchActiveProject(select.value);
     } catch (error) {
       select.disabled = false;
       alert(error.message);
     }
+  });
+}
+
+/* ============================================================
+   PROJECT PORTFOLIO
+   One page for every project the server knows, so the common
+   question ("where does each project stand?") does not require
+   switching projects at all.
+   ============================================================ */
+const PORTFOLIO_STATUS = {
+  blocked: "Needs attention",
+  active: "In progress",
+  idle: "Idle"
+};
+
+function gateLabel(gate) {
+  return gate.charAt(0).toUpperCase() + gate.slice(1);
+}
+
+function relativeActivity(iso) {
+  if (!iso) return "No activity yet";
+  const then = Date.parse(iso);
+  if (!Number.isFinite(then)) return "No activity yet";
+
+  const days = Math.floor((Date.now() - then) / 86400000);
+  if (days <= 0) return "Today";
+  if (days === 1) return "Yesterday";
+  if (days < 30) return `${days} days ago`;
+  return formatDate(iso);
+}
+
+function renderProjectCard(project) {
+  const focus = project.focus;
+  const status = PORTFOLIO_STATUS[project.status] ? project.status : "idle";
+  const rejected = project.rejectedGates || [];
+  const nextGates = project.outstandingGates || [];
+
+  return `
+    <article class="portfolio-card${project.active ? " is-active" : ""}" data-project-path="${escapeHtml(project.path)}" role="button" tabindex="0" aria-label="Open ${escapeHtml(project.name)}">
+      <header class="portfolio-card-head">
+        <div class="portfolio-card-identity">
+          <h3 class="portfolio-card-name">${escapeHtml(project.name)}</h3>
+          <p class="portfolio-card-path">${escapeHtml(project.path)}</p>
+        </div>
+        <span class="portfolio-status ${status}">${PORTFOLIO_STATUS[status]}</span>
+      </header>
+
+      <dl class="portfolio-stats">
+        <div><dt>Features</dt><dd>${project.features}</dd></div>
+        <div><dt>Live</dt><dd>${project.live}</dd></div>
+        <div><dt>Last activity</dt><dd>${escapeHtml(relativeActivity(project.lastActivity))}</dd></div>
+      </dl>
+
+      ${
+        focus
+          ? `<p class="portfolio-focus">
+               <span class="portfolio-focus-label">${project.live ? "Working on" : "Last touched"}</span>
+               <span class="portfolio-focus-name">${escapeHtml(focus.feature)}</span>
+               <span class="portfolio-focus-meta">${escapeHtml(focus.version)} · ${escapeHtml(focus.step || focus.phase)} · ${focus.approvedGates}/${focus.totalGates} gates</span>
+             </p>`
+          : `<p class="portfolio-focus is-empty">No features yet.</p>`
+      }
+
+      ${
+        rejected.length
+          ? `<p class="portfolio-blockers">Rejected: ${rejected.map((gate) => escapeHtml(gateLabel(gate))).join(", ")}</p>`
+          : nextGates.length
+            ? `<p class="portfolio-next">Next: ${nextGates.map((gate) => escapeHtml(gateLabel(gate))).join(", ")}</p>`
+            : ""
+      }
+
+      <footer class="portfolio-card-foot">
+        ${project.active ? "Current project" : `Open ${escapeHtml(project.name)} →`}
+      </footer>
+    </article>
+  `;
+}
+
+async function renderProjects() {
+  const grid = document.getElementById("projects-grid");
+  if (!grid) return;
+
+  const data = await fetchJson("/api/portfolio");
+  const projects = (data && data.projects) || [];
+
+  if (projects.length === 0) {
+    grid.className = "panel-loading";
+    grid.textContent = "No projects yet. Start a dashboard in a project to register it.";
+    return;
+  }
+
+  grid.className = "portfolio-grid";
+  grid.innerHTML = projects.map(renderProjectCard).join("");
+
+  grid.querySelectorAll("[data-project-path]").forEach((card) => {
+    const open = async () => {
+      if (card.dataset.busy === "true") return;
+      card.dataset.busy = "true";
+      card.classList.add("is-busy");
+
+      try {
+        await switchActiveProject(card.dataset.projectPath, "/overview");
+      } catch (error) {
+        card.dataset.busy = "false";
+        card.classList.remove("is-busy");
+        alert(error.message);
+      }
+    };
+
+    card.addEventListener("click", open);
+    card.addEventListener("keydown", (event) => {
+      if (event.key === "Enter" || event.key === " ") {
+        event.preventDefault();
+        open();
+      }
+    });
   });
 }
 
@@ -894,12 +1019,51 @@ function renderProduct(product, productType) {
       : /pending|backlog/i.test(item.status)
       ? "amber"
       : "green";
+
+    const dependsOn = item.dependsOn || [];
+    const external = item.externalDependencies || [];
+    const baseFor = item.baseFor || [];
+    const parallelWith = item.parallelWith || [];
+    const wave = Number.isFinite(item.wave) ? item.wave : 0;
+    const waveLabel = wave === 0 ? "start" : `W${wave}`;
+    const waveTitle = parallelWith.length
+      ? `Can be developed in parallel with ${parallelWith.join(", ")}`
+      : "No other item is at this stage";
+
     return `
         <tr>
           <td class="backlog-id">${escapeHtml(item.id)}</td>
-          <td>${escapeHtml(item.feature)}</td>
+          <td>
+            <div class="backlog-feature">${escapeHtml(item.feature)}</div>
+            ${item.userValue ? `<div class="backlog-value">${escapeHtml(item.userValue)}</div>` : ""}
+          </td>
           <td>${item.milestone ? `<span class="chip slate">${escapeHtml(item.milestone)}</span>` : "—"}</td>
           <td>${item.priority ? escapeHtml(item.priority) : "—"}</td>
+          <td>
+            <div class="dep-list">
+              ${dependsOn
+                .map((id) => `<span class="dep-chip">${escapeHtml(id)}</span>`)
+                .join("")}
+              ${external
+                .map((text) => `<span class="dep-external">${escapeHtml(text)}</span>`)
+                .join("")}
+              ${dependsOn.length === 0 && external.length === 0 ? "—" : ""}
+            </div>
+          </td>
+          <td>
+            <div class="dep-list">
+              ${
+                baseFor.length
+                  ? baseFor
+                      .map((id) => `<span class="dep-chip base">${escapeHtml(id)}</span>`)
+                      .join("")
+                  : "—"
+              }
+            </div>
+          </td>
+          <td>
+            <span class="wave-chip${wave === 0 ? " now" : ""}" title="${escapeHtml(waveTitle)}">${waveLabel}</span>
+          </td>
           <td><span class="chip ${tone}">${escapeHtml(item.status)}</span></td>
         </tr>`;
   };
@@ -907,7 +1071,7 @@ function renderProduct(product, productType) {
   const backlogSlice = paginate(backlog, "product-backlog", BACKLOG_PER_PAGE);
   const backlogRows = backlog.length
     ? backlogSlice.items.map(backlogRow).join("")
-    : `<tr><td colspan="5" class="product-empty">No backlog items yet.</td></tr>`;
+    : `<tr><td colspan="8" class="product-empty">No backlog items yet.</td></tr>`;
 
   div.innerHTML = `
     <div class="product-plan-wrap">
@@ -943,13 +1107,28 @@ function renderProduct(product, productType) {
       <div class="table-scroll">
         <table class="backlog-table">
           <thead>
-            <tr><th>ID</th><th>Feature</th><th>Milestone</th><th>Priority</th><th>Status</th></tr>
+            <tr>
+              <th>ID</th>
+              <th>Feature</th>
+              <th>Milestone</th>
+              <th>Priority</th>
+              <th>Depends on</th>
+              <th>Base for</th>
+              <th>Wave</th>
+              <th>Status</th>
+            </tr>
           </thead>
           <tbody id="backlog-body">${backlogRows}</tbody>
         </table>
       </div>
 
       <div id="backlog-pager"></div>
+
+      <div class="product-note backlog-legend">
+        <strong>Depends on</strong> lists prerequisites; <strong>Base for</strong> lists the items that
+        build on this one. Items in the same <strong>wave</strong> have no dependency between them
+        and can be developed in parallel; <code>start</code> means no feature dependency.
+      </div>
 
       <div class="product-note">
         Backlog items are product-level candidates. Promote one with <code>/sdrive:propose</code> to start detailed planning.
@@ -1138,8 +1317,8 @@ function featureMembersEl(members) {
 let featureRenderToken = 0;
 
 // Feature cards are tall (each carries its version blocks and metrics), so a
-// smaller page keeps the grid scannable and the KPI explainer within reach.
-const FEATURES_PER_PAGE = 20;
+// moderate page keeps the grid scannable while showing enough to compare.
+const FEATURES_PER_PAGE = 25;
 
 async function renderFeatures() {
   const token = ++featureRenderToken;
@@ -3269,6 +3448,7 @@ async function renderCommands() {
    detail page (task breakdown + filters) for a single feature.
    ============================================================ */
 const ROUTES = [
+  "projects",
   "overview",
   "product-plan",
   "features",
@@ -3279,7 +3459,7 @@ const ROUTES = [
   "activity",
   "commands"
 ];
-const DEFAULT_ROUTE = "overview";
+const DEFAULT_ROUTE = "projects";
 
 // Returns { route, feature } for the current URL. A path like
 // /features/about-page resolves to { route: "feature-detail", feature: "about-page" }.
@@ -3317,6 +3497,7 @@ function showRoute(route) {
   window.scrollTo({ top: 0, behavior: "auto" });
 
   if (target === "quality") renderQuality();
+  if (target === "projects") renderProjects();
 }
 
 function setupNav() {

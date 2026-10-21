@@ -222,13 +222,13 @@ Document redaction guarantees, the supported protocols, probe depth, retry seman
 
 | ID | Task | Requirements | Acceptance criteria |
 |---|---|---|---|
-| T6.1 | Scaffold `crates/signedlink` with claims, signer, code, store, and typed errors | FR-033, FR-038, NFR-003, NFR-004, NFR-011, NFR-015 | AC-033 |
-| T6.2 | Implement HMAC-SHA256 signing, constant-time verification, expiry, and clock skew | FR-033 | AC-033, AC-035 |
-| T6.3 | Implement base62 code generation with bounded collision retry | FR-034 | AC-037 |
-| T6.4 | Implement UTM normalisation and the attribution window | FR-035, FR-036, NFR-014 | AC-036 |
-| T6.5 | Implement single-use nonce consumption and revocation | FR-037, FR-038, NFR-012 | AC-034, AC-039 |
-| T6.6 | Implement the optional axum redirect handler with no-referrer | FR-039, NFR-004, NFR-017 | AC-038 |
-| T6.7 | Add the signedlink README, changelog, and sign-and-verify example | FR-042 | AC-042 |
+| [x] T6.1 | Scaffold `crates/signedlink` with claims, signer, code, store, and typed errors | FR-033, FR-038, NFR-003, NFR-004, NFR-011, NFR-015 | AC-033 |
+| [x] T6.2 | Implement HMAC-SHA256 signing, constant-time verification, expiry, and clock skew | FR-033 | AC-033, AC-035 |
+| [x] T6.3 | Implement base62 code generation with bounded collision retry | FR-034 | AC-037 |
+| [x] T6.4 | Implement UTM normalisation and the attribution window | FR-035, FR-036, NFR-014 | AC-036 |
+| [x] T6.5 | Implement single-use nonce consumption and revocation | FR-037, FR-038, NFR-012 | AC-034, AC-039 |
+| [x] T6.6 | Implement the optional axum redirect handler with no-referrer | FR-039, NFR-004, NFR-017 | AC-038 |
+| [x] T6.7 | Add the signedlink README, changelog, and sign-and-verify example | FR-042 | AC-042 |
 
 ### T6.1 — Scaffold `crates/signedlink` with claims, signer, code, store, and typed errors
 

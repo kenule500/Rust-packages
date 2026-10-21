@@ -1,0 +1,31 @@
+[package]
+name = "signedlink"
+version = "0.1.0"
+edition.workspace = true
+rust-version.workspace = true
+license.workspace = true
+repository.workspace = true
+readme = "README.md"
+description = "HMAC-SHA256 signed short links with base62 codes, UTM normalisation, store-backed revocation, and an optional axum redirect."
+keywords = ["signed-url", "hmac", "short-link", "utm", "axum"]
+categories = ["web-programming", "authentication"]
+include = ["Cargo.toml", "README.md", "CHANGELOG.md", "src/**", "examples/**"]
+
+[package.metadata.docs.rs]
+all-features = true
+
+[features]
+default = []
+# Serialise claims and the UTM set. Keys and tokens never serialise.
+serde = ["dep:serde", "url/serde"]
+# The redirect handler. Adds no store or network client.
+axum = ["dep:axum"]
+
+[dependencies]
+hmac = { workspace = true }
+sha2 = { workspace = true }
+base64 = { workspace = true }
+getrandom = { workspace = true }
+url = { workspace = true }
+serde = { workspace = true, optional = true }
+axum = { workspace = true, optional = true }

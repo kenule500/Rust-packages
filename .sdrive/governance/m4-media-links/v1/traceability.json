@@ -14,7 +14,7 @@
         "T1.3"
       ],
       "testIds": [],
-      "status": "not_started"
+      "status": "complete"
     },
     {
       "requirementId": "FR-002",
@@ -26,7 +26,7 @@
         "T1.2"
       ],
       "testIds": [],
-      "status": "not_started"
+      "status": "complete"
     },
     {
       "requirementId": "FR-003",
@@ -38,7 +38,7 @@
         "T1.4"
       ],
       "testIds": [],
-      "status": "not_started"
+      "status": "complete"
     },
     {
       "requirementId": "FR-004",
@@ -50,7 +50,7 @@
         "T1.5"
       ],
       "testIds": [],
-      "status": "not_started"
+      "status": "complete"
     },
     {
       "requirementId": "FR-005",
@@ -62,7 +62,7 @@
         "T1.6"
       ],
       "testIds": [],
-      "status": "not_started"
+      "status": "complete"
     },
     {
       "requirementId": "FR-006",
@@ -77,7 +77,7 @@
         "T1.4"
       ],
       "testIds": [],
-      "status": "not_started"
+      "status": "complete"
     },
     {
       "requirementId": "FR-007",
@@ -589,7 +589,7 @@
         "T1.3"
       ],
       "testIds": [],
-      "status": "not_started"
+      "status": "complete"
     },
     {
       "requirementId": "NFR-002",

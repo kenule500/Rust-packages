@@ -2,8 +2,8 @@
 
 > **Feature:** `m4-media-links`
 > **Version:** v1
-> **Status:** backlog
-> **Plan:** `.sdrive/specs/backlog/m4-media-links/v1/plan.md`
+> **Status:** ongoing
+> **Plan:** `.sdrive/specs/ongoing/m4-media-links/v1/plan.md`
 > **Branch:** `feature/m4-media-links`
 
 Production-code tasks only. Test authoring and test execution belong to `/sdrive:test` (CON-404, No Test Tasks Rule).
@@ -12,13 +12,13 @@ Production-code tasks only. Test authoring and test execution belong to `/sdrive
 
 | ID | Task | Requirements | Acceptance criteria |
 |---|---|---|---|
-| T1.1 | Scaffold `crates/ffscene` and define the core scene types | FR-001, NFR-003 | AC-001 |
-| T1.2 | Implement scene validation before compilation | FR-002, NFR-003, NFR-014 | AC-002 |
-| T1.3 | Implement deterministic graph and argument compilation | FR-001, FR-006, NFR-001 | AC-001, AC-006 |
-| T1.4 | Implement encoder ladder expansion | FR-003, FR-006 | AC-003 |
-| T1.5 | Implement the encoder probe and explicit downgrade report | FR-004 | AC-004 |
-| T1.6 | Implement output descriptors without transport | FR-005 | AC-005 |
-| T1.7 | Add the ffscene README, changelog, and compile example | FR-042 | AC-042 |
+| [x] T1.1 | Scaffold `crates/ffscene` and define the core scene types | FR-001, NFR-003 | AC-001 |
+| [x] T1.2 | Implement scene validation before compilation | FR-002, NFR-003, NFR-014 | AC-002 |
+| [x] T1.3 | Implement deterministic graph and argument compilation | FR-001, FR-006, NFR-001 | AC-001, AC-006 |
+| [x] T1.4 | Implement encoder ladder expansion | FR-003, FR-006 | AC-003 |
+| [x] T1.5 | Implement the encoder probe and explicit downgrade report | FR-004 | AC-004 |
+| [x] T1.6 | Implement output descriptors without transport | FR-005 | AC-005 |
+| [x] T1.7 | Add the ffscene README, changelog, and compile example | FR-042 | AC-042 |
 
 ### T1.1 — Scaffold `crates/ffscene` and define the core scene types
 

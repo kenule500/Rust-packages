@@ -1,0 +1,20 @@
+[package]
+name = "ffscene"
+version = "0.1.0"
+edition.workspace = true
+rust-version.workspace = true
+license.workspace = true
+repository.workspace = true
+readme = "README.md"
+description = "Deterministic scene-to-FFmpeg compilation: validation, filter graphs, encoder ladders, probes, and output descriptors."
+keywords = ["ffmpeg", "video", "scene", "filtergraph", "streaming"]
+categories = ["multimedia::video", "multimedia"]
+include = ["Cargo.toml", "README.md", "CHANGELOG.md", "src/**", "examples/**"]
+
+[package.metadata.docs.rs]
+all-features = true
+
+[features]
+default = []
+
+[dependencies]

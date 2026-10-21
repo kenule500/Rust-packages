@@ -337,7 +337,7 @@
         "T5.1"
       ],
       "testIds": [],
-      "status": "not_started"
+      "status": "complete"
     },
     {
       "requirementId": "FR-027",
@@ -349,7 +349,7 @@
         "T5.2"
       ],
       "testIds": [],
-      "status": "not_started"
+      "status": "complete"
     },
     {
       "requirementId": "FR-028",
@@ -361,7 +361,7 @@
         "T5.3"
       ],
       "testIds": [],
-      "status": "not_started"
+      "status": "complete"
     },
     {
       "requirementId": "FR-029",
@@ -373,7 +373,7 @@
         "T5.4"
       ],
       "testIds": [],
-      "status": "not_started"
+      "status": "complete"
     },
     {
       "requirementId": "FR-030",
@@ -385,7 +385,7 @@
         "T5.5"
       ],
       "testIds": [],
-      "status": "not_started"
+      "status": "complete"
     },
     {
       "requirementId": "FR-031",
@@ -397,7 +397,7 @@
         "T5.6"
       ],
       "testIds": [],
-      "status": "not_started"
+      "status": "complete"
     },
     {
       "requirementId": "FR-032",
@@ -410,7 +410,7 @@
         "T5.3"
       ],
       "testIds": [],
-      "status": "not_started"
+      "status": "complete"
     },
     {
       "requirementId": "FR-033",
@@ -619,7 +619,7 @@
         "T6.1"
       ],
       "testIds": [],
-      "status": "not_started"
+      "status": "in_progress"
     },
     {
       "requirementId": "NFR-004",
@@ -635,7 +635,7 @@
         "T6.6"
       ],
       "testIds": [],
-      "status": "not_started"
+      "status": "in_progress"
     },
     {
       "requirementId": "NFR-005",
@@ -725,7 +725,7 @@
         "T6.1"
       ],
       "testIds": [],
-      "status": "not_started"
+      "status": "in_progress"
     },
     {
       "requirementId": "NFR-012",
@@ -753,7 +753,7 @@
         "T5.4"
       ],
       "testIds": [],
-      "status": "in_progress"
+      "status": "complete"
     },
     {
       "requirementId": "NFR-014",
@@ -770,7 +770,7 @@
         "T6.4"
       ],
       "testIds": [],
-      "status": "not_started"
+      "status": "in_progress"
     },
     {
       "requirementId": "NFR-015",
@@ -796,7 +796,7 @@
         "T7.5"
       ],
       "testIds": [],
-      "status": "not_started"
+      "status": "in_progress"
     },
     {
       "requirementId": "NFR-017",
@@ -811,7 +811,7 @@
         "T6.6"
       ],
       "testIds": [],
-      "status": "not_started"
+      "status": "in_progress"
     },
     {
       "requirementId": "NFR-018",

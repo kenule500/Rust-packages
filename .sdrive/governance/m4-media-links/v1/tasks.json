@@ -434,7 +434,7 @@
           "linkedAcceptanceCriteria": [
             "AC-027"
           ],
-          "completed": false
+          "completed": true
         },
         {
           "id": "T5.2",
@@ -449,7 +449,7 @@
           "linkedAcceptanceCriteria": [
             "AC-032"
           ],
-          "completed": false
+          "completed": true
         },
         {
           "id": "T5.3",
@@ -463,7 +463,7 @@
           "linkedAcceptanceCriteria": [
             "AC-028"
           ],
-          "completed": false
+          "completed": true
         },
         {
           "id": "T5.4",
@@ -476,7 +476,7 @@
           "linkedAcceptanceCriteria": [
             "AC-029"
           ],
-          "completed": false
+          "completed": true
         },
         {
           "id": "T5.5",
@@ -488,7 +488,7 @@
           "linkedAcceptanceCriteria": [
             "AC-030"
           ],
-          "completed": false
+          "completed": true
         },
         {
           "id": "T5.6",
@@ -500,7 +500,7 @@
           "linkedAcceptanceCriteria": [
             "AC-031"
           ],
-          "completed": false
+          "completed": true
         },
         {
           "id": "T5.7",
@@ -512,7 +512,7 @@
           "linkedAcceptanceCriteria": [
             "AC-042"
           ],
-          "completed": false
+          "completed": true
         }
       ]
     },

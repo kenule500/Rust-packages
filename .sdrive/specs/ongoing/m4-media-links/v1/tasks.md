@@ -182,13 +182,13 @@ Document the message table, the permission matrix, the version rule, and the ord
 
 | ID | Task | Requirements | Acceptance criteria |
 |---|---|---|---|
-| T5.1 | Scaffold `crates/rtmp-publish` with destination, secret, and redacted types | FR-026, FR-032, NFR-003, NFR-004, NFR-016 | AC-027 |
-| T5.2 | Implement destination shape validation with the TLS policy | FR-027, NFR-011, NFR-014, NFR-017 | AC-032 |
-| T5.3 | Implement TCP and WHIP probes with health classification | FR-028, FR-032, NFR-017 | AC-028 |
-| T5.4 | Implement bounded retry with jitter and the circuit breaker | FR-029, NFR-013 | AC-029 |
-| T5.5 | Implement failover and cool-down | FR-030 | AC-030 |
-| T5.6 | Implement bounded bitrate hints | FR-031 | AC-031 |
-| T5.7 | Add the rtmp-publish README, changelog, and destination example | FR-042 | AC-042 |
+| [x] T5.1 | Scaffold `crates/rtmp-publish` with destination, secret, and redacted types | FR-026, FR-032, NFR-003, NFR-004, NFR-016 | AC-027 |
+| [x] T5.2 | Implement destination shape validation with the TLS policy | FR-027, NFR-011, NFR-014, NFR-017 | AC-032 |
+| [x] T5.3 | Implement TCP and WHIP probes with health classification | FR-028, FR-032, NFR-017 | AC-028 |
+| [x] T5.4 | Implement bounded retry with jitter and the circuit breaker | FR-029, NFR-013 | AC-029 |
+| [x] T5.5 | Implement failover and cool-down | FR-030 | AC-030 |
+| [x] T5.6 | Implement bounded bitrate hints | FR-031 | AC-031 |
+| [x] T5.7 | Add the rtmp-publish README, changelog, and destination example | FR-042 | AC-042 |
 
 ### T5.1 — Scaffold `crates/rtmp-publish` with destination, secret, and redacted types
 

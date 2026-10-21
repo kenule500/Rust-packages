@@ -1,0 +1,27 @@
+[package]
+name = "rtmp-publish"
+version = "0.1.0"
+edition.workspace = true
+rust-version.workspace = true
+license.workspace = true
+repository.workspace = true
+readme = "README.md"
+description = "Destination model, validation, shallow health probes, bounded retry, circuit breaking, failover, and bitrate hints for live publishing."
+keywords = ["rtmp", "srt", "whip", "streaming", "resilience"]
+categories = ["multimedia::video", "network-programming"]
+include = ["Cargo.toml", "README.md", "CHANGELOG.md", "src/**", "examples/**"]
+
+[package.metadata.docs.rs]
+all-features = true
+
+[features]
+default = []
+# Serialise the redacted destination view. The secret key never serialises.
+serde = ["dep:serde"]
+# HTTP HEAD/OPTIONS probing for WHIP. Off by default; TCP probes need no TLS stack.
+whip = ["dep:reqwest", "reqwest/blocking"]
+
+[dependencies]
+url = { workspace = true }
+serde = { workspace = true, optional = true }
+reqwest = { workspace = true, optional = true }

@@ -64,27 +64,27 @@ Depends on: P1
 
 Depends on: P2
 
-- [ ] **T3.1 - Define the quota type model**
+- [x] **T3.1 - Define the quota type model**
   - Description: Add `Metric`, `Window`, `Budget`, `QuotaKey`, `Reservation`, `ReservationId`, `Usage`, `ExhaustionPolicy`, and `ReserveOutcome`. Reuse `TenantId` and `ProviderId` from `platform-core` through a path dependency.
   - Requirements: FR-007
   - Acceptance criteria: AC-010, AC-014
 
-- [ ] **T3.2 - Implement the in-memory quota store**
+- [x] **T3.2 - Implement the in-memory quota store**
   - Description: Add an `#[async_trait]` `QuotaStore` with `reserve`, `commit`, `release`, and `usage`. Perform capacity check, hold insertion, and idempotency lookup under one write lock. `commit` consumes exactly once, `release` consumes nothing, and repeated settlement is a typed no-op. A repeated key with a different payload is an idempotency conflict.
   - Requirements: FR-008, FR-009, FR-010, NFR-001, NFR-005, NFR-012
   - Acceptance criteria: AC-010, AC-011, AC-012, AC-013
 
-- [ ] **T3.3 - Implement window reset computation**
+- [x] **T3.3 - Implement window reset computation**
   - Description: Compute fixed daily and monthly reset instants from the configured timezone and rolling windows from the current instant. The reset boundary never uses the host timezone. Expose the next reset instant in `Usage`.
   - Requirements: FR-012
   - Acceptance criteria: AC-011
 
-- [ ] **T3.4 - Implement exhaustion policies**
+- [x] **T3.4 - Implement exhaustion policies**
   - Description: Produce the declared outcome for `HardStop` (denial with reset time), `Overage` (reservation plus overage units and cost in cents), `Degrade` (degraded outcome with reset time), and `Queue` (queued outcome with reset time). Degrade and Queue consume no units.
   - Requirements: FR-011
   - Acceptance criteria: AC-014, AC-015, AC-016, AC-017
 
-- [ ] **T3.5 - Document quota-ledger**
+- [x] **T3.5 - Document quota-ledger**
   - Description: Write crate docs, module scope and non-goals, the reserve/commit/release flow, feature table, and the README.
   - Requirements: FR-029
   - Acceptance criteria: AC-053

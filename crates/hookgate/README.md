@@ -16,6 +16,27 @@ queue.
 Core types and the `Verifier`, `DeliveryStore`, and `Outbox` traits are always
 available.
 
+## Presets
+
+| Preset | Header | Digest | Encoding | Signed payload |
+|---|---|---|---|---|
+| Meta Graph | `X-Hub-Signature-256` | SHA-256 | hex after `sha256=` | raw body |
+| Stripe | `Stripe-Signature` | SHA-256 | hex `v1` values | `{t}.{body}` |
+| Shopify | `X-Shopify-Hmac-Sha256` | SHA-256 | base64 | raw body |
+| Twilio | `X-Twilio-Signature` | SHA-1 | base64 | public URL plus sorted form fields |
+| Slack | `X-Slack-Signature` | SHA-256 | hex after `v0=` | `v0:{timestamp}:{body}` |
+| GitHub | `X-Hub-Signature-256` | SHA-256 | hex after `sha256=` | raw body |
+| Generic | caller-supplied | SHA-256 | hex | raw body |
+
+Twilio signs the externally visible URL. Forward it in `X-Forwarded-Url`, or
+override the header with `HmacPreset::signed_payload` and
+`SignedPayload::TwilioForm`.
+
+Every preset is an `HmacPreset`, so the header, encoding, prefix, digest,
+payload shape, event sources, tolerance, and body limit are all configurable.
+Signatures are compared in constant time. The default tolerance is five
+minutes and the default body limit is one MiB.
+
 ## Flow
 
 1. Build an `InboundRequest` that owns the raw `Bytes` body.
@@ -27,6 +48,21 @@ available.
    replayed with the same delivery identity.
 
 The contract is at-least-once. Consumers must be idempotent on the delivery id.
+
+The dedupe key is `(tenant, provider, event_id)`. Some providers omit an event
+id on some payloads; supply a provider-specific fallback before building a
+`DeliveryRecord`. The delivery id remains the stable identity for replay.
+
+## Dead letters
+
+`MemoryDeliveryStore::fail` increments the attempt count and, at the configured
+maximum, writes a `DeadLetterRecord` with the exact raw body and redacted error
+text. `replay` re-enqueues the same delivery id; a delivery that already
+succeeded returns `Duplicate` and is not enqueued again.
+
+Replay and handler delivery are at-least-once. A crash between the handler and
+`mark_processed` causes a retry, so handlers must be idempotent on the delivery
+id.
 
 ## Non-goals
 

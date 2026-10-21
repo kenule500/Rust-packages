@@ -122,32 +122,32 @@ Depends on: P3
 
 Depends on: P2
 
-- [ ] **T5.1 - Define hookgate types, traits, and errors**
+- [x] **T5.1 - Define hookgate types, traits, and errors**
   - Description: Add `DeliveryId`, `IdempotencyKey`, `InboundRequest` (tenant, provider, headers, raw `Bytes`, received_at), `VerifiedEvent`, `Verifier`, `DeliveryStore`, `Outbox`, `InsertOutcome`, `DeliveryRecord`, and typed `VerifyError`, `StoreError`, `OutboxError`. The raw body is never re-serialized before verification.
   - Requirements: FR-014, NFR-003
   - Acceptance criteria: AC-022
 
-- [ ] **T5.2 - Implement the HMAC verifier presets**
+- [x] **T5.2 - Implement the HMAC verifier presets**
   - Description: Add Meta Graph, Stripe, Shopify, Twilio, Slack, GitHub, and a configurable generic HMAC-SHA256 preset. Share one parameterized implementation for header name, encoding (hex/base64), prefix, signed payload shape, and digest. Compare signatures with `subtle::ConstantTimeEq`.
   - Requirements: FR-015, FR-016
   - Acceptance criteria: AC-022, AC-023, AC-025
 
-- [ ] **T5.3 - Enforce the replay window and body limit**
+- [x] **T5.3 - Enforce the replay window and body limit**
   - Description: Add `ReplayWindow` with a configurable timestamp tolerance and maximum body size. Reject stale, future-beyond-tolerance, oversized, and missing-header requests with distinct typed errors before parsing the body.
   - Requirements: FR-015, NFR-003
   - Acceptance criteria: AC-023, AC-024
 
-- [ ] **T5.4 - Implement dedupe and the transactional outbox**
+- [x] **T5.4 - Implement dedupe and the transactional outbox**
   - Description: Add `MemoryDeliveryStore` with dedupe on tenant, provider, and provider event id. Insert the delivery and enqueue the outbox row under one lock so either both become visible or neither does. Report `Duplicate` without a second enqueue. Keep tenant isolation in every key.
   - Requirements: FR-017, FR-018, NFR-001
   - Acceptance criteria: AC-026, AC-027, AC-028, AC-029
 
-- [ ] **T5.5 - Implement dead-letter and replay**
+- [x] **T5.5 - Implement dead-letter and replay**
   - Description: Track attempts and write a `DeadLetterRecord` with the raw body and redacted error text after the configured maximum. Replay re-enqueues the same delivery id and reports `Duplicate` when it had already succeeded.
   - Requirements: FR-019
   - Acceptance criteria: AC-030, AC-031
 
-- [ ] **T5.6 - Document hookgate**
+- [x] **T5.6 - Document hookgate**
   - Description: Write crate docs, preset table, the receive/verify/dedupe/enqueue flow, the at-least-once contract, feature table, and the README.
   - Requirements: FR-029
   - Acceptance criteria: AC-053

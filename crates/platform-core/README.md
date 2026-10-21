@@ -53,6 +53,17 @@ assert!(registry.get(&ProviderId::new("example")).is_some());
 - No `sqlx` or `axum` features in 0.1.
 - No dependency on `wirekit` in this version.
 
+## Related crates
+
+- [`quota-ledger`](../quota-ledger/README.md) - reserves quota using the
+  identity types from this crate.
+- [`hookgate`](../hookgate/README.md) - inbound webhook verification and
+  dedupe using the same identity types.
+- [`syncforge`](../syncforge/README.md) - durable action replay with its own
+  identity and conflict model.
+- [Workspace README](../../README.md) - package table, status, and reading
+  order.
+
 ## License
 
 MIT OR Apache-2.0.

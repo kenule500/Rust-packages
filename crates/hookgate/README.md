@@ -71,6 +71,20 @@ id.
 - No SendGrid ECDSA verifier in 0.1.
 - No standalone binary in 0.1.
 
+## Related crates
+
+- [`platform-core`](../platform-core/README.md) - the tenant and provider
+  identity types used by inbound requests.
+- [`quota-ledger`](../quota-ledger/README.md) - quota reservations for the
+  outbound calls that follow an accepted webhook.
+- [`syncforge`](../syncforge/README.md) - durable action replay for the client
+  side of the same workflow.
+- [Integration example](examples/substrate_integration.rs) - registers a
+  provider, reserves quota, verifies a generic HMAC webhook, and inserts the
+  delivery into an in-memory store with an outbox enqueue.
+- [Workspace README](../../README.md) - package table, status, and reading
+  order.
+
 ## License
 
 MIT OR Apache-2.0.

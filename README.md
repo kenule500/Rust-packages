@@ -22,11 +22,11 @@ catalog copy is pending.
 |---|---|---|---|
 | 00 | Provider index | All 26 provider docs, status, and “already online?” answers | [00_provider_index.md](catalogue/00_provider_index.md) |
 | 01 | `wirekit` | Typed HTTP clients for the external APIs a Rust app needs | [01_wirekit.md](catalogue/01_wirekit.md) |
-| 02 | `syncforge` | Offline-first sync engine for client and server | [02_syncforge.md](catalogue/02_syncforge.md) |
+| 02 | `syncforge` | Offline-first sync engine for client and server | [02_syncforge.md](catalogue/02_syncforge.md) · [README](crates/syncforge/README.md) |
 | 03–28 | Provider docs | One design file per wirekit module, Twilio through Google OAuth | [00_provider_index.md](catalogue/00_provider_index.md) |
-| 29 | `quota-ledger` | Per-tenant, per-provider quota reservation and ledger | [29_quota.md](catalogue/29_quota.md) |
-| 30 | `hookgate` | Inbound webhook edge: verify, dedupe, replay-protect, forward | [30_webhook_gateway.md](catalogue/30_webhook_gateway.md) |
-| 31 | `platform-core` | Generic provider traits: IDs, capability type, registry, token-store trait | [31_platform_core.md](catalogue/31_platform_core.md) |
+| 29 | `quota-ledger` | Per-tenant, per-provider quota reservation and ledger | [29_quota.md](catalogue/29_quota.md) · [README](crates/quota-ledger/README.md) |
+| 30 | `hookgate` | Inbound webhook edge: verify, dedupe, replay-protect, forward | [30_webhook_gateway.md](catalogue/30_webhook_gateway.md) · [README](crates/hookgate/README.md) |
+| 31 | `platform-core` | Generic provider traits: IDs, capability type, registry, token-store trait | [31_platform_core.md](catalogue/31_platform_core.md) · [README](crates/platform-core/README.md) |
 | 32 | `ffscene` | Scene graph → FFmpeg filter graph, encoder ladder, GPU probe | [32_ffscene.md](catalogue/32_ffscene.md) |
 | 33 | `mixbus` | Real-time audio mixing graph: gain, ducking, gate, loudness, plugins | [33_mixbus.md](catalogue/33_mixbus.md) |
 | 34 | `replay-recorder` | Multi-track capture, replay ring buffer, segment/tee muxing | [34_replay_recorder.md](catalogue/34_replay_recorder.md) |
@@ -124,21 +124,24 @@ burden for a package nobody else can use.
 
 ## Status
 
-Blueprint. None of the packages is published yet. `wirekit` and `syncforge` are
-specified here; implementation starts after the first design partners validate
-the field workflow. `quota-ledger` and `hookgate` are standalone because they
-own state that `wirekit` must not own. The media and link packages are public
-candidates whose APIs must freeze before publish. `dado` 0.1.0 is implemented
-and tested; the remaining packages are still blueprints.
+Blueprint, except the four M3 substrate crates. None of the packages is
+published yet. `wirekit` and the media and link packages remain blueprints;
+their implementation starts after the first design partners validate the field
+workflow. `quota-ledger` and `hookgate` are standalone because they own state
+that `wirekit` must not own. `dado` 0.1.0 is implemented and tested.
 
-The M3 substrate crates are in development on `feature/m3-substrate`:
+The M3 substrate crates are implemented at 0.1.0 on `feature/m3-substrate`:
 
 | Crate | Status | Responsibility |
 |---|---|---|
-| `platform-core` | in development, 0.1.0 | Tenant/provider identity, capabilities, explicit registry, token-store contract |
-| `quota-ledger` | in development, 0.1.0 | Reserve/commit/release quota state with an optional Postgres backend |
-| `hookgate` | in development, 0.1.0 | Raw-byte webhook verification, dedupe, replay window, outbox, dead-letter |
-| `syncforge` | in development, 0.1.0 | Durable action queue, UUID v7 idempotency, conflict strategies |
+| `platform-core` | implemented, 0.1.0; unpublished | Tenant/provider identity, capabilities, explicit registry, token-store contract |
+| `quota-ledger` | implemented, 0.1.0; unpublished | Reserve/commit/release quota state with an optional Postgres backend |
+| `hookgate` | implemented, 0.1.0; unpublished | Raw-byte webhook verification, dedupe, replay window, outbox, dead-letter |
+| `syncforge` | implemented, 0.1.0; unpublished | Durable action queue, UUID v7 idempotency, conflict strategies |
 
-None of the four is published. Publication is a manual post-merge step.
+Each crate README documents its default feature set, scope, and non-goals. The
+integration example at
+[`crates/hookgate/examples/substrate_integration.rs`](crates/hookgate/examples/substrate_integration.rs)
+composes `platform-core`, `quota-ledger`, and `hookgate` end to end. None of the
+four is published; publication is a manual post-merge step.
 

@@ -78,6 +78,17 @@ With a `tracing` subscriber installed, the engine emits:
 - No server-side conflict database; the consumer supplies server state.
 - No automatic merge application; the resolution is returned to the caller.
 
+## Related crates
+
+- [`platform-core`](../platform-core/README.md) - tenant and provider identity
+  for multi-tenant services.
+- [`quota-ledger`](../quota-ledger/README.md) - quota reservations around
+  outbound calls.
+- [`hookgate`](../hookgate/README.md) - inbound webhook verification, dedupe,
+  and the outbox that can feed a sync queue.
+- [Workspace README](../../README.md) - package table, status, and reading
+  order.
+
 ## License
 
 MIT OR Apache-2.0.

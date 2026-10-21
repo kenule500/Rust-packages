@@ -70,6 +70,17 @@ The default reservation TTL is five minutes; set it per request with
 periodic job. Reclaim is idempotent: the hold is settled once, recorded in
 `quota_dead_hold` once, and its units are returned once.
 
+## Related crates
+
+- [`platform-core`](../platform-core/README.md) - tenant, provider, capability,
+  and token-store contracts reused here.
+- [`hookgate`](../hookgate/README.md) - inbound webhook verification and
+  dedupe.
+- [`syncforge`](../syncforge/README.md) - durable action replay for offline
+  clients.
+- [Workspace README](../../README.md) - package table, status, and reading
+  order.
+
 ## License
 
 MIT OR Apache-2.0.

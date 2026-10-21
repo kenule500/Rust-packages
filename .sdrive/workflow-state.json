@@ -71,8 +71,8 @@
       "versions": [
         {
           "id": "v1",
-          "phase": "backlog",
-          "currentStep": "specification",
+          "phase": "ongoing",
+          "currentStep": "implementation",
           "gates": {
             "specification": "approved",
             "planning": "approved",
@@ -109,6 +109,11 @@
               "event": "Gate 2 re-approved: expanded M1 technical plan and tasks",
               "by": "kenule500",
               "timestamp": "2026-10-20T19:05:00Z"
+            },
+            {
+              "event": "Lifecycle transition: moved from specs/backlog to specs/ongoing; phase set to ongoing; currentStep set to implementation",
+              "by": "SpecDrive",
+              "timestamp": "2026-10-20T19:20:00Z"
             }
           ]
         }

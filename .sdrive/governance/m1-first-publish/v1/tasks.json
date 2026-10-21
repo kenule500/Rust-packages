@@ -13,7 +13,7 @@
           "description": "Add crates/wirekit with a src/ tree. The root Cargo.toml already declares members = [\"crates/*\"], so verify the crate is picked up without editing the workspace file. Inherit edition, rust-version, and license from [workspace.package].",
           "linkedRequirements": ["FR-001", "NFR-004"],
           "linkedAcceptanceCriteria": ["AC-038", "AC-039", "AC-040"],
-          "completed": false
+          "completed": true
         },
         {
           "id": "T1.2",
@@ -21,7 +21,7 @@
           "description": "Set version 0.1.0, default = [], the rustls-tls default with a native-tls alternative, and the four additive provider features noaa, twilio, sendgrid, and slack. Add description, keywords, categories, readme, an include list covering src, examples, README, CHANGELOG, and licenses, and package.metadata.docs.rs all-features.",
           "linkedRequirements": ["FR-002", "FR-049", "NFR-003", "NFR-004", "NFR-020", "NFR-021"],
           "linkedAcceptanceCriteria": ["AC-038", "AC-040"],
-          "completed": false
+          "completed": true
         },
         {
           "id": "T1.3",
@@ -29,7 +29,7 @@
           "description": "In lib.rs add #![forbid(unsafe_code)] and #![deny(missing_docs)], declare the core modules and the four feature-gated provider modules, and document the crate: its job, the always-compiled core, the feature table, and the I/O boundary. Document every public item.",
           "linkedRequirements": ["FR-003", "NFR-002"],
           "linkedAcceptanceCriteria": ["AC-037"],
-          "completed": false
+          "completed": true
         },
         {
           "id": "T1.4",
@@ -37,7 +37,7 @@
           "description": "Extend .github/workflows/ci.yml with a wirekit build over the default feature set and each provider feature, plus a Rust 1.85 build. Do not add or modify test files.",
           "linkedRequirements": ["FR-026", "NFR-001"],
           "linkedAcceptanceCriteria": ["AC-038", "AC-039"],
-          "completed": false
+          "completed": true
         }
       ]
     },
@@ -52,7 +52,7 @@
           "description": "Create the #[non_exhaustive] WirekitError enum with Api { status, code, message }, Auth, RateLimit { retry_after }, Timeout, Network, InvalidConfig, and Decode. Give each variant a stable W#### code returned by code().",
           "linkedRequirements": ["FR-004", "FR-005"],
           "linkedAcceptanceCriteria": ["AC-001", "AC-002"],
-          "completed": false
+          "completed": true
         },
         {
           "id": "T2.2",
@@ -60,7 +60,7 @@
           "description": "Implement Display as code plus message, std::error::Error with source() for wrapped causes, and keep every field free of credentials, tokens, and raw bodies so Debug and Display cannot leak.",
           "linkedRequirements": ["FR-005", "FR-007"],
           "linkedAcceptanceCriteria": ["AC-003", "AC-005"],
-          "completed": false
+          "completed": true
         },
         {
           "id": "T2.3",
@@ -68,7 +68,7 @@
           "description": "Add the helper that turns an HTTP status plus a parsed body into WirekitError::Api, plus the provider-facing helpers for body-level errors and for authentication failures (WirekitError::Auth). No provider-specific error type may be introduced.",
           "linkedRequirements": ["FR-006", "FR-044"],
           "linkedAcceptanceCriteria": ["AC-001", "AC-034"],
-          "completed": false
+          "completed": true
         },
         {
           "id": "T2.4",
@@ -76,7 +76,7 @@
           "description": "Confirm the enum is #[non_exhaustive] so a new variant is not a breaking change in 0.x, and confirm a consumer match with a wildcard arm compiles.",
           "linkedRequirements": ["FR-004"],
           "linkedAcceptanceCriteria": ["AC-004"],
-          "completed": false
+          "completed": true
         }
       ]
     },
@@ -91,7 +91,7 @@
           "description": "Add WirekitClient with an explicit builder. By default it owns one reqwest::Client shared across providers in the process, so a second client is never constructed implicitly.",
           "linkedRequirements": ["FR-014", "NFR-010"],
           "linkedAcceptanceCriteria": ["AC-016", "AC-017"],
-          "completed": false
+          "completed": true
         },
         {
           "id": "T3.2",
@@ -99,7 +99,7 @@
           "description": "Allow the caller to pass an existing reqwest::Client. When injected, use it verbatim and do not create or configure a second pool.",
           "linkedRequirements": ["FR-014", "NFR-010"],
           "linkedAcceptanceCriteria": ["AC-017"],
-          "completed": false
+          "completed": true
         },
         {
           "id": "T3.3",
@@ -107,7 +107,7 @@
           "description": "Expose builder options for request timeout, the TLS backend (rustls by default, native-tls behind a feature), an optional proxy, default headers, and connection-pool limits. Apply sensible defaults where the caller is silent.",
           "linkedRequirements": ["FR-015", "NFR-006"],
           "linkedAcceptanceCriteria": ["AC-018", "AC-020"],
-          "completed": false
+          "completed": true
         },
         {
           "id": "T3.4",
@@ -115,7 +115,7 @@
           "description": "Validate the base URL when the client or a request is built. A scheme other than https is rejected with WirekitError::InvalidConfig before any socket is opened.",
           "linkedRequirements": ["FR-016", "NFR-015"],
           "linkedAcceptanceCriteria": ["AC-019"],
-          "completed": false
+          "completed": true
         }
       ]
     },
@@ -130,7 +130,7 @@
           "description": "Add RetryPolicy with attempts (default 3), base delay, maximum delay, and jitter bounds. Document the defaults and allow them to be overridden per client and per provider.",
           "linkedRequirements": ["FR-008", "FR-011"],
           "linkedAcceptanceCriteria": ["AC-010"],
-          "completed": false
+          "completed": true
         },
         {
           "id": "T4.2",
@@ -138,7 +138,7 @@
           "description": "Implement the attempt loop using an async timer for the delay and bounded jitter from the random source. No std::thread::sleep and no busy-waiting. The final failure maps to the underlying WirekitError. Expose this loop as the single shared retry used by every provider (NFR-018).",
           "linkedRequirements": ["FR-008", "FR-009", "NFR-005", "NFR-018"],
           "linkedAcceptanceCriteria": ["AC-006", "AC-010"],
-          "completed": false
+          "completed": true
         },
         {
           "id": "T4.3",
@@ -146,7 +146,7 @@
           "description": "Parse Retry-After in both numeric-seconds and HTTP-date forms, apply the longer of the header value and the computed backoff, and fall back to backoff without panicking when the value is unparseable.",
           "linkedRequirements": ["FR-009"],
           "linkedAcceptanceCriteria": ["AC-007"],
-          "completed": false
+          "completed": true
         },
         {
           "id": "T4.4",
@@ -154,7 +154,7 @@
           "description": "Classify 5xx, 429, and network or timeout failures as retryable, and every other 4xx as non-retryable. Allow a provider to declare additional non-retryable error strings (used by Slack for channel_not_found and not_in_channel).",
           "linkedRequirements": ["FR-009", "FR-010"],
           "linkedAcceptanceCriteria": ["AC-008", "AC-009"],
-          "completed": false
+          "completed": true
         }
       ]
     },
@@ -169,7 +169,7 @@
           "description": "Add TokenBucket with capacity, available tokens, refill rate, and last refill. Refill is computed from elapsed time. One bucket exists per provider key.",
           "linkedRequirements": ["FR-012"],
           "linkedAcceptanceCriteria": ["AC-012", "AC-015"],
-          "completed": false
+          "completed": true
         },
         {
           "id": "T5.2",
@@ -177,7 +177,7 @@
           "description": "Allow a RateLimitConfig to be attached per provider key (and per Twilio account) and to override the client default. Two providers must resolve to two independent buckets and configurations.",
           "linkedRequirements": ["FR-012"],
           "linkedAcceptanceCriteria": ["AC-013"],
-          "completed": false
+          "completed": true
         },
         {
           "id": "T5.3",
@@ -185,7 +185,7 @@
           "description": "Acquire tokens asynchronously, yielding to the runtime when the bucket is empty, and emit a tracing event on every rate-limit hit. Never block a runtime thread.",
           "linkedRequirements": ["FR-013", "NFR-005", "NFR-012"],
           "linkedAcceptanceCriteria": ["AC-014", "AC-015"],
-          "completed": false
+          "completed": true
         }
       ]
     },
@@ -200,7 +200,7 @@
           "description": "Add an object-safe async AuthScheme trait that mutates a request before it is sent. Document that the pipeline calls it on every outbound request, that it must fail closed when credentials are missing, and that a provider may declare no auth (NOAA).",
           "linkedRequirements": ["FR-017", "NFR-010", "NFR-011"],
           "linkedAcceptanceCriteria": ["AC-032"],
-          "completed": false
+          "completed": true
         },
         {
           "id": "T6.2",
@@ -208,7 +208,7 @@
           "description": "Implement Bearer (Authorization header), Basic (base64 of user and password), API key in a configured header, and API key in the query string. Each scheme wraps its secret in Secret<T>.",
           "linkedRequirements": ["FR-017", "NFR-011"],
           "linkedAcceptanceCriteria": ["AC-021", "AC-022", "AC-023", "AC-024"],
-          "completed": false
+          "completed": true
         },
         {
           "id": "T6.3",
@@ -216,7 +216,7 @@
           "description": "Sign the canonical raw request bytes with HMAC and attach the signature header. Compare any provided signature with a constant-time routine. Do not re-serialize the body before signing.",
           "linkedRequirements": ["FR-017", "NFR-011"],
           "linkedAcceptanceCriteria": ["AC-025"],
-          "completed": false
+          "completed": true
         },
         {
           "id": "T6.4",
@@ -224,7 +224,7 @@
           "description": "Fetch a token from the token endpoint, cache it per client, allow only one in-flight fetch, and refresh it before expiry with a configurable safety margin. A 4xx from the token endpoint becomes WirekitError::Auth without retry.",
           "linkedRequirements": ["FR-018", "NFR-011"],
           "linkedAcceptanceCriteria": ["AC-026"],
-          "completed": false
+          "completed": true
         },
         {
           "id": "T6.5",
@@ -232,7 +232,7 @@
           "description": "When a request requires auth and no credentials are configured, return WirekitError::InvalidConfig and do not send the request.",
           "linkedRequirements": ["FR-017", "NFR-011"],
           "linkedAcceptanceCriteria": ["AC-036"],
-          "completed": false
+          "completed": true
         }
       ]
     },
@@ -247,7 +247,7 @@
           "description": "Emit a tracing event when a request starts with the method and a redacted URL, and another when it finishes recording the duration.",
           "linkedRequirements": ["FR-020"],
           "linkedAcceptanceCriteria": ["AC-028", "AC-029"],
-          "completed": false
+          "completed": true
         },
         {
           "id": "T7.2",
@@ -255,7 +255,7 @@
           "description": "Emit an event for each retry (attempt number and delay), each rate-limit hit (including remaining quota where the provider exposes it), and each error.",
           "linkedRequirements": ["FR-020", "FR-013", "FR-011"],
           "linkedAcceptanceCriteria": ["AC-030", "AC-011", "AC-014"],
-          "completed": false
+          "completed": true
         },
         {
           "id": "T7.3",
@@ -263,7 +263,7 @@
           "description": "Ensure no event field carries a credential, token, or unredacted query parameter. Route every secret through the redaction wrapper.",
           "linkedRequirements": ["FR-007", "NFR-007"],
           "linkedAcceptanceCriteria": ["AC-031"],
-          "completed": false
+          "completed": true
         }
       ]
     },
@@ -278,7 +278,7 @@
           "description": "Add Secret<T> whose Debug and Display render ***, with no way to accidentally print the inner value through those traits.",
           "linkedRequirements": ["FR-019", "NFR-007", "NFR-017"],
           "linkedAcceptanceCriteria": ["AC-027"],
-          "completed": false
+          "completed": true
         },
         {
           "id": "T8.2",
@@ -286,7 +286,7 @@
           "description": "Do not implement Serialize for Secret<T> or for any struct field that holds a credential, and document the rule on the type.",
           "linkedRequirements": ["FR-019", "NFR-007"],
           "linkedAcceptanceCriteria": ["AC-027"],
-          "completed": false
+          "completed": true
         },
         {
           "id": "T8.3",
@@ -294,7 +294,7 @@
           "description": "Walk every Debug, Display, error construction, and tracing call site and confirm none can render a credential or token. Fix any that can.",
           "linkedRequirements": ["FR-007", "NFR-007"],
           "linkedAcceptanceCriteria": ["AC-003", "AC-031"],
-          "completed": false
+          "completed": true
         }
       ]
     },
@@ -309,7 +309,7 @@
           "description": "Add the type a provider builds (method, URL, headers, body, response type) and the single entry point that executes it against a WirekitClient.",
           "linkedRequirements": ["FR-021"],
           "linkedAcceptanceCriteria": ["AC-032"],
-          "completed": false
+          "completed": true
         },
         {
           "id": "T9.2",
@@ -317,7 +317,7 @@
           "description": "Execute auth, then rate-limit acquisition, then the shared retry loop around send, then decode, in that order, mapping every failure into WirekitError. Every provider must route through this ordering (FR-050).",
           "linkedRequirements": ["FR-021", "FR-050"],
           "linkedAcceptanceCriteria": ["AC-032"],
-          "completed": false
+          "completed": true
         },
         {
           "id": "T9.3",
@@ -325,7 +325,7 @@
           "description": "Decode a successful body into the caller's type with serde. A decode failure returns WirekitError::Decode and never panics.",
           "linkedRequirements": ["FR-023", "NFR-008"],
           "linkedAcceptanceCriteria": ["AC-033", "AC-035"],
-          "completed": false
+          "completed": true
         },
         {
           "id": "T9.4",
@@ -333,7 +333,7 @@
           "description": "Let a provider supply a hook that inspects a 2xx body for a reported error (Slack ok: false, SendGrid errors[], GraphQL errors[]) and returns WirekitError::Api, so HTTP 200 is not treated as success (CON-213).",
           "linkedRequirements": ["FR-022", "NFR-019"],
           "linkedAcceptanceCriteria": ["AC-034"],
-          "completed": false
+          "completed": true
         },
         {
           "id": "T9.5",
@@ -341,7 +341,7 @@
           "description": "Enforce a configurable maximum response size and return a typed error when exceeded. Validate URLs and header values before sending, and never panic on malformed input.",
           "linkedRequirements": ["FR-024", "NFR-006", "NFR-013"],
           "linkedAcceptanceCriteria": ["AC-035"],
-          "completed": false
+          "completed": true
         }
       ]
     },
@@ -356,7 +356,7 @@
           "description": "Confirm the pipeline applies the configured scheme to every outbound request for every provider that needs auth, and returns WirekitError::InvalidConfig when credentials are missing, with secrets held in Secret<T>.",
           "linkedRequirements": ["NFR-011"],
           "linkedAcceptanceCriteria": ["AC-021", "AC-036"],
-          "completed": false
+          "completed": true
         },
         {
           "id": "T10.2",
@@ -364,7 +364,7 @@
           "description": "Confirm the per-provider token bucket is acquired before every outbound request and that per-provider overrides are honored.",
           "linkedRequirements": ["NFR-012"],
           "linkedAcceptanceCriteria": ["AC-012", "AC-013"],
-          "completed": false
+          "completed": true
         },
         {
           "id": "T10.3",
@@ -372,7 +372,7 @@
           "description": "Confirm URLs, header values, form bodies, and response bodies are validated and that malformed input returns a typed WirekitError instead of panicking.",
           "linkedRequirements": ["NFR-013"],
           "linkedAcceptanceCriteria": ["AC-035"],
-          "completed": false
+          "completed": true
         },
         {
           "id": "T10.4",
@@ -380,7 +380,7 @@
           "description": "Confirm the crate reads no .env or environment file, takes credentials from caller-supplied configuration, and documents that no secret is committed.",
           "linkedRequirements": ["NFR-014"],
           "linkedAcceptanceCriteria": ["AC-041"],
-          "completed": false
+          "completed": true
         },
         {
           "id": "T10.5",
@@ -388,7 +388,7 @@
           "description": "Confirm non-HTTPS base URLs are rejected before any socket and that TLS is used for all outbound requests; document that HSTS is a deployment-edge concern.",
           "linkedRequirements": ["NFR-015"],
           "linkedAcceptanceCriteria": ["AC-019"],
-          "completed": false
+          "completed": true
         }
       ]
     },
@@ -403,7 +403,7 @@
           "description": "Add the noaa feature module with NoaaClient over the shared pipeline, a required descriptive User-Agent, and rejection with WirekitError::InvalidConfig when it is missing. No auth is applied.",
           "linkedRequirements": ["FR-027", "FR-028", "FR-050", "NFR-018"],
           "linkedAcceptanceCriteria": ["AC-043", "AC-047"],
-          "completed": false
+          "completed": true
         },
         {
           "id": "T11.2",
@@ -411,7 +411,7 @@
           "description": "Add ForecastRequest and ForecastResponse with periods, temperature, and precipitation, resolving latitude and longitude or a grid point.",
           "linkedRequirements": ["FR-027"],
           "linkedAcceptanceCriteria": ["AC-043"],
-          "completed": false
+          "completed": true
         },
         {
           "id": "T11.3",
@@ -419,7 +419,7 @@
           "description": "Add typed active-alert listing by area or zone, single-alert get by ID, and radar metadata models. An unknown alert ID surfaces the reported status.",
           "linkedRequirements": ["FR-027"],
           "linkedAcceptanceCriteria": ["AC-044", "AC-045"],
-          "completed": false
+          "completed": true
         },
         {
           "id": "T11.4",
@@ -427,7 +427,7 @@
           "description": "Decode problem+json (type, title, status, detail) and map it into WirekitError::Api with the HTTP status authoritative and the detail preserved. Unknown bodies map to WirekitError::Api rather than panicking.",
           "linkedRequirements": ["FR-029", "FR-044"],
           "linkedAcceptanceCriteria": ["AC-046"],
-          "completed": false
+          "completed": true
         },
         {
           "id": "T11.5",
@@ -435,7 +435,7 @@
           "description": "Add an optional in-memory cache keyed by grid or zone with a configurable TTL. An expired entry is refreshed and never served past its TTL.",
           "linkedRequirements": ["FR-030"],
           "linkedAcceptanceCriteria": ["AC-048"],
-          "completed": false
+          "completed": true
         }
       ]
     },
@@ -450,7 +450,7 @@
           "description": "Add the twilio feature module with TwilioClient over the shared pipeline, using Basic (Account SID plus Auth Token) or API key plus secret, with credentials held in Secret<T>.",
           "linkedRequirements": ["FR-032", "FR-050", "NFR-011", "NFR-017", "NFR-018"],
           "linkedAcceptanceCriteria": ["AC-050"],
-          "completed": false
+          "completed": true
         },
         {
           "id": "T12.2",
@@ -458,7 +458,7 @@
           "description": "Encode request bodies as application/x-www-form-urlencoded and add typed send-SMS and send-WhatsApp requests returning a typed response carrying the message SID.",
           "linkedRequirements": ["FR-031", "FR-032"],
           "linkedAcceptanceCriteria": ["AC-051", "AC-052"],
-          "completed": false
+          "completed": true
         },
         {
           "id": "T12.3",
@@ -466,7 +466,7 @@
           "description": "Add typed call creation with TwiML and a typed status fetch for an existing call.",
           "linkedRequirements": ["FR-031"],
           "linkedAcceptanceCriteria": ["AC-053"],
-          "completed": false
+          "completed": true
         },
         {
           "id": "T12.4",
@@ -474,7 +474,7 @@
           "description": "Add typed MFA start and verification requests returning challenge and verification results.",
           "linkedRequirements": ["FR-031"],
           "linkedAcceptanceCriteria": ["AC-054"],
-          "completed": false
+          "completed": true
         },
         {
           "id": "T12.5",
@@ -482,7 +482,7 @@
           "description": "Add a typed lookup request returning validation data for a phone number.",
           "linkedRequirements": ["FR-031"],
           "linkedAcceptanceCriteria": ["AC-055"],
-          "completed": false
+          "completed": true
         },
         {
           "id": "T12.6",
@@ -490,7 +490,7 @@
           "description": "Map Twilio code, message, and HTTP status into WirekitError::Api and authentication failures into WirekitError::Auth. Introduce no provider-specific error type.",
           "linkedRequirements": ["FR-033", "FR-044"],
           "linkedAcceptanceCriteria": ["AC-056"],
-          "completed": false
+          "completed": true
         },
         {
           "id": "T12.7",
@@ -498,7 +498,7 @@
           "description": "Compute the signature over the request URL plus the sorted form parameters with HMAC-SHA1, compare it in constant time, and never re-serialize the body. A tampered parameter fails verification.",
           "linkedRequirements": ["FR-034", "NFR-016"],
           "linkedAcceptanceCriteria": ["AC-057"],
-          "completed": false
+          "completed": true
         },
         {
           "id": "T12.8",
@@ -506,7 +506,7 @@
           "description": "Apply a token bucket keyed by Twilio account so the configured send rate is respected, and surface remaining quota through tracing.",
           "linkedRequirements": ["FR-035", "NFR-012"],
           "linkedAcceptanceCriteria": ["AC-058"],
-          "completed": false
+          "completed": true
         }
       ]
     },
@@ -521,7 +521,7 @@
           "description": "Add the sendgrid feature module with SendGridClient over the shared pipeline, using a bearer API key held in Secret<T> so it never appears in logs or traces.",
           "linkedRequirements": ["FR-037", "FR-050", "NFR-017", "NFR-018"],
           "linkedAcceptanceCriteria": ["AC-059"],
-          "completed": false
+          "completed": true
         },
         {
           "id": "T13.2",
@@ -529,7 +529,7 @@
           "description": "Add a typed send-email request (from, to, subject, content) and a typed result carrying the X-Message-Id response header.",
           "linkedRequirements": ["FR-036"],
           "linkedAcceptanceCriteria": ["AC-060"],
-          "completed": false
+          "completed": true
         },
         {
           "id": "T13.3",
@@ -537,7 +537,7 @@
           "description": "Add a typed template request with substitutions, sent through SendGrid's dynamic template support.",
           "linkedRequirements": ["FR-036"],
           "linkedAcceptanceCriteria": ["AC-061"],
-          "completed": false
+          "completed": true
         },
         {
           "id": "T13.4",
@@ -545,7 +545,7 @@
           "description": "Add a sandbox_mode flag that validates the request without delivering mail.",
           "linkedRequirements": ["FR-037"],
           "linkedAcceptanceCriteria": ["AC-062"],
-          "completed": false
+          "completed": true
         },
         {
           "id": "T13.5",
@@ -553,7 +553,7 @@
           "description": "Decode the errors[] array, surface the first code and message in WirekitError::Api, and retain the full list in details. Introduce no provider-specific error type.",
           "linkedRequirements": ["FR-038", "FR-044"],
           "linkedAcceptanceCriteria": ["AC-063"],
-          "completed": false
+          "completed": true
         },
         {
           "id": "T13.6",
@@ -561,7 +561,7 @@
           "description": "Verify the SendGrid event-webhook signature over the raw body bytes against the configured public key using ECDSA, and reject a re-serialized body. Retain sg_event_id so the caller can dedupe.",
           "linkedRequirements": ["FR-039", "NFR-016"],
           "linkedAcceptanceCriteria": ["AC-064", "AC-065"],
-          "completed": false
+          "completed": true
         },
         {
           "id": "T13.7",
@@ -569,7 +569,7 @@
           "description": "Add typed attachments supporting base64 content and URL references, rejecting anything over the documented size limit or outside the allowed MIME types.",
           "linkedRequirements": ["FR-036"],
           "linkedAcceptanceCriteria": ["AC-066"],
-          "completed": false
+          "completed": true
         }
       ]
     },
@@ -584,7 +584,7 @@
           "description": "Add the slack feature module with SlackClient over the shared pipeline, using a bot token held in Secret<T>, and an optional signing secret for webhook verification. The multi-tenant install flow is not implemented.",
           "linkedRequirements": ["FR-040", "FR-050", "NFR-017", "NFR-018"],
           "linkedAcceptanceCriteria": ["AC-067"],
-          "completed": false
+          "completed": true
         },
         {
           "id": "T14.2",
@@ -592,7 +592,7 @@
           "description": "Add typed text messages and Block Kit payloads with an optional thread timestamp, returning a typed result carrying the channel and timestamp.",
           "linkedRequirements": ["FR-040"],
           "linkedAcceptanceCriteria": ["AC-068"],
-          "completed": false
+          "completed": true
         },
         {
           "id": "T14.3",
@@ -600,7 +600,7 @@
           "description": "Wire the body-level error hook so a 200 response with ok: false maps to WirekitError::Api carrying the error string, and is never treated as success (CON-213).",
           "linkedRequirements": ["FR-041", "FR-044", "NFR-019"],
           "linkedAcceptanceCriteria": ["AC-069"],
-          "completed": false
+          "completed": true
         },
         {
           "id": "T14.4",
@@ -608,7 +608,7 @@
           "description": "Register channel_not_found and not_in_channel as non-retryable so the shared retry loop does not re-send them.",
           "linkedRequirements": ["FR-043"],
           "linkedAcceptanceCriteria": ["AC-070"],
-          "completed": false
+          "completed": true
         },
         {
           "id": "T14.5",
@@ -616,7 +616,7 @@
           "description": "Use the shared Retry-After handling for 429 responses and cache channel and user lookups to reduce repeated calls.",
           "linkedRequirements": ["FR-040", "NFR-018"],
           "linkedAcceptanceCriteria": ["AC-071", "AC-074"],
-          "completed": false
+          "completed": true
         },
         {
           "id": "T14.6",
@@ -624,7 +624,7 @@
           "description": "Compute the HMAC-SHA256 signature over the version, timestamp, and raw body, compare it in constant time, and reject a stale X-Slack-Request-Timestamp as a replay.",
           "linkedRequirements": ["FR-042", "NFR-016"],
           "linkedAcceptanceCriteria": ["AC-072"],
-          "completed": false
+          "completed": true
         },
         {
           "id": "T14.7",
@@ -632,7 +632,7 @@
           "description": "Add a typed file upload (channels, content, filename, filetype) that rejects anything over the documented size limit.",
           "linkedRequirements": ["FR-040"],
           "linkedAcceptanceCriteria": ["AC-073"],
-          "completed": false
+          "completed": true
         },
         {
           "id": "T14.8",
@@ -640,7 +640,7 @@
           "description": "Add typed channel and user queries returning the results the module exposes.",
           "linkedRequirements": ["FR-040"],
           "linkedAcceptanceCriteria": ["AC-074"],
-          "completed": false
+          "completed": true
         }
       ]
     },
@@ -655,7 +655,7 @@
           "description": "Finalize description, keywords, categories, readme, license, rust-version, repository, the include list, and package.metadata.docs.rs all-features so the package is publishable.",
           "linkedRequirements": ["FR-046"],
           "linkedAcceptanceCriteria": ["AC-075", "AC-077"],
-          "completed": false
+          "completed": true
         },
         {
           "id": "T15.2",
@@ -663,7 +663,7 @@
           "description": "Add crates/wirekit/CHANGELOG.md with a 0.1.0 entry describing the core and the four provider modules.",
           "linkedRequirements": ["FR-046"],
           "linkedAcceptanceCriteria": ["AC-078"],
-          "completed": false
+          "completed": true
         },
         {
           "id": "T15.3",
@@ -671,7 +671,7 @@
           "description": "Document the crate purpose, the additive feature table, the provider matrix (auth, base URL, feature flag), and the W#### error reference. Contain no secrets or real tokens and no application domain types.",
           "linkedRequirements": ["FR-045", "NFR-021", "NFR-022"],
           "linkedAcceptanceCriteria": ["AC-079", "AC-080"],
-          "completed": false
+          "completed": true
         },
         {
           "id": "T15.4",
@@ -679,7 +679,7 @@
           "description": "Add examples/noaa.rs (runs with no key) and examples/twilio.rs, examples/sendgrid.rs, and examples/slack.rs (each exits with a clear message when credentials are absent). Use placeholders only, never real credentials.",
           "linkedRequirements": ["FR-045", "NFR-022"],
           "linkedAcceptanceCriteria": ["AC-081"],
-          "completed": false
+          "completed": true
         },
         {
           "id": "T15.5",
@@ -687,7 +687,7 @@
           "description": "Document the wirekit release: pre-flight checks, version and changelog, cargo publish -p wirekit --dry-run, the wirekit-v0.1.0 tag, publish, verification, and yank or rollback. Keep the real publish manual and post-merge.",
           "linkedRequirements": ["FR-048"],
           "linkedAcceptanceCriteria": ["AC-082"],
-          "completed": false
+          "completed": true
         },
         {
           "id": "T15.6",
@@ -695,7 +695,7 @@
           "description": "Run cargo package -p wirekit --list and confirm the expected files are included, then run cargo publish -p wirekit --dry-run from a clean tree. Do not run a real publish.",
           "linkedRequirements": ["FR-026", "FR-047"],
           "linkedAcceptanceCriteria": ["AC-075", "AC-076"],
-          "completed": false
+          "completed": true
         }
       ]
     },
@@ -710,7 +710,7 @@
           "description": "Run cargo fmt --all --check and fix any formatting differences.",
           "linkedRequirements": ["NFR-002"],
           "linkedAcceptanceCriteria": ["AC-037"],
-          "completed": false
+          "completed": true
         },
         {
           "id": "T16.2",
@@ -718,7 +718,7 @@
           "description": "Run cargo clippy --workspace --all-features -- -D warnings and fix all findings.",
           "linkedRequirements": ["NFR-002"],
           "linkedAcceptanceCriteria": ["AC-037"],
-          "completed": false
+          "completed": true
         },
         {
           "id": "T16.3",
@@ -726,7 +726,7 @@
           "description": "Run cargo doc --workspace --all-features --no-deps with RUSTDOCFLAGS set to -D warnings and fix all findings.",
           "linkedRequirements": ["NFR-002"],
           "linkedAcceptanceCriteria": ["AC-037"],
-          "completed": false
+          "completed": true
         },
         {
           "id": "T16.4",
@@ -734,7 +734,7 @@
           "description": "Build the workspace with Rust 1.85 and confirm wirekit and all four provider features compile under edition 2021. This is a build check only; do not run the test suite.",
           "linkedRequirements": ["NFR-001"],
           "linkedAcceptanceCriteria": ["AC-039"],
-          "completed": false
+          "completed": true
         },
         {
           "id": "T16.5",
@@ -742,7 +742,7 @@
           "description": "Build wirekit with default features and with each provider feature independently, confirming the feature set is additive and independent. Do not add or modify test files.",
           "linkedRequirements": ["FR-002", "FR-049", "NFR-003", "NFR-020"],
           "linkedAcceptanceCriteria": ["AC-038"],
-          "completed": false
+          "completed": true
         },
         {
           "id": "T16.6",
@@ -750,7 +750,7 @@
           "description": "Run node .sdrive/scripts/validate-governance.js and sdrive verify m1-first-publish, then confirm by inspection the pipeline ordering, the HTTPS rejection, the retry classification, the raw-byte webhook verification, and the redaction rules. Do not run the test suite; that belongs to /sdrive:test.",
           "linkedRequirements": ["FR-026", "NFR-009"],
           "linkedAcceptanceCriteria": ["AC-042"],
-          "completed": false
+          "completed": true
         }
       ]
     }

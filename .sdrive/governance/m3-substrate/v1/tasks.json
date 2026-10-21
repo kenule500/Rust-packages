@@ -153,7 +153,7 @@
             "AC-010",
             "AC-014"
           ],
-          "completed": false
+          "completed": true
         },
         {
           "id": "T3.2",
@@ -173,7 +173,7 @@
             "AC-012",
             "AC-013"
           ],
-          "completed": false
+          "completed": true
         },
         {
           "id": "T3.3",
@@ -185,7 +185,7 @@
           "linkedAcceptanceCriteria": [
             "AC-011"
           ],
-          "completed": false
+          "completed": true
         },
         {
           "id": "T3.4",
@@ -200,7 +200,7 @@
             "AC-016",
             "AC-017"
           ],
-          "completed": false
+          "completed": true
         },
         {
           "id": "T3.5",
@@ -212,7 +212,7 @@
           "linkedAcceptanceCriteria": [
             "AC-053"
           ],
-          "completed": false
+          "completed": true
         }
       ]
     },

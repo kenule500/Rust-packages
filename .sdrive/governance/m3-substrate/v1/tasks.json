@@ -311,7 +311,7 @@
           "linkedAcceptanceCriteria": [
             "AC-022"
           ],
-          "completed": false
+          "completed": true
         },
         {
           "id": "T5.2",
@@ -326,7 +326,7 @@
             "AC-023",
             "AC-025"
           ],
-          "completed": false
+          "completed": true
         },
         {
           "id": "T5.3",
@@ -340,7 +340,7 @@
             "AC-023",
             "AC-024"
           ],
-          "completed": false
+          "completed": true
         },
         {
           "id": "T5.4",
@@ -357,7 +357,7 @@
             "AC-028",
             "AC-029"
           ],
-          "completed": false
+          "completed": true
         },
         {
           "id": "T5.5",
@@ -370,7 +370,7 @@
             "AC-030",
             "AC-031"
           ],
-          "completed": false
+          "completed": true
         },
         {
           "id": "T5.6",
@@ -382,7 +382,7 @@
           "linkedAcceptanceCriteria": [
             "AC-053"
           ],
-          "completed": false
+          "completed": true
         }
       ]
     },

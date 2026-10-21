@@ -1,0 +1,820 @@
+{
+  "feature": "m4-media-links",
+  "version": 1,
+  "architecture": {
+    "approach": "Add six independent crates under crates/* without touching the root manifest or CI. ffscene compiles a validated scene into a deterministic FFmpeg filter graph and argument vector; mixbus processes interleaved f32 blocks through a pre-allocated plan with a bounded command queue and lock-free meter snapshots; replay-recorder writes already-encoded packets into isolated spool tracks with segment, tee, and ring sinks behind a hard disk budget; studio-protocol defines a JSON envelope, messages, role permissions, and a pure state machine; rtmp-publish models RTMP, RTMPS, SRT, and WHIP destinations with redaction by construction, shape validation, shallow probes, bounded retry, a circuit breaker, and failover; signedlink signs claims with HMAC-SHA256, issues base62 codes, normalises UTM parameters, carries an attribution window, and requires a LinkStore for revocation and single use. A final phase enforces metadata, examples, feature independence, lints, rustdoc, packaging, and the security baseline. Publication to crates.io is a post-merge action from main.",
+    "components": [
+      {
+        "name": "Cargo.toml",
+        "action": "reuse",
+        "description": "The existing members = [\"crates/*\"] glob and [workspace.package] inheritance cover the six new crates; no root edit is required (CON-101, CON-102)."
+      },
+      {
+        "name": ".github/workflows/ci.yml",
+        "action": "reuse",
+        "description": "Existing workspace-wide format, clippy, test, docs, package, and MSRV jobs pick up the new crates without a workflow change."
+      },
+      {
+        "name": "LICENSE-MIT and LICENSE-APACHE",
+        "action": "reuse",
+        "description": "Existing workspace licence files are referenced by each crate's package metadata."
+      },
+      {
+        "name": "crates/ffscene/Cargo.toml",
+        "action": "create",
+        "description": "Workspace-inheriting manifest with no required dependencies, metadata, and docs.rs all-features."
+      },
+      {
+        "name": "crates/ffscene/src/lib.rs",
+        "action": "create",
+        "description": "Crate docs, lints, module declarations, and the public re-exports."
+      },
+      {
+        "name": "crates/ffscene/src/scene.rs",
+        "action": "create",
+        "description": "Canvas, Rational, Background, Scene, Layer, LayerId, SourceId, Transform, BlendMode, and opacity types."
+      },
+      {
+        "name": "crates/ffscene/src/validate.rs",
+        "action": "create",
+        "description": "Cycle, missing-source, transform-range, opacity, and blend-mode validation returning CompileError with the layer ID."
+      },
+      {
+        "name": "crates/ffscene/src/compile.rs",
+        "action": "create",
+        "description": "Deterministic node ordering, label normalisation, filter_complex, argument vector, and LayerLabelMap."
+      },
+      {
+        "name": "crates/ffscene/src/ladder.rs",
+        "action": "create",
+        "description": "Ladder and Rung types plus ordered split and scale expansion with one output per rung."
+      },
+      {
+        "name": "crates/ffscene/src/probe.rs",
+        "action": "create",
+        "description": "Injected encoder list, encoder selection, and explicit downgrade reporting."
+      },
+      {
+        "name": "crates/ffscene/src/output.rs",
+        "action": "create",
+        "description": "File, Rtmp, Srt, and Whip descriptors with shape validation and no transport."
+      },
+      {
+        "name": "crates/ffscene/src/error.rs",
+        "action": "create",
+        "description": "CompileError with stable codes implementing Display and std::error::Error."
+      },
+      {
+        "name": "crates/ffscene/README.md, CHANGELOG.md, examples/compile_scene.rs",
+        "action": "create",
+        "description": "Scope, non-goals, FFmpeg 7.x dialect boundary, determinism notes, and an offline compile example."
+      },
+      {
+        "name": "crates/mixbus/Cargo.toml",
+        "action": "create",
+        "description": "Workspace-inheriting manifest with no required dependencies and metadata."
+      },
+      {
+        "name": "crates/mixbus/src/lib.rs",
+        "action": "create",
+        "description": "Crate docs, lints, module declarations, and re-exports."
+      },
+      {
+        "name": "crates/mixbus/src/mixer.rs",
+        "action": "create",
+        "description": "Mixer, MixerConfig, process, control command queue, and pre-allocated buffer contract."
+      },
+      {
+        "name": "crates/mixbus/src/plan.rs",
+        "action": "create",
+        "description": "MixPlan build on the control thread, atomic block-boundary swap, and latency compensation."
+      },
+      {
+        "name": "crates/mixbus/src/gain.rs and pan.rs",
+        "action": "create",
+        "description": "dB gain application and constant-power stereo panning with finite-value sanitisation."
+      },
+      {
+        "name": "crates/mixbus/src/gate.rs and compressor.rs",
+        "action": "create",
+        "description": "Noise gate with hysteresis and hold, and compressor with threshold, ratio, attack, release, and makeup."
+      },
+      {
+        "name": "crates/mixbus/src/ducker.rs",
+        "action": "create",
+        "description": "Sidechain ducker keyed by another source with attack and release smoothing."
+      },
+      {
+        "name": "crates/mixbus/src/loudness.rs",
+        "action": "create",
+        "description": "K-weighting, gated integrated LUFS, and true-peak limiting."
+      },
+      {
+        "name": "crates/mixbus/src/meter.rs",
+        "action": "create",
+        "description": "Double-buffered lock-free peak, RMS, LUFS, and gain-reduction snapshots."
+      },
+      {
+        "name": "crates/mixbus/src/error.rs",
+        "action": "create",
+        "description": "MixError with stable codes for block-size, finite-value, and routing failures."
+      },
+      {
+        "name": "crates/mixbus/README.md, CHANGELOG.md, examples/process_block.rs",
+        "action": "create",
+        "description": "Real-time rules, buffer contract, latency model, meter model, and an offline process example."
+      },
+      {
+        "name": "crates/replay-recorder/Cargo.toml",
+        "action": "create",
+        "description": "Workspace-inheriting manifest with optional serde and serde_json for the index."
+      },
+      {
+        "name": "crates/replay-recorder/src/lib.rs",
+        "action": "create",
+        "description": "Crate docs, lints, module declarations, and re-exports."
+      },
+      {
+        "name": "crates/replay-recorder/src/recorder.rs",
+        "action": "create",
+        "description": "Recorder, RecorderConfig, per-track start and stop, and the packet-in API."
+      },
+      {
+        "name": "crates/replay-recorder/src/track.rs",
+        "action": "create",
+        "description": "Track, TrackId, SourceId, TrackCodec, Container, Packet, and monotonic sequence handling."
+      },
+      {
+        "name": "crates/replay-recorder/src/sink.rs",
+        "action": "create",
+        "description": "Segment, Tee, and Ring sink dispatch with isolated per-track output."
+      },
+      {
+        "name": "crates/replay-recorder/src/segment.rs",
+        "action": "create",
+        "description": "Segment open, write, close by duration or size, and index entry construction."
+      },
+      {
+        "name": "crates/replay-recorder/src/ring.rs",
+        "action": "create",
+        "description": "Bounded segment rotation, clip(last), and ClipHandle extraction without stopping the writer."
+      },
+      {
+        "name": "crates/replay-recorder/src/budget.rs",
+        "action": "create",
+        "description": "max_bytes and min_free_bytes checks, PressurePolicy application, and PressureEvent."
+      },
+      {
+        "name": "crates/replay-recorder/src/spool.rs and index.rs",
+        "action": "create",
+        "description": "Validated ID-derived paths, traversal rejection, atomic index writes, and recovery scanning."
+      },
+      {
+        "name": "crates/replay-recorder/src/error.rs",
+        "action": "create",
+        "description": "RecorderError with stable codes for IO, budget, path, and recovery failures."
+      },
+      {
+        "name": "crates/replay-recorder/README.md, CHANGELOG.md, examples/record_and_clip.rs",
+        "action": "create",
+        "description": "Spool layout, single-writer contract, budget and recovery semantics, and an offline record-and-clip example."
+      },
+      {
+        "name": "crates/studio-protocol/Cargo.toml",
+        "action": "create",
+        "description": "Workspace-inheriting manifest with optional serde and serde_json, uuid v7, and chrono."
+      },
+      {
+        "name": "crates/studio-protocol/src/lib.rs",
+        "action": "create",
+        "description": "Crate docs, lints, module declarations, and re-exports."
+      },
+      {
+        "name": "crates/studio-protocol/src/envelope.rs",
+        "action": "create",
+        "description": "Envelope, MessageId, ParticipantId, TenantId, and timestamp handling."
+      },
+      {
+        "name": "crates/studio-protocol/src/message.rs",
+        "action": "create",
+        "description": "Preview, Program, ScenePatch, Overlay, Role, Whisper, Teleprompter, Ping, and Pong payloads with JSON encoding."
+      },
+      {
+        "name": "crates/studio-protocol/src/permission.rs",
+        "action": "create",
+        "description": "Permission, Role, the single role-to-permission table, and the server-side check."
+      },
+      {
+        "name": "crates/studio-protocol/src/state.rs and transition.rs",
+        "action": "create",
+        "description": "StudioState and the pure (state, message, actor) transition with an atomic program cut."
+      },
+      {
+        "name": "crates/studio-protocol/src/version.rs",
+        "action": "create",
+        "description": "Integer major and minor negotiation with unknown-major rejection."
+      },
+      {
+        "name": "crates/studio-protocol/src/budget.rs",
+        "action": "create",
+        "description": "Fixed-window per-participant message budget with typed RateLimited rejection."
+      },
+      {
+        "name": "crates/studio-protocol/src/error.rs",
+        "action": "create",
+        "description": "ProtocolError and Rejected variants with stable codes."
+      },
+      {
+        "name": "crates/studio-protocol/README.md, CHANGELOG.md, examples/replay_log.rs",
+        "action": "create",
+        "description": "Message table, permission matrix, version and ordering rules, and an offline replay example."
+      },
+      {
+        "name": "crates/rtmp-publish/Cargo.toml",
+        "action": "create",
+        "description": "Workspace-inheriting manifest with url, optional reqwest (rustls-tls), and optional serde."
+      },
+      {
+        "name": "crates/rtmp-publish/src/lib.rs",
+        "action": "create",
+        "description": "Crate docs, lints, module declarations, and re-exports."
+      },
+      {
+        "name": "crates/rtmp-publish/src/destination.rs",
+        "action": "create",
+        "description": "Destination, DestinationId, Protocol, region, backup, and the RedactedDestination view."
+      },
+      {
+        "name": "crates/rtmp-publish/src/secret.rs",
+        "action": "create",
+        "description": "SecretString with hand-written Debug and Display, no Serialize, and presence and shape helpers."
+      },
+      {
+        "name": "crates/rtmp-publish/src/validate.rs",
+        "action": "create",
+        "description": "Scheme, host, port, key, and TLS-only validation returning typed errors before connection."
+      },
+      {
+        "name": "crates/rtmp-publish/src/probe.rs",
+        "action": "create",
+        "description": "TCP probe for RTMP, RTMPS, and SRT; optional HTTP OPTIONS or HEAD probe for WHIP; Health classification."
+      },
+      {
+        "name": "crates/rtmp-publish/src/retry.rs and breaker.rs",
+        "action": "create",
+        "description": "Bounded exponential backoff with injected jitter and a per-destination circuit breaker."
+      },
+      {
+        "name": "crates/rtmp-publish/src/failover.rs",
+        "action": "create",
+        "description": "Backup promotion, cool-down demotion, and self-reference and cycle rejection."
+      },
+      {
+        "name": "crates/rtmp-publish/src/bitrate.rs",
+        "action": "create",
+        "description": "Observed-throughput hint bounded by configured floor and ceiling."
+      },
+      {
+        "name": "crates/rtmp-publish/src/error.rs",
+        "action": "create",
+        "description": "PublishError with stable codes for validation, probe, retry, and failover failures."
+      },
+      {
+        "name": "crates/rtmp-publish/README.md, CHANGELOG.md, examples/plan_destination.rs",
+        "action": "create",
+        "description": "Redaction guarantees, protocol support, probe depth, retry and failover semantics, and an offline example."
+      },
+      {
+        "name": "crates/signedlink/Cargo.toml",
+        "action": "create",
+        "description": "Workspace-inheriting manifest with hmac, sha2, base64, getrandom, url, optional serde, and optional axum."
+      },
+      {
+        "name": "crates/signedlink/src/lib.rs",
+        "action": "create",
+        "description": "Crate docs, lints, module declarations, and re-exports."
+      },
+      {
+        "name": "crates/signedlink/src/claims.rs",
+        "action": "create",
+        "description": "Claims, target, campaign, tenant, attribution window, single use, and canonical encoding."
+      },
+      {
+        "name": "crates/signedlink/src/signer.rs",
+        "action": "create",
+        "description": "Signer, SigningKey, HMAC-SHA256 signing, and constant-time verification with expiry and skew."
+      },
+      {
+        "name": "crates/signedlink/src/code.rs",
+        "action": "create",
+        "description": "Base62 Code generation from OS entropy with bounded collision retry."
+      },
+      {
+        "name": "crates/signedlink/src/utm.rs",
+        "action": "create",
+        "description": "Closed-set UTM normalisation, deterministic ordering, and unknown-key rejection."
+      },
+      {
+        "name": "crates/signedlink/src/store.rs",
+        "action": "create",
+        "description": "LinkStore trait with put, get, revoke, and consume, plus the parameterised-query contract."
+      },
+      {
+        "name": "crates/signedlink/src/redirect.rs",
+        "action": "create",
+        "description": "Optional axum redirect handler with no-referrer and no-store headers and no scheme downgrade."
+      },
+      {
+        "name": "crates/signedlink/src/error.rs",
+        "action": "create",
+        "description": "LinkError with stable codes for tampering, expiry, skew, reuse, revocation, and code exhaustion."
+      },
+      {
+        "name": "crates/signedlink/README.md, CHANGELOG.md, examples/sign_and_verify.rs",
+        "action": "create",
+        "description": "Token format, store requirement, revocation semantics, UTM contract, redirect headers, and an in-memory example."
+      }
+    ],
+    "referencedRequirementIds": [
+      "FR-001", "FR-002", "FR-003", "FR-004", "FR-005", "FR-006", "FR-007", "FR-008", "FR-009", "FR-010",
+      "FR-011", "FR-012", "FR-013", "FR-014", "FR-015", "FR-016", "FR-017", "FR-018", "FR-019", "FR-020",
+      "FR-021", "FR-022", "FR-023", "FR-024", "FR-025", "FR-026", "FR-027", "FR-028", "FR-029", "FR-030",
+      "FR-031", "FR-032", "FR-033", "FR-034", "FR-035", "FR-036", "FR-037", "FR-038", "FR-039", "FR-040",
+      "FR-041", "FR-042", "FR-043", "FR-044", "FR-045",
+      "NFR-001", "NFR-002", "NFR-003", "NFR-004", "NFR-005", "NFR-006", "NFR-007", "NFR-008", "NFR-009",
+      "NFR-010", "NFR-011", "NFR-012", "NFR-013", "NFR-014", "NFR-015", "NFR-016", "NFR-017", "NFR-018"
+    ]
+  },
+  "dataModel": {
+    "entities": [
+      {
+        "name": "ffscene::Canvas",
+        "action": "create",
+        "fields": [
+          { "name": "width", "type": "u32", "nullable": false, "action": "add" },
+          { "name": "height", "type": "u32", "nullable": false, "action": "add" },
+          { "name": "fps", "type": "Rational", "nullable": false, "action": "add" }
+        ]
+      },
+      {
+        "name": "ffscene::Scene",
+        "action": "create",
+        "fields": [
+          { "name": "canvas", "type": "Canvas", "nullable": false, "action": "add" },
+          { "name": "background", "type": "Background", "nullable": false, "action": "add" },
+          { "name": "layers", "type": "Vec<Layer>", "nullable": false, "action": "add" }
+        ]
+      },
+      {
+        "name": "ffscene::Layer",
+        "action": "create",
+        "fields": [
+          { "name": "id", "type": "LayerId", "nullable": false, "action": "add" },
+          { "name": "source", "type": "SourceId", "nullable": false, "action": "add" },
+          { "name": "transform", "type": "Transform", "nullable": false, "action": "add" },
+          { "name": "z", "type": "i32", "nullable": false, "action": "add" },
+          { "name": "visible", "type": "bool", "nullable": false, "action": "add" },
+          { "name": "blend", "type": "BlendMode", "nullable": false, "action": "add" },
+          { "name": "opacity", "type": "f32", "nullable": false, "action": "add" }
+        ]
+      },
+      {
+        "name": "ffscene::EncoderProfile",
+        "action": "create",
+        "fields": [
+          { "name": "codec", "type": "Codec", "nullable": false, "action": "add" },
+          { "name": "rate_control", "type": "RateControl", "nullable": false, "action": "add" },
+          { "name": "preset", "type": "String", "nullable": false, "action": "add" },
+          { "name": "keyint", "type": "u32", "nullable": false, "action": "add" },
+          { "name": "profile", "type": "Option<String>", "nullable": true, "action": "add" }
+        ]
+      },
+      {
+        "name": "ffscene::CompiledGraph",
+        "action": "create",
+        "fields": [
+          { "name": "filter_complex", "type": "String", "nullable": false, "action": "add" },
+          { "name": "inputs", "type": "Vec<String>", "nullable": false, "action": "add" },
+          { "name": "outputs", "type": "Vec<String>", "nullable": false, "action": "add" },
+          { "name": "layer_map", "type": "LayerLabelMap", "nullable": false, "action": "add" },
+          { "name": "args", "type": "Vec<String>", "nullable": false, "action": "add" }
+        ]
+      },
+      {
+        "name": "mixbus::Mixer",
+        "action": "create",
+        "fields": [
+          { "name": "sample_rate", "type": "u32", "nullable": false, "action": "add" },
+          { "name": "block", "type": "BlockSize", "nullable": false, "action": "add" },
+          { "name": "buses", "type": "Vec<Bus>", "nullable": false, "action": "add" },
+          { "name": "sources", "type": "Vec<Source>", "nullable": false, "action": "add" },
+          { "name": "plan", "type": "MixPlan", "nullable": false, "action": "add" }
+        ]
+      },
+      {
+        "name": "mixbus::Bus",
+        "action": "create",
+        "fields": [
+          { "name": "id", "type": "BusId", "nullable": false, "action": "add" },
+          { "name": "gain_db", "type": "f32", "nullable": false, "action": "add" },
+          { "name": "mute", "type": "bool", "nullable": false, "action": "add" },
+          { "name": "solo", "type": "bool", "nullable": false, "action": "add" },
+          { "name": "inserts", "type": "Vec<Insert>", "nullable": false, "action": "add" },
+          { "name": "sends", "type": "Vec<Send>", "nullable": false, "action": "add" }
+        ]
+      },
+      {
+        "name": "mixbus::Source",
+        "action": "create",
+        "fields": [
+          { "name": "id", "type": "SourceId", "nullable": false, "action": "add" },
+          { "name": "gain_db", "type": "f32", "nullable": false, "action": "add" },
+          { "name": "pan", "type": "f32", "nullable": false, "action": "add" },
+          { "name": "duck", "type": "Option<Duck>", "nullable": true, "action": "add" }
+        ]
+      },
+      {
+        "name": "mixbus::Duck",
+        "action": "create",
+        "fields": [
+          { "name": "key", "type": "SourceId", "nullable": false, "action": "add" },
+          { "name": "threshold_db", "type": "f32", "nullable": false, "action": "add" },
+          { "name": "ratio", "type": "f32", "nullable": false, "action": "add" },
+          { "name": "attack_ms", "type": "f32", "nullable": false, "action": "add" },
+          { "name": "release_ms", "type": "f32", "nullable": false, "action": "add" }
+        ]
+      },
+      {
+        "name": "mixbus::MeterSnapshot",
+        "action": "create",
+        "fields": [
+          { "name": "peak", "type": "f32", "nullable": false, "action": "add" },
+          { "name": "rms", "type": "f32", "nullable": false, "action": "add" },
+          { "name": "lufs", "type": "f32", "nullable": false, "action": "add" },
+          { "name": "gain_reduction", "type": "f32", "nullable": false, "action": "add" },
+          { "name": "flags", "type": "MeterFlags", "nullable": false, "action": "add" }
+        ]
+      },
+      {
+        "name": "replay-recorder::Recorder",
+        "action": "create",
+        "fields": [
+          { "name": "session", "type": "SessionId", "nullable": false, "action": "add" },
+          { "name": "tracks", "type": "Vec<Track>", "nullable": false, "action": "add" },
+          { "name": "sink", "type": "Sink", "nullable": false, "action": "add" },
+          { "name": "budget", "type": "DiskBudget", "nullable": false, "action": "add" }
+        ]
+      },
+      {
+        "name": "replay-recorder::Track",
+        "action": "create",
+        "fields": [
+          { "name": "id", "type": "TrackId", "nullable": false, "action": "add" },
+          { "name": "source", "type": "SourceId", "nullable": false, "action": "add" },
+          { "name": "codec", "type": "TrackCodec", "nullable": false, "action": "add" },
+          { "name": "container", "type": "Container", "nullable": false, "action": "add" },
+          { "name": "enabled", "type": "bool", "nullable": false, "action": "add" }
+        ]
+      },
+      {
+        "name": "replay-recorder::Sink",
+        "action": "create",
+        "fields": [
+          { "name": "Segment", "type": "SegmentSink", "nullable": false, "action": "add" },
+          { "name": "Tee", "type": "TeeSink", "nullable": false, "action": "add" },
+          { "name": "Ring", "type": "RingSink", "nullable": false, "action": "add" }
+        ]
+      },
+      {
+        "name": "replay-recorder::DiskBudget",
+        "action": "create",
+        "fields": [
+          { "name": "max_bytes", "type": "u64", "nullable": false, "action": "add" },
+          { "name": "min_free_bytes", "type": "u64", "nullable": false, "action": "add" },
+          { "name": "on_pressure", "type": "PressurePolicy", "nullable": false, "action": "add" }
+        ]
+      },
+      {
+        "name": "replay-recorder::SegmentIndex",
+        "action": "create",
+        "fields": [
+          { "name": "session", "type": "SessionId", "nullable": false, "action": "add" },
+          { "name": "track", "type": "TrackId", "nullable": false, "action": "add" },
+          { "name": "segments", "type": "Vec<SegmentEntry>", "nullable": false, "action": "add" }
+        ]
+      },
+      {
+        "name": "studio-protocol::Envelope",
+        "action": "create",
+        "fields": [
+          { "name": "v", "type": "u16", "nullable": false, "action": "add" },
+          { "name": "id", "type": "MessageId", "nullable": false, "action": "add" },
+          { "name": "at", "type": "DateTime<Utc>", "nullable": false, "action": "add" },
+          { "name": "from", "type": "ParticipantId", "nullable": false, "action": "add" },
+          { "name": "body", "type": "Message", "nullable": false, "action": "add" }
+        ]
+      },
+      {
+        "name": "studio-protocol::Message",
+        "action": "create",
+        "fields": [
+          { "name": "Preview", "type": "SceneRef", "nullable": false, "action": "add" },
+          { "name": "Program", "type": "SceneRef", "nullable": false, "action": "add" },
+          { "name": "ScenePatch", "type": "ScenePatch", "nullable": false, "action": "add" },
+          { "name": "Overlay", "type": "OverlayCommand", "nullable": false, "action": "add" },
+          { "name": "Role", "type": "RoleChange", "nullable": false, "action": "add" },
+          { "name": "Whisper", "type": "WhisperMessage", "nullable": false, "action": "add" },
+          { "name": "Teleprompter", "type": "TeleprompterState", "nullable": false, "action": "add" },
+          { "name": "Ping", "type": "Ping", "nullable": false, "action": "add" },
+          { "name": "Pong", "type": "Pong", "nullable": false, "action": "add" }
+        ]
+      },
+      {
+        "name": "studio-protocol::Permission",
+        "action": "create",
+        "fields": [
+          { "name": "View", "type": "unit", "nullable": false, "action": "add" },
+          { "name": "ControlScene", "type": "unit", "nullable": false, "action": "add" },
+          { "name": "ControlOverlay", "type": "unit", "nullable": false, "action": "add" },
+          { "name": "ControlProgram", "type": "unit", "nullable": false, "action": "add" },
+          { "name": "ControlRoles", "type": "unit", "nullable": false, "action": "add" },
+          { "name": "ControlTeleprompter", "type": "unit", "nullable": false, "action": "add" }
+        ]
+      },
+      {
+        "name": "studio-protocol::StudioState",
+        "action": "create",
+        "fields": [
+          { "name": "program", "type": "Option<SceneRef>", "nullable": true, "action": "add" },
+          { "name": "preview", "type": "Option<SceneRef>", "nullable": true, "action": "add" },
+          { "name": "participants", "type": "BTreeMap<ParticipantId, Participant>", "nullable": false, "action": "add" },
+          { "name": "overlays", "type": "Vec<Overlay>", "nullable": false, "action": "add" },
+          { "name": "seen_ids", "type": "BoundedSet<MessageId>", "nullable": false, "action": "add" }
+        ]
+      },
+      {
+        "name": "rtmp-publish::Destination",
+        "action": "create",
+        "fields": [
+          { "name": "id", "type": "DestinationId", "nullable": false, "action": "add" },
+          { "name": "label", "type": "String", "nullable": false, "action": "add" },
+          { "name": "protocol", "type": "Protocol", "nullable": false, "action": "add" },
+          { "name": "url", "type": "Url", "nullable": false, "action": "add" },
+          { "name": "key", "type": "SecretString", "nullable": false, "action": "add" },
+          { "name": "region", "type": "Option<String>", "nullable": true, "action": "add" },
+          { "name": "backup", "type": "Option<Box<Destination>>", "nullable": true, "action": "add" }
+        ]
+      },
+      {
+        "name": "rtmp-publish::Health",
+        "action": "create",
+        "fields": [
+          { "name": "Unknown", "type": "unit", "nullable": false, "action": "add" },
+          { "name": "Reachable", "type": "Duration", "nullable": false, "action": "add" },
+          { "name": "AuthRejected", "type": "unit", "nullable": false, "action": "add" },
+          { "name": "Unreachable", "type": "FailureKind", "nullable": false, "action": "add" }
+        ]
+      },
+      {
+        "name": "rtmp-publish::RetryPolicy",
+        "action": "create",
+        "fields": [
+          { "name": "base", "type": "Duration", "nullable": false, "action": "add" },
+          { "name": "max_attempts", "type": "u32", "nullable": false, "action": "add" },
+          { "name": "cap", "type": "Duration", "nullable": false, "action": "add" }
+        ]
+      },
+      {
+        "name": "rtmp-publish::CircuitBreaker",
+        "action": "create",
+        "fields": [
+          { "name": "state", "type": "BreakerState", "nullable": false, "action": "add" },
+          { "name": "failures", "type": "u32", "nullable": false, "action": "add" },
+          { "name": "opened_at", "type": "Option<Instant>", "nullable": true, "action": "add" }
+        ]
+      },
+      {
+        "name": "rtmp-publish::BitrateHint",
+        "action": "create",
+        "fields": [
+          { "name": "floor", "type": "u64", "nullable": false, "action": "add" },
+          { "name": "ceiling", "type": "u64", "nullable": false, "action": "add" },
+          { "name": "observed", "type": "u64", "nullable": false, "action": "add" }
+        ]
+      },
+      {
+        "name": "signedlink::Signer",
+        "action": "create",
+        "fields": [
+          { "name": "key", "type": "SigningKey", "nullable": false, "action": "add" },
+          { "name": "ttl", "type": "Duration", "nullable": false, "action": "add" },
+          { "name": "clock_skew", "type": "Duration", "nullable": false, "action": "add" }
+        ]
+      },
+      {
+        "name": "signedlink::Claims",
+        "action": "create",
+        "fields": [
+          { "name": "target", "type": "Url", "nullable": false, "action": "add" },
+          { "name": "campaign", "type": "Option<String>", "nullable": true, "action": "add" },
+          { "name": "tenant", "type": "TenantId", "nullable": false, "action": "add" },
+          { "name": "attribution_window", "type": "Duration", "nullable": false, "action": "add" },
+          { "name": "single_use", "type": "bool", "nullable": false, "action": "add" }
+        ]
+      },
+      {
+        "name": "signedlink::SignedUrl",
+        "action": "create",
+        "fields": [
+          { "name": "code", "type": "Code", "nullable": false, "action": "add" },
+          { "name": "url", "type": "Url", "nullable": false, "action": "add" }
+        ]
+      },
+      {
+        "name": "signedlink::LinkStore",
+        "action": "create",
+        "fields": [
+          { "name": "put", "type": "async fn(&Code, &Claims)", "nullable": false, "action": "add" },
+          { "name": "get", "type": "async fn(&Code) -> Option<Claims>", "nullable": false, "action": "add" },
+          { "name": "revoke", "type": "async fn(&Code)", "nullable": false, "action": "add" },
+          { "name": "consume", "type": "async fn(&Code) -> bool", "nullable": false, "action": "add" }
+        ]
+      }
+    ],
+    "flowDescription": "Scene data flows from app memory into ffscene validation and compilation and out as arguments and labels; audio frames flow caller -> mixbus plan -> caller, with meters read from a separate snapshot; encoded packets flow caller -> replay-recorder -> spool files and index; protocol messages flow JSON -> studio-protocol decode -> version, permission, ordering, budget checks -> pure transition -> new StudioState; destinations flow config -> rtmp-publish validation -> probe -> retry and breaker state -> health and bitrate hint; link claims flow signer -> canonical bytes -> HMAC token -> signed URL, then back through verify -> store -> claims or a typed rejection. No crate owns a database; only replay-recorder writes durable files, and only behind validated IDs and a disk budget.",
+    "referencedRequirementIds": []
+  },
+  "apiContracts": [],
+  "securityConsiderations": [
+    {
+      "requirementId": "NFR-004",
+      "description": "SecretString and SigningKey implement Debug and Display by hand and do not implement Serialize; signature tokens are redacted; the RedactedDestination is the only serialisable destination view."
+    },
+    {
+      "requirementId": "NFR-011",
+      "description": "CON-511 authentication: keys are caller-supplied and validated for presence and shape; signedlink verification fails closed; a missing stream key is InvalidKey."
+    },
+    {
+      "requirementId": "NFR-012",
+      "description": "CON-512 authorization: studio-protocol checks permissions before every transition; signedlink revocation and single use are store-enforced."
+    },
+    {
+      "requirementId": "NFR-013",
+      "description": "CON-514 rate limiting: rtmp-publish bounds retries and breaker transitions; studio-protocol enforces the 50 msg/s per-participant budget."
+    },
+    {
+      "requirementId": "NFR-014",
+      "description": "CON-515 input validation: every public entry point validates and returns a typed error; no unwrap on untrusted input."
+    },
+    {
+      "requirementId": "NFR-015",
+      "description": "CON-516 injection protection: spool paths derive from validated newtypes; no SQL or Redis backend ships; the LinkStore contract documents parameterised access."
+    },
+    {
+      "requirementId": "NFR-016",
+      "description": "CON-519 environment security: no .env files, no committed keys, and no embedded credentials; keys are arguments."
+    },
+    {
+      "requirementId": "NFR-017",
+      "description": "CON-520 HTTPS/HSTS: probes and redirects use TLS-capable schemes, plaintext WHIP is rejected, and HSTS is documented as an edge responsibility."
+    }
+  ],
+  "performanceConsiderations": [
+    {
+      "requirementId": "NFR-001",
+      "strategy": "Sort and normalise before emission, use ordered collections, and never embed timestamps or process identity in the graph."
+    },
+    {
+      "requirementId": "NFR-002",
+      "strategy": "Pre-allocate at maximum block size, use a fixed-capacity command queue, and swap plans atomically at a block boundary."
+    },
+    {
+      "requirementId": "NFR-005",
+      "strategy": "Check the budget before opening a segment and periodically during writes; bound segment size and delete partial files immediately."
+    },
+    {
+      "requirementId": "NFR-006",
+      "strategy": "Use a fixed per-participant window with O(1) work per message and no unbounded queue."
+    },
+    {
+      "requirementId": "NFR-013",
+      "strategy": "Bounded exponential backoff with a cap and O(1) breaker transitions."
+    }
+  ],
+  "dependencies": [
+    {
+      "name": "serde",
+      "type": "library",
+      "action": "add",
+      "notes": "Optional and feature-gated for replay-recorder, studio-protocol, and signedlink. Skill: none (no project skill exists; standard derive usage)."
+    },
+    {
+      "name": "serde_json",
+      "type": "library",
+      "action": "add",
+      "notes": "Optional for the recording index, protocol messages, and link claims. Skill: none."
+    },
+    {
+      "name": "uuid",
+      "type": "library",
+      "action": "add",
+      "notes": "Optional with the v7 feature for protocol IDs. Skill: none."
+    },
+    {
+      "name": "chrono",
+      "type": "library",
+      "action": "add",
+      "notes": "Optional for protocol timestamps and the link time source. Skill: none."
+    },
+    {
+      "name": "url",
+      "type": "library",
+      "action": "add",
+      "notes": "Destination and target parsing. Skill: none."
+    },
+    {
+      "name": "hmac",
+      "type": "library",
+      "action": "add",
+      "notes": "HMAC-SHA256 for signedlink. Skill: none."
+    },
+    {
+      "name": "sha2",
+      "type": "library",
+      "action": "add",
+      "notes": "HMAC digest for signedlink. Skill: none."
+    },
+    {
+      "name": "base64",
+      "type": "library",
+      "action": "add",
+      "notes": "URL-safe token encoding for signedlink. Skill: none."
+    },
+    {
+      "name": "getrandom",
+      "type": "library",
+      "action": "add",
+      "notes": "OS entropy for base62 codes. Skill: none."
+    },
+    {
+      "name": "reqwest",
+      "type": "library",
+      "action": "add",
+      "notes": "Optional with rustls-tls for the WHIP health probe only. Skill: none."
+    },
+    {
+      "name": "axum",
+      "type": "library",
+      "action": "add",
+      "notes": "Optional redirect handler in signedlink. Skill: none."
+    },
+    {
+      "name": "crates.io",
+      "type": "service",
+      "action": "no_change",
+      "notes": "Existing publication target; re-check every crate name immediately before publish (CON-111)."
+    }
+  ],
+  "risks": [
+    {
+      "description": "Six crates in one feature create a large review unit.",
+      "mitigation": "Independent phases, each leaving the workspace compiling; review per phase."
+    },
+    {
+      "description": "Real-time audio guarantees are hard to prove.",
+      "mitigation": "Fixed buffers, bounded queue, atomic plan swap, and an aborting-allocator test from /sdrive:test."
+    },
+    {
+      "description": "FFmpeg filter syntax changes across versions.",
+      "mitigation": "Target FFmpeg 7.x, use golden files, and document the dialect boundary."
+    },
+    {
+      "description": "A stream key leaks through a derived type or tracing field.",
+      "mitigation": "Redaction by construction, no Serialize for secrets, and a property test over key formats."
+    },
+    {
+      "description": "Disk-budget enforcement races with concurrent writers.",
+      "mitigation": "Single writer per track, pre-write checks, and atomic index rename."
+    },
+    {
+      "description": "Permission checks drift from the message table.",
+      "mitigation": "One table, one check call site, and a matrix test."
+    },
+    {
+      "description": "Dependency additions raise MSRV or pull a runtime.",
+      "mitigation": "Optional and feature-gated dependencies plus the existing MSRV job."
+    },
+    {
+      "description": "signedlink is mistaken for a stateless revocable link system.",
+      "mitigation": "Require the store for revocation and single use and document the boundary."
+    },
+    {
+      "description": "Code duplication across crates for IDs, errors, and redaction.",
+      "mitigation": "Keep each crate single-purpose and accept small documented duplication instead of a framework crate (CON-103)."
+    },
+    {
+      "description": "Scope creep into M5 providers or platform-core.",
+      "mitigation": "Enforce the out-of-scope list; later work becomes a new feature or version."
+    }
+  ]
+}

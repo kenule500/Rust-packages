@@ -62,6 +62,42 @@
           ]
         }
       ]
+    },
+    {
+      "name": "m4-media-links",
+      "branch": "feature/m4-media-links",
+      "base": "main",
+      "currentVersion": "v1",
+      "versions": [
+        {
+          "id": "v1",
+          "phase": "backlog",
+          "currentStep": "specification",
+          "gates": {
+            "specification": "approved",
+            "planning": "approved",
+            "implementation": "pending",
+            "review": "pending"
+          },
+          "history": [
+            {
+              "event": "Feature branch feature/m4-media-links confirmed from main",
+              "by": "SpecDrive",
+              "timestamp": "2026-10-20T21:55:07Z"
+            },
+            {
+              "event": "Gate 1 approved: specification and traceability",
+              "by": "kenule500",
+              "timestamp": "2026-10-20T21:58:00Z"
+            },
+            {
+              "event": "Gate 2 approved: technical plan and tasks",
+              "by": "kenule500",
+              "timestamp": "2026-10-21T08:45:12Z"
+            }
+          ]
+        }
+      ]
     }
   ]
 }

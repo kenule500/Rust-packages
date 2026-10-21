@@ -1,0 +1,870 @@
+{
+  "feature": "m4-media-links",
+  "version": 1,
+  "rows": [
+    {
+      "requirementId": "FR-001",
+      "acceptanceCriteriaIds": [
+        "AC-001",
+        "AC-006"
+      ],
+      "planSection": "P1 - ffscene",
+      "taskIds": [
+        "T1.1",
+        "T1.3"
+      ],
+      "testIds": [],
+      "status": "not_started"
+    },
+    {
+      "requirementId": "FR-002",
+      "acceptanceCriteriaIds": [
+        "AC-002"
+      ],
+      "planSection": "P1 - ffscene",
+      "taskIds": [
+        "T1.2"
+      ],
+      "testIds": [],
+      "status": "not_started"
+    },
+    {
+      "requirementId": "FR-003",
+      "acceptanceCriteriaIds": [
+        "AC-003"
+      ],
+      "planSection": "P1 - ffscene",
+      "taskIds": [
+        "T1.4"
+      ],
+      "testIds": [],
+      "status": "not_started"
+    },
+    {
+      "requirementId": "FR-004",
+      "acceptanceCriteriaIds": [
+        "AC-004"
+      ],
+      "planSection": "P1 - ffscene",
+      "taskIds": [
+        "T1.5"
+      ],
+      "testIds": [],
+      "status": "not_started"
+    },
+    {
+      "requirementId": "FR-005",
+      "acceptanceCriteriaIds": [
+        "AC-005"
+      ],
+      "planSection": "P1 - ffscene",
+      "taskIds": [
+        "T1.6"
+      ],
+      "testIds": [],
+      "status": "not_started"
+    },
+    {
+      "requirementId": "FR-006",
+      "acceptanceCriteriaIds": [
+        "AC-001",
+        "AC-003",
+        "AC-006"
+      ],
+      "planSection": "P1 - ffscene",
+      "taskIds": [
+        "T1.3",
+        "T1.4"
+      ],
+      "testIds": [],
+      "status": "not_started"
+    },
+    {
+      "requirementId": "FR-007",
+      "acceptanceCriteriaIds": [
+        "AC-007",
+        "AC-012"
+      ],
+      "planSection": "P2 - mixbus",
+      "taskIds": [
+        "T2.1"
+      ],
+      "testIds": [],
+      "status": "not_started"
+    },
+    {
+      "requirementId": "FR-008",
+      "acceptanceCriteriaIds": [
+        "AC-008",
+        "AC-009",
+        "AC-010",
+        "AC-011"
+      ],
+      "planSection": "P2 - mixbus",
+      "taskIds": [
+        "T2.2",
+        "T2.3",
+        "T2.4",
+        "T2.5"
+      ],
+      "testIds": [],
+      "status": "not_started"
+    },
+    {
+      "requirementId": "FR-009",
+      "acceptanceCriteriaIds": [
+        "AC-012"
+      ],
+      "planSection": "P2 - mixbus",
+      "taskIds": [
+        "T2.6"
+      ],
+      "testIds": [],
+      "status": "not_started"
+    },
+    {
+      "requirementId": "FR-010",
+      "acceptanceCriteriaIds": [
+        "AC-013"
+      ],
+      "planSection": "P2 - mixbus",
+      "taskIds": [
+        "T2.7"
+      ],
+      "testIds": [],
+      "status": "not_started"
+    },
+    {
+      "requirementId": "FR-011",
+      "acceptanceCriteriaIds": [
+        "AC-012"
+      ],
+      "planSection": "P2 - mixbus",
+      "taskIds": [
+        "T2.6"
+      ],
+      "testIds": [],
+      "status": "not_started"
+    },
+    {
+      "requirementId": "FR-012",
+      "acceptanceCriteriaIds": [
+        "AC-007"
+      ],
+      "planSection": "P2 - mixbus",
+      "taskIds": [
+        "T2.1"
+      ],
+      "testIds": [],
+      "status": "not_started"
+    },
+    {
+      "requirementId": "FR-013",
+      "acceptanceCriteriaIds": [
+        "AC-018",
+        "AC-019"
+      ],
+      "planSection": "P3 - replay-recorder",
+      "taskIds": [
+        "T3.1",
+        "T3.3"
+      ],
+      "testIds": [],
+      "status": "not_started"
+    },
+    {
+      "requirementId": "FR-014",
+      "acceptanceCriteriaIds": [
+        "AC-015",
+        "AC-017"
+      ],
+      "planSection": "P3 - replay-recorder",
+      "taskIds": [
+        "T3.3",
+        "T3.4",
+        "T3.5"
+      ],
+      "testIds": [],
+      "status": "not_started"
+    },
+    {
+      "requirementId": "FR-015",
+      "acceptanceCriteriaIds": [
+        "AC-015"
+      ],
+      "planSection": "P3 - replay-recorder",
+      "taskIds": [
+        "T3.5"
+      ],
+      "testIds": [],
+      "status": "not_started"
+    },
+    {
+      "requirementId": "FR-016",
+      "acceptanceCriteriaIds": [
+        "AC-016"
+      ],
+      "planSection": "P3 - replay-recorder",
+      "taskIds": [
+        "T3.6"
+      ],
+      "testIds": [],
+      "status": "not_started"
+    },
+    {
+      "requirementId": "FR-017",
+      "acceptanceCriteriaIds": [
+        "AC-014",
+        "AC-019"
+      ],
+      "planSection": "P3 - replay-recorder",
+      "taskIds": [
+        "T3.7"
+      ],
+      "testIds": [],
+      "status": "not_started"
+    },
+    {
+      "requirementId": "FR-018",
+      "acceptanceCriteriaIds": [
+        "AC-014",
+        "AC-019"
+      ],
+      "planSection": "P3 - replay-recorder",
+      "taskIds": [
+        "T3.2"
+      ],
+      "testIds": [],
+      "status": "not_started"
+    },
+    {
+      "requirementId": "FR-019",
+      "acceptanceCriteriaIds": [
+        "AC-014",
+        "AC-015"
+      ],
+      "planSection": "P3 - replay-recorder",
+      "taskIds": [
+        "T3.1",
+        "T3.3"
+      ],
+      "testIds": [],
+      "status": "not_started"
+    },
+    {
+      "requirementId": "FR-020",
+      "acceptanceCriteriaIds": [
+        "AC-020"
+      ],
+      "planSection": "P4 - studio-protocol",
+      "taskIds": [
+        "T4.1"
+      ],
+      "testIds": [],
+      "status": "not_started"
+    },
+    {
+      "requirementId": "FR-021",
+      "acceptanceCriteriaIds": [
+        "AC-021"
+      ],
+      "planSection": "P4 - studio-protocol",
+      "taskIds": [
+        "T4.2"
+      ],
+      "testIds": [],
+      "status": "not_started"
+    },
+    {
+      "requirementId": "FR-022",
+      "acceptanceCriteriaIds": [
+        "AC-022",
+        "AC-024"
+      ],
+      "planSection": "P4 - studio-protocol",
+      "taskIds": [
+        "T4.3"
+      ],
+      "testIds": [],
+      "status": "not_started"
+    },
+    {
+      "requirementId": "FR-023",
+      "acceptanceCriteriaIds": [
+        "AC-020",
+        "AC-025"
+      ],
+      "planSection": "P4 - studio-protocol",
+      "taskIds": [
+        "T4.1",
+        "T4.4"
+      ],
+      "testIds": [],
+      "status": "not_started"
+    },
+    {
+      "requirementId": "FR-024",
+      "acceptanceCriteriaIds": [
+        "AC-023",
+        "AC-024"
+      ],
+      "planSection": "P4 - studio-protocol",
+      "taskIds": [
+        "T4.5"
+      ],
+      "testIds": [],
+      "status": "not_started"
+    },
+    {
+      "requirementId": "FR-025",
+      "acceptanceCriteriaIds": [
+        "AC-026"
+      ],
+      "planSection": "P4 - studio-protocol",
+      "taskIds": [
+        "T4.6"
+      ],
+      "testIds": [],
+      "status": "not_started"
+    },
+    {
+      "requirementId": "FR-026",
+      "acceptanceCriteriaIds": [
+        "AC-027"
+      ],
+      "planSection": "P5 - rtmp-publish",
+      "taskIds": [
+        "T5.1"
+      ],
+      "testIds": [],
+      "status": "not_started"
+    },
+    {
+      "requirementId": "FR-027",
+      "acceptanceCriteriaIds": [
+        "AC-032"
+      ],
+      "planSection": "P5 - rtmp-publish",
+      "taskIds": [
+        "T5.2"
+      ],
+      "testIds": [],
+      "status": "not_started"
+    },
+    {
+      "requirementId": "FR-028",
+      "acceptanceCriteriaIds": [
+        "AC-028"
+      ],
+      "planSection": "P5 - rtmp-publish",
+      "taskIds": [
+        "T5.3"
+      ],
+      "testIds": [],
+      "status": "not_started"
+    },
+    {
+      "requirementId": "FR-029",
+      "acceptanceCriteriaIds": [
+        "AC-029"
+      ],
+      "planSection": "P5 - rtmp-publish",
+      "taskIds": [
+        "T5.4"
+      ],
+      "testIds": [],
+      "status": "not_started"
+    },
+    {
+      "requirementId": "FR-030",
+      "acceptanceCriteriaIds": [
+        "AC-030"
+      ],
+      "planSection": "P5 - rtmp-publish",
+      "taskIds": [
+        "T5.5"
+      ],
+      "testIds": [],
+      "status": "not_started"
+    },
+    {
+      "requirementId": "FR-031",
+      "acceptanceCriteriaIds": [
+        "AC-031"
+      ],
+      "planSection": "P5 - rtmp-publish",
+      "taskIds": [
+        "T5.6"
+      ],
+      "testIds": [],
+      "status": "not_started"
+    },
+    {
+      "requirementId": "FR-032",
+      "acceptanceCriteriaIds": [
+        "AC-028"
+      ],
+      "planSection": "P5 - rtmp-publish",
+      "taskIds": [
+        "T5.1",
+        "T5.3"
+      ],
+      "testIds": [],
+      "status": "not_started"
+    },
+    {
+      "requirementId": "FR-033",
+      "acceptanceCriteriaIds": [
+        "AC-033",
+        "AC-035"
+      ],
+      "planSection": "P6 - signedlink",
+      "taskIds": [
+        "T6.1",
+        "T6.2"
+      ],
+      "testIds": [],
+      "status": "not_started"
+    },
+    {
+      "requirementId": "FR-034",
+      "acceptanceCriteriaIds": [
+        "AC-037"
+      ],
+      "planSection": "P6 - signedlink",
+      "taskIds": [
+        "T6.3"
+      ],
+      "testIds": [],
+      "status": "not_started"
+    },
+    {
+      "requirementId": "FR-035",
+      "acceptanceCriteriaIds": [
+        "AC-036"
+      ],
+      "planSection": "P6 - signedlink",
+      "taskIds": [
+        "T6.4"
+      ],
+      "testIds": [],
+      "status": "not_started"
+    },
+    {
+      "requirementId": "FR-036",
+      "acceptanceCriteriaIds": [
+        "AC-033"
+      ],
+      "planSection": "P6 - signedlink",
+      "taskIds": [
+        "T6.4"
+      ],
+      "testIds": [],
+      "status": "not_started"
+    },
+    {
+      "requirementId": "FR-037",
+      "acceptanceCriteriaIds": [
+        "AC-034"
+      ],
+      "planSection": "P6 - signedlink",
+      "taskIds": [
+        "T6.5"
+      ],
+      "testIds": [],
+      "status": "not_started"
+    },
+    {
+      "requirementId": "FR-038",
+      "acceptanceCriteriaIds": [
+        "AC-034",
+        "AC-039"
+      ],
+      "planSection": "P6 - signedlink",
+      "taskIds": [
+        "T6.1",
+        "T6.5"
+      ],
+      "testIds": [],
+      "status": "not_started"
+    },
+    {
+      "requirementId": "FR-039",
+      "acceptanceCriteriaIds": [
+        "AC-038"
+      ],
+      "planSection": "P6 - signedlink",
+      "taskIds": [
+        "T6.6"
+      ],
+      "testIds": [],
+      "status": "not_started"
+    },
+    {
+      "requirementId": "FR-040",
+      "acceptanceCriteriaIds": [
+        "AC-040",
+        "AC-044"
+      ],
+      "planSection": "P7 - workspace baseline",
+      "taskIds": [
+        "T7.1"
+      ],
+      "testIds": [],
+      "status": "not_started"
+    },
+    {
+      "requirementId": "FR-041",
+      "acceptanceCriteriaIds": [
+        "AC-041"
+      ],
+      "planSection": "P7 - workspace baseline",
+      "taskIds": [
+        "T7.4"
+      ],
+      "testIds": [],
+      "status": "not_started"
+    },
+    {
+      "requirementId": "FR-042",
+      "acceptanceCriteriaIds": [
+        "AC-042"
+      ],
+      "planSection": "P7 - workspace baseline",
+      "taskIds": [
+        "T1.7",
+        "T2.8",
+        "T3.8",
+        "T4.7",
+        "T5.7",
+        "T6.7",
+        "T7.2"
+      ],
+      "testIds": [],
+      "status": "not_started"
+    },
+    {
+      "requirementId": "FR-043",
+      "acceptanceCriteriaIds": [
+        "AC-043"
+      ],
+      "planSection": "P7 - workspace baseline",
+      "taskIds": [
+        "T7.1"
+      ],
+      "testIds": [],
+      "status": "not_started"
+    },
+    {
+      "requirementId": "FR-044",
+      "acceptanceCriteriaIds": [
+        "AC-044"
+      ],
+      "planSection": "P7 - workspace baseline",
+      "taskIds": [
+        "T7.6"
+      ],
+      "testIds": [],
+      "status": "not_started"
+    },
+    {
+      "requirementId": "FR-045",
+      "acceptanceCriteriaIds": [
+        "AC-044"
+      ],
+      "planSection": "P7 - workspace baseline",
+      "taskIds": [
+        "T7.1"
+      ],
+      "testIds": [],
+      "status": "not_started"
+    },
+    {
+      "requirementId": "NFR-001",
+      "acceptanceCriteriaIds": [
+        "AC-001"
+      ],
+      "planSection": "P1 - ffscene determinism",
+      "taskIds": [
+        "T1.3"
+      ],
+      "testIds": [],
+      "status": "not_started"
+    },
+    {
+      "requirementId": "NFR-002",
+      "acceptanceCriteriaIds": [
+        "AC-012"
+      ],
+      "planSection": "P2 - mixbus real-time discipline",
+      "taskIds": [
+        "T2.1",
+        "T2.6"
+      ],
+      "testIds": [],
+      "status": "not_started"
+    },
+    {
+      "requirementId": "NFR-003",
+      "acceptanceCriteriaIds": [
+        "AC-002",
+        "AC-032",
+        "AC-034"
+      ],
+      "planSection": "P7 - cross-cutting error contract",
+      "taskIds": [
+        "T1.1",
+        "T1.2",
+        "T5.1",
+        "T6.1"
+      ],
+      "testIds": [],
+      "status": "not_started"
+    },
+    {
+      "requirementId": "NFR-004",
+      "acceptanceCriteriaIds": [
+        "AC-027",
+        "AC-033",
+        "AC-038"
+      ],
+      "planSection": "P7 - cross-cutting secret redaction",
+      "taskIds": [
+        "T5.1",
+        "T6.1",
+        "T6.6"
+      ],
+      "testIds": [],
+      "status": "not_started"
+    },
+    {
+      "requirementId": "NFR-005",
+      "acceptanceCriteriaIds": [
+        "AC-016"
+      ],
+      "planSection": "P3 - replay-recorder disk budget",
+      "taskIds": [
+        "T3.6"
+      ],
+      "testIds": [],
+      "status": "not_started"
+    },
+    {
+      "requirementId": "NFR-006",
+      "acceptanceCriteriaIds": [
+        "AC-026"
+      ],
+      "planSection": "P4 - studio-protocol throughput",
+      "taskIds": [
+        "T4.6"
+      ],
+      "testIds": [],
+      "status": "not_started"
+    },
+    {
+      "requirementId": "NFR-007",
+      "acceptanceCriteriaIds": [
+        "AC-041"
+      ],
+      "planSection": "P7 - MSRV and lints",
+      "taskIds": [
+        "T7.4"
+      ],
+      "testIds": [],
+      "status": "not_started"
+    },
+    {
+      "requirementId": "NFR-008",
+      "acceptanceCriteriaIds": [
+        "AC-040"
+      ],
+      "planSection": "P7 - feature policy",
+      "taskIds": [
+        "T7.3"
+      ],
+      "testIds": [],
+      "status": "not_started"
+    },
+    {
+      "requirementId": "NFR-009",
+      "acceptanceCriteriaIds": [
+        "AC-040",
+        "AC-044"
+      ],
+      "planSection": "P7 - explicit registration",
+      "taskIds": [
+        "T7.1",
+        "T7.6"
+      ],
+      "testIds": [],
+      "status": "not_started"
+    },
+    {
+      "requirementId": "NFR-010",
+      "acceptanceCriteriaIds": [
+        "AC-041",
+        "AC-043"
+      ],
+      "planSection": "P7 - public API guidelines",
+      "taskIds": [
+        "T7.1",
+        "T7.4"
+      ],
+      "testIds": [],
+      "status": "not_started"
+    },
+    {
+      "requirementId": "NFR-011",
+      "acceptanceCriteriaIds": [
+        "AC-027",
+        "AC-032"
+      ],
+      "planSection": "P7 - security baseline (CON-511 authentication)",
+      "taskIds": [
+        "T5.2",
+        "T6.1"
+      ],
+      "testIds": [],
+      "status": "not_started"
+    },
+    {
+      "requirementId": "NFR-012",
+      "acceptanceCriteriaIds": [
+        "AC-021",
+        "AC-039"
+      ],
+      "planSection": "P7 - security baseline (CON-512 authorization)",
+      "taskIds": [
+        "T4.2",
+        "T6.5"
+      ],
+      "testIds": [],
+      "status": "not_started"
+    },
+    {
+      "requirementId": "NFR-013",
+      "acceptanceCriteriaIds": [
+        "AC-026",
+        "AC-029"
+      ],
+      "planSection": "P7 - security baseline (CON-514 rate limiting)",
+      "taskIds": [
+        "T4.6",
+        "T5.4"
+      ],
+      "testIds": [],
+      "status": "not_started"
+    },
+    {
+      "requirementId": "NFR-014",
+      "acceptanceCriteriaIds": [
+        "AC-002",
+        "AC-032",
+        "AC-035",
+        "AC-036"
+      ],
+      "planSection": "P7 - security baseline (CON-515 input validation)",
+      "taskIds": [
+        "T1.2",
+        "T5.2",
+        "T6.4"
+      ],
+      "testIds": [],
+      "status": "not_started"
+    },
+    {
+      "requirementId": "NFR-015",
+      "acceptanceCriteriaIds": [
+        "AC-014"
+      ],
+      "planSection": "P7 - security baseline (CON-516 injection protection)",
+      "taskIds": [
+        "T3.2",
+        "T6.1"
+      ],
+      "testIds": [],
+      "status": "not_started"
+    },
+    {
+      "requirementId": "NFR-016",
+      "acceptanceCriteriaIds": [
+        "AC-027"
+      ],
+      "planSection": "P7 - security baseline (CON-519 environment security)",
+      "taskIds": [
+        "T5.1",
+        "T7.5"
+      ],
+      "testIds": [],
+      "status": "not_started"
+    },
+    {
+      "requirementId": "NFR-017",
+      "acceptanceCriteriaIds": [
+        "AC-028",
+        "AC-032"
+      ],
+      "planSection": "P7 - security baseline (CON-520 TLS and HSTS)",
+      "taskIds": [
+        "T5.2",
+        "T5.3",
+        "T6.6"
+      ],
+      "testIds": [],
+      "status": "not_started"
+    },
+    {
+      "requirementId": "NFR-018",
+      "acceptanceCriteriaIds": [
+        "AC-001",
+        "AC-002",
+        "AC-003",
+        "AC-004",
+        "AC-005",
+        "AC-006",
+        "AC-007",
+        "AC-008",
+        "AC-009",
+        "AC-010",
+        "AC-011",
+        "AC-012",
+        "AC-013",
+        "AC-014",
+        "AC-015",
+        "AC-016",
+        "AC-017",
+        "AC-018",
+        "AC-019",
+        "AC-020",
+        "AC-021",
+        "AC-022",
+        "AC-023",
+        "AC-024",
+        "AC-025",
+        "AC-026",
+        "AC-027",
+        "AC-028",
+        "AC-029",
+        "AC-030",
+        "AC-031",
+        "AC-032",
+        "AC-033",
+        "AC-034",
+        "AC-035",
+        "AC-036",
+        "AC-037",
+        "AC-038",
+        "AC-039",
+        "AC-040",
+        "AC-041",
+        "AC-042",
+        "AC-043",
+        "AC-044"
+      ],
+      "planSection": "Test agent - /sdrive:test",
+      "taskIds": [],
+      "testIds": [],
+      "status": "not_started"
+    }
+  ]
+}

@@ -1,0 +1,830 @@
+{
+  "feature": "m4-media-links",
+  "title": "M4 Media and Links - six media and link crates 0.1",
+  "version": 1,
+  "overview": {
+    "problemStatement": "The workspace has dado and the M0 baseline but none of the six M4 crates exist: there is no scene compiler, audio mixing graph, recording and replay layer, studio control protocol, egress destination model, or signed-link layer. Applications that run a live studio must re-implement scene-to-FFmpeg compilation, real-time-safe audio mixing, replay buffering, preview/program permissions, RTMP/SRT/WHIP destination handling, and signed attribution links. Every re-implementation risks silently overflowing encoders, allocating on the audio thread, filling disks, checking permissions in the client, leaking stream keys, and issuing forgeable or non-expiring links.",
+    "proposedSolution": "Add six standalone crates under crates/* on feature/m4-media-links: ffscene compiles a declarative scene into a deterministic FFmpeg filter graph and argument vector with validation, ladder expansion, encoder probing, and output descriptors; mixbus is a real-time-safe mixing graph with gain, pan, gate, compressor, ducker, loudness, latency reporting, and lock-free meters; replay-recorder records isolated packet-in tracks with a segment-rotation replay ring, segment/tee sinks, a hard disk budget, crash recovery, and clip extraction; studio-protocol defines the envelope, message set, role permissions, and a pure state machine; rtmp-publish models RTMP/RTMPS/SRT/WHIP destinations with key-shape validation, redaction by construction, shallow probes, bounded retry, circuit breaking, failover, and bitrate hints; signedlink issues HMAC-SHA256 signed, expiring links with base62 codes, UTM normalisation, an attribution window, a mandatory LinkStore, and an optional axum redirect handler. Each crate ships forbid(unsafe_code), deny(missing_docs), a README, a CHANGELOG, at least one runnable example, and package metadata; publication to crates.io happens from main after review and archive.",
+    "targetAudience": "External Rust developers building live-studio, recording, streaming, or affiliate-link products who need composable building blocks rather than a framework, plus maintainers who must keep the six crates consistent with platform-core IDs and conventions without adding a framework dependency.",
+    "assumptions": [
+      "The six crate names (ffscene, mixbus, replay-recorder, studio-protocol, rtmp-publish, signedlink) are free on crates.io as of 2026-10-20; each MUST be re-checked immediately before publication (CON-111).",
+      "The workspace remains rooted at the repository root with members = [\"crates/*\"], so new crates need no root manifest change (CON-101).",
+      "Rust 1.85 remains the MSRV and edition 2021 remains in force (CON-102).",
+      "The six crates do not depend on wirekit; they may share conventions only (backlog M4 notes; CON-107).",
+      "No crate ships application UI, product nouns, or a global singleton (CON-106, CON-109, CON-301).",
+      "Publication is a manual post-merge step from main; this feature makes the crates release-ready.",
+      "Test authoring and test execution belong to /sdrive:test, not to this feature's implementation tasks.",
+      "Real FFmpeg, audio devices, and network endpoints are not required on the build machine; the crates compile graphs, process buffers, and probe connections through injectable interfaces.",
+      "No Context7 or exa research was available in this session; external references are stable standards documents and every project-specific claim comes from the repository."
+    ],
+    "outOfScope": [
+      "Publishing any crate to crates.io from this feature branch",
+      "mixbus VST3/CLAP plugin hosting (BP-036) and any unsafe exception",
+      "A published scene JSON schema, drag-and-drop layout editor, or incremental subgraph recompilation in ffscene",
+      "Owned encoder selection, hardware encoding, or sparse-file ring storage in replay-recorder",
+      "An axum/WebSocket transport, binary encoding, chat, or persistence in studio-protocol",
+      "Deep RTMP handshake probing, key rotation, CDN orchestration, or wire-protocol implementation in rtmp-publish",
+      "Ed25519 signatures, analytics rollups, QR generation, or an anonymous public URL shortener in signedlink",
+      "platform-core, quota-ledger, hookgate, syncforge, wirekit, and provider modules (M1-M3 features)",
+      "Application UI, product nouns, billing rules, and vendor workflow code (CON-106, CON-301)",
+      "Test authoring and test execution (owned by /sdrive:test)"
+    ]
+  },
+  "userStories": [
+    {
+      "id": "US-001",
+      "title": "Compile a scene into a deterministic FFmpeg graph",
+      "role": "live-studio developer",
+      "want": "compile a declarative scene into an FFmpeg filter graph and argument vector",
+      "benefit": "the same scene always produces the same pipeline and invalid scenes fail before FFmpeg starts",
+      "acceptanceCriteria": [
+        {
+          "id": "AC-001",
+          "text": "Given a fixed Scene, when compile is called twice in the same process or in separate processes, then the argument vector, filter_complex string, and label mapping are byte-identical."
+        },
+        {
+          "id": "AC-002",
+          "text": "Given a scene with a cycle, an unknown source, an out-of-range transform, or an unsupported blend mode, when compile is called, then it returns a CompileError naming the offending layer and produces no graph."
+        },
+        {
+          "id": "AC-003",
+          "text": "Given a 1080p scene and a ladder containing 720p and 1080p rungs, when the ladder is expanded, then the graph contains ordered split and scale nodes, one output per rung, and each rung compiles successfully."
+        },
+        {
+          "id": "AC-004",
+          "text": "Given a requested encoder profile, when the encoder probe finds h264_nvenc, hevc_qsv, h264_amf, or only libx264, then the result names the selected encoder and the fallback reason explicitly, and never downgrades silently."
+        },
+        {
+          "id": "AC-005",
+          "text": "Given Output::File, Output::Rtmp, Output::Srt, or Output::Whip, when the scene compiles, then it returns a descriptor only and performs no socket, DNS, or process action."
+        },
+        {
+          "id": "AC-006",
+          "text": "Given a 4K/60 scene with overlapping layer names and many transforms, when compiled, then it produces no numeric overflow and no duplicate filter labels."
+        }
+      ]
+    },
+    {
+      "id": "US-002",
+      "title": "Mix live audio without breaking real-time guarantees",
+      "role": "live-audio developer",
+      "want": "a mixing graph that processes buffers in place with gain, pan, gating, compression, ducking, and loudness",
+      "benefit": "broadcast-quality audio without allocating or locking on the audio thread",
+      "acceptanceCriteria": [
+        {
+          "id": "AC-007",
+          "text": "Given a block of silence, when process runs, then the output is silence with no DC offset and no drift across repeated blocks."
+        },
+        {
+          "id": "AC-008",
+          "text": "Given a known input and a gain of -6 dB with constant-power pan, when processed, then the output matches the reference gain and pan law within 0.1 dB."
+        },
+        {
+          "id": "AC-009",
+          "text": "Given a ducker keyed by a speech source, when the key crosses the threshold, then the music source is attenuated within the configured attack window and released within the release window."
+        },
+        {
+          "id": "AC-010",
+          "text": "Given a noisy speech signal, when the gate runs, then it does not chatter: gain transitions are bounded to the configured hysteresis and hold time."
+        },
+        {
+          "id": "AC-011",
+          "text": "Given an integrated loudness target, when a program-length signal is processed, then integrated loudness is within 0.5 LU of target and true peak does not exceed the configured ceiling."
+        },
+        {
+          "id": "AC-012",
+          "text": "Given a routing change, when the new plan is installed, then the swap happens at a block boundary with no click or dropout, and a custom allocator that aborts on allocation observes no allocation, lock, log, or await on the audio thread."
+        },
+        {
+          "id": "AC-013",
+          "text": "Given metering is enabled, when blocks are processed, then peak, RMS, LUFS, and gain reduction are published per block through a lock-free snapshot and are never read from inside process."
+        }
+      ]
+    },
+    {
+      "id": "US-003",
+      "title": "Record isolated tracks and keep a replay ring",
+      "role": "studio operator",
+      "want": "record isolated tracks and keep the last N seconds on disk",
+      "benefit": "extract a clip after an event without stopping the recording or filling the volume",
+      "acceptanceCriteria": [
+        {
+          "id": "AC-014",
+          "text": "Given a process killed mid-segment, when the recorder restarts and scans the spool, then every complete segment is recovered, the partial segment is discarded or finalised deterministically, and index.json is consistent."
+        },
+        {
+          "id": "AC-015",
+          "text": "Given a ring configured for 120 seconds, when clip(last: 30s) is requested, then it returns a decodable clip within one frame of 30 seconds and recording continues uninterrupted."
+        },
+        {
+          "id": "AC-016",
+          "text": "Given max_bytes and min_free_bytes, when the budget is reached, then the configured pressure policy applies, an event is emitted, and free space never falls below min_free_bytes."
+        },
+        {
+          "id": "AC-017",
+          "text": "Given a tee sink with two outputs, when a segment closes, then both outputs are written and the duplicate is byte-identical to the local segment."
+        },
+        {
+          "id": "AC-018",
+          "text": "Given 16 enabled tracks under sustained packet load, when recording runs, then no track drops packets and each track's index lists its own segments only."
+        },
+        {
+          "id": "AC-019",
+          "text": "Given a wall-clock change or non-monotonic timestamps, when segments close, then segment durations and the index remain monotonic and uncorrupted."
+        }
+      ]
+    },
+    {
+      "id": "US-004",
+      "title": "Enforce studio control permissions server-side",
+      "role": "studio service developer",
+      "want": "a pure control-plane state machine with explicit permissions",
+      "benefit": "preview/program changes are authorised on the server and replaying a message log reproduces the same state",
+      "acceptanceCriteria": [
+        {
+          "id": "AC-020",
+          "text": "Given every message variant, when serialised to JSON and deserialised, then the variant, IDs, timestamps, and payload round-trip unchanged."
+        },
+        {
+          "id": "AC-021",
+          "text": "Given the matrix of roles and message variants, when each message is applied, then the result is allowed or denied exactly as the permission table declares, and a denied message leaves state unchanged."
+        },
+        {
+          "id": "AC-022",
+          "text": "Given a program cut, when it is applied, then the transition is atomic: no observable state has both the outgoing and incoming scene on program."
+        },
+        {
+          "id": "AC-023",
+          "text": "Given duplicate or out-of-order messages, when they are applied, then duplicates are rejected idempotently and out-of-order messages are rejected or buffered deterministically as documented."
+        },
+        {
+          "id": "AC-024",
+          "text": "Given a recorded message log, when it is replayed from a known initial state, then the final StudioState equals the final state of the live run."
+        },
+        {
+          "id": "AC-025",
+          "text": "Given an envelope with an unknown major version, when it is applied, then it is rejected; given a newer minor version with additional fields, then it is accepted."
+        },
+        {
+          "id": "AC-026",
+          "text": "Given one participant sending 50 messages per second, when the service applies them, then it sustains the rate without unbounded queue growth, and excess messages are rejected with a typed error."
+        }
+      ]
+    },
+    {
+      "id": "US-005",
+      "title": "Model egress destinations without leaking stream keys",
+      "role": "streaming developer",
+      "want": "model RTMP, RTMPS, SRT, and WHIP destinations with validated shape, health, retry, and failover",
+      "benefit": "stream keys never reach logs and failures are handled honestly",
+      "acceptanceCriteria": [
+        {
+          "id": "AC-027",
+          "text": "Given any destination and any key value, when Debug, Display, error payloads, and tracing events are produced, then the key never appears (property test over generated keys and formats)."
+        },
+        {
+          "id": "AC-028",
+          "text": "Given a probe against a resolvable host that refuses, a host that times out, a nonexistent DNS name, and an endpoint that rejects credentials, then Health distinguishes Unreachable, Unreachable with timeout, DNS failure, and AuthRejected."
+        },
+        {
+          "id": "AC-029",
+          "text": "Given repeated failures, when the retry policy runs, then backoff is bounded, jittered, and capped, and the per-destination circuit breaker opens and later closes."
+        },
+        {
+          "id": "AC-030",
+          "text": "Given a primary with an open breaker and a backup destination, when failover occurs, then the backup is promoted, no flapping occurs before the cool-down, and the primary is restored only after the cool-down."
+        },
+        {
+          "id": "AC-031",
+          "text": "Given observed throughput, when a bitrate hint is produced, then the hint never exceeds the configured maximum or drops below the configured floor."
+        },
+        {
+          "id": "AC-032",
+          "text": "Given an invalid scheme, a missing host, a bad port, or an empty key, when the destination is validated, then a typed error is returned before any connection attempt."
+        }
+      ]
+    },
+    {
+      "id": "US-006",
+      "title": "Issue signed, expiring, attributable links",
+      "role": "affiliate or checkout developer",
+      "want": "short signed links with UTM parameters and an attribution window",
+      "benefit": "prove a click was ours and reject tampered, expired, or reused links",
+      "acceptanceCriteria": [
+        {
+          "id": "AC-033",
+          "text": "Given a signed URL, when the target, campaign, or tenant is modified, then verification fails with a typed error and returns no claims."
+        },
+        {
+          "id": "AC-034",
+          "text": "Given an expired link or a single-use link whose nonce is consumed, when it is verified, then it fails closed and no claims are returned."
+        },
+        {
+          "id": "AC-035",
+          "text": "Given a clock_skew window, when the current time is outside the window, then verification fails; when it is inside, then verification succeeds."
+        },
+        {
+          "id": "AC-036",
+          "text": "Given UTM parameters, when they are normalised, then utm_source, utm_medium, utm_campaign, utm_term, and utm_content are sorted deterministically, and any unknown key is rejected rather than dropped."
+        },
+        {
+          "id": "AC-037",
+          "text": "Given a code collision, when the store reports the code exists, then generation retries up to a bounded limit and then returns a typed error instead of looping."
+        },
+        {
+          "id": "AC-038",
+          "text": "Given the optional redirect handler, when it redirects, then the response sets a no-referrer policy so the signature is not leaked to the target."
+        },
+        {
+          "id": "AC-039",
+          "text": "Given a revoked code, when it is verified after revocation, then it fails immediately without waiting for expiry."
+        }
+      ]
+    },
+    {
+      "id": "US-007",
+      "title": "Keep the six crates consistent and release-ready",
+      "role": "workspace maintainer",
+      "want": "all six crates to meet the repository baseline",
+      "benefit": "review them as one unit and publish from main",
+      "acceptanceCriteria": [
+        {
+          "id": "AC-040",
+          "text": "Given each crate, when built with --no-default-features and with each feature enabled independently, then it compiles, and enabling one feature does not disable another."
+        },
+        {
+          "id": "AC-041",
+          "text": "Given each crate, when compiled on Rust 1.85, then it builds, declares forbid(unsafe_code) and deny(missing_docs), and documents every public item."
+        },
+        {
+          "id": "AC-042",
+          "text": "Given each crate, when its example is built, then at least one runnable example compiles and demonstrates the crate's primary operation without network or device access."
+        },
+        {
+          "id": "AC-043",
+          "text": "Given the workspace, when cargo package --workspace and cargo doc --workspace --all-features run with warnings denied, then they succeed and every crate carries description, licence, repository, readme, keywords, categories, and docs.rs all-features metadata."
+        },
+        {
+          "id": "AC-044",
+          "text": "Given the workspace, when CI runs and the dependency tree is inspected, then the new crates are covered by the existing workspace jobs and none of them depends on wirekit or exposes application domain types."
+        }
+      ]
+    }
+  ],
+  "functionalRequirements": [
+    {
+      "id": "FR-001",
+      "text": "ffscene::compile(&Scene, &Output) MUST return a CompiledGraph with filter_complex, input labels, output labels, and per-layer mapping, and MUST be deterministic for identical input.",
+      "linkedAcceptanceCriteria": ["AC-001", "AC-006"]
+    },
+    {
+      "id": "FR-002",
+      "text": "ffscene MUST validate cycles, missing sources, out-of-range transforms, and unsupported blend modes before producing a graph, returning a typed CompileError that names the layer.",
+      "linkedAcceptanceCriteria": ["AC-002"]
+    },
+    {
+      "id": "FR-003",
+      "text": "ffscene MUST expand a Ladder into one encoder profile per rung with correct split and scale nodes and stable ordering.",
+      "linkedAcceptanceCriteria": ["AC-003"]
+    },
+    {
+      "id": "FR-004",
+      "text": "ffscene MUST probe for h264_nvenc, hevc_qsv, h264_amf, and libx264 and MUST report the selected encoder plus any fallback reason explicitly.",
+      "linkedAcceptanceCriteria": ["AC-004"]
+    },
+    {
+      "id": "FR-005",
+      "text": "ffscene MUST emit Output::File, Output::Rtmp, Output::Srt, and Output::Whip descriptors without opening sockets, resolving DNS, or spawning processes.",
+      "linkedAcceptanceCriteria": ["AC-005"]
+    },
+    {
+      "id": "FR-006",
+      "text": "ffscene MUST assign deterministic layer and filter labels with a stable node order and MUST NOT embed timestamps or process-specific values in the graph.",
+      "linkedAcceptanceCriteria": ["AC-001", "AC-003", "AC-006"]
+    },
+    {
+      "id": "FR-007",
+      "text": "mixbus::Mixer::process(&mut self, input, output) MUST process interleaved f32 frames in place with no allocation, lock, log, or await on the audio thread.",
+      "linkedAcceptanceCriteria": ["AC-007", "AC-012"]
+    },
+    {
+      "id": "FR-008",
+      "text": "mixbus MUST provide gain, constant-power pan, gate with hysteresis, compressor, sidechain ducker, and EBU R128 loudness with true-peak limiting.",
+      "linkedAcceptanceCriteria": ["AC-008", "AC-009", "AC-010", "AC-011"]
+    },
+    {
+      "id": "FR-009",
+      "text": "mixbus MUST build routing changes off the audio thread and swap the new plan at a block boundary.",
+      "linkedAcceptanceCriteria": ["AC-012"]
+    },
+    {
+      "id": "FR-010",
+      "text": "mixbus MUST publish peak, RMS, LUFS, and gain reduction per block through a lock-free snapshot.",
+      "linkedAcceptanceCriteria": ["AC-013"]
+    },
+    {
+      "id": "FR-011",
+      "text": "mixbus inserts MUST report their latency and the graph MUST compensate so summed outputs stay aligned.",
+      "linkedAcceptanceCriteria": ["AC-012"]
+    },
+    {
+      "id": "FR-012",
+      "text": "mixbus MUST accept caller-owned interleaved f32 buffers and MUST NOT open devices, decode files, own a thread, or depend on a runtime.",
+      "linkedAcceptanceCriteria": ["AC-007"]
+    },
+    {
+      "id": "FR-013",
+      "text": "replay-recorder MUST accept already-encoded packets per track, allow start and stop per track, and preserve monotonic per-track timestamps across clock changes.",
+      "linkedAcceptanceCriteria": ["AC-018", "AC-019"]
+    },
+    {
+      "id": "FR-014",
+      "text": "replay-recorder MUST support Sink::Segment, Sink::Tee, and Sink::Ring with isolated per-track output.",
+      "linkedAcceptanceCriteria": ["AC-015", "AC-017"]
+    },
+    {
+      "id": "FR-015",
+      "text": "replay-recorder MUST expose clip(last: Duration) -> ClipHandle from the ring without stopping recording.",
+      "linkedAcceptanceCriteria": ["AC-015"]
+    },
+    {
+      "id": "FR-016",
+      "text": "replay-recorder MUST enforce max_bytes and min_free_bytes and apply PressurePolicy::{StopOldest, StopNewest, Refuse} with an emitted event.",
+      "linkedAcceptanceCriteria": ["AC-016"]
+    },
+    {
+      "id": "FR-017",
+      "text": "replay-recorder MUST recover deterministically from a crash by scanning the spool and finalising or discarding partial segments.",
+      "linkedAcceptanceCriteria": ["AC-014", "AC-019"]
+    },
+    {
+      "id": "FR-018",
+      "text": "replay-recorder MUST write spool/<session-id>/track-<id>/seg-<n>.<ext> plus index.json, updating the index after each segment close.",
+      "linkedAcceptanceCriteria": ["AC-014", "AC-019"]
+    },
+    {
+      "id": "FR-019",
+      "text": "replay-recorder MUST default to MKV and MUST offer MP4 per track.",
+      "linkedAcceptanceCriteria": ["AC-014", "AC-015"]
+    },
+    {
+      "id": "FR-020",
+      "text": "studio-protocol MUST define the Envelope, the Preview, Program, ScenePatch, Overlay, Role, Whisper, Teleprompter, Ping, and Pong messages, and the shared IDs.",
+      "linkedAcceptanceCriteria": ["AC-020"]
+    },
+    {
+      "id": "FR-021",
+      "text": "studio-protocol MUST map roles to permission sets and MUST check Permission server-side for every message.",
+      "linkedAcceptanceCriteria": ["AC-021"]
+    },
+    {
+      "id": "FR-022",
+      "text": "studio-protocol MUST implement transitions as pure functions of (state, message, actor) returning a new state or a typed rejection.",
+      "linkedAcceptanceCriteria": ["AC-022", "AC-024"]
+    },
+    {
+      "id": "FR-023",
+      "text": "studio-protocol MUST serialise with JSON and MUST use a single integer protocol version where minor additions are backward compatible and unknown majors are rejected.",
+      "linkedAcceptanceCriteria": ["AC-020", "AC-025"]
+    },
+    {
+      "id": "FR-024",
+      "text": "studio-protocol MUST reject duplicate message IDs idempotently and MUST define deterministic handling for out-of-order messages.",
+      "linkedAcceptanceCriteria": ["AC-023", "AC-024"]
+    },
+    {
+      "id": "FR-025",
+      "text": "studio-protocol MUST bound per-participant message handling at 50 messages per second and MUST reject excess messages with a typed error instead of growing a queue without limit.",
+      "linkedAcceptanceCriteria": ["AC-026"]
+    },
+    {
+      "id": "FR-026",
+      "text": "rtmp-publish MUST model Destination with protocol, URL, secret key, optional region, and optional backup, and MUST redact the key in Debug, Display, tracing, and error payloads while NOT implementing Serialize for the key.",
+      "linkedAcceptanceCriteria": ["AC-027"]
+    },
+    {
+      "id": "FR-027",
+      "text": "rtmp-publish MUST validate scheme, host, port, and key presence before any connection attempt and MUST return a typed error otherwise.",
+      "linkedAcceptanceCriteria": ["AC-032"]
+    },
+    {
+      "id": "FR-028",
+      "text": "rtmp-publish MUST probe RTMP/RTMPS/SRT with a TCP connect and WHIP with an HTTP OPTIONS or HEAD request, distinguishing DNS failure, refused, timeout, and auth rejection.",
+      "linkedAcceptanceCriteria": ["AC-028"]
+    },
+    {
+      "id": "FR-029",
+      "text": "rtmp-publish MUST use bounded exponential backoff with jitter, retry transport failures, never retry AuthRejected, and maintain a per-destination circuit breaker.",
+      "linkedAcceptanceCriteria": ["AC-029"]
+    },
+    {
+      "id": "FR-030",
+      "text": "rtmp-publish MUST promote a backup destination when the primary breaker opens and MUST demote it only after a cool-down.",
+      "linkedAcceptanceCriteria": ["AC-030"]
+    },
+    {
+      "id": "FR-031",
+      "text": "rtmp-publish MUST produce bitrate hints bounded by configured ceilings and floors.",
+      "linkedAcceptanceCriteria": ["AC-031"]
+    },
+    {
+      "id": "FR-032",
+      "text": "rtmp-publish MUST NOT implement RTMP, SRT, or WHIP wire protocols, muxing, encoding, or CDN orchestration.",
+      "linkedAcceptanceCriteria": ["AC-028"]
+    },
+    {
+      "id": "FR-033",
+      "text": "signedlink MUST sign with HMAC-SHA256 and append a compact URL-safe token that verify checks at a supplied instant, rejecting tampering, expiry, and clock skew outside the window.",
+      "linkedAcceptanceCriteria": ["AC-033", "AC-035"]
+    },
+    {
+      "id": "FR-034",
+      "text": "signedlink MUST generate base62 short codes, collision-check them through the store, and bound retries.",
+      "linkedAcceptanceCriteria": ["AC-037"]
+    },
+    {
+      "id": "FR-035",
+      "text": "signedlink MUST normalise the five UTM keys deterministically and MUST reject unknown UTM keys.",
+      "linkedAcceptanceCriteria": ["AC-036"]
+    },
+    {
+      "id": "FR-036",
+      "text": "signedlink claims MUST carry the attribution window and MUST NOT invent a default.",
+      "linkedAcceptanceCriteria": ["AC-033"]
+    },
+    {
+      "id": "FR-037",
+      "text": "signedlink MUST support optional single use by consuming a nonce atomically through the store.",
+      "linkedAcceptanceCriteria": ["AC-034"]
+    },
+    {
+      "id": "FR-038",
+      "text": "signedlink MUST require a LinkStore implementation for revocation and single use; stateless verification alone MUST NOT be presented as revocable.",
+      "linkedAcceptanceCriteria": ["AC-034", "AC-039"]
+    },
+    {
+      "id": "FR-039",
+      "text": "signedlink MUST provide the redirect handler behind an optional axum feature and MUST set a no-referrer policy on the redirect response.",
+      "linkedAcceptanceCriteria": ["AC-038"]
+    },
+    {
+      "id": "FR-040",
+      "text": "The six crates MUST be workspace members under crates/* and MUST NOT require a root manifest edit.",
+      "linkedAcceptanceCriteria": ["AC-040", "AC-044"]
+    },
+    {
+      "id": "FR-041",
+      "text": "Every crate MUST declare #![forbid(unsafe_code)] and #![deny(missing_docs)].",
+      "linkedAcceptanceCriteria": ["AC-041"]
+    },
+    {
+      "id": "FR-042",
+      "text": "Every crate MUST ship at least one runnable example that needs no network, device, or external process.",
+      "linkedAcceptanceCriteria": ["AC-042"]
+    },
+    {
+      "id": "FR-043",
+      "text": "Every crate MUST carry description, licence, repository, readme, keywords, categories, and docs.rs all-features metadata, and cargo package --workspace MUST succeed.",
+      "linkedAcceptanceCriteria": ["AC-043"]
+    },
+    {
+      "id": "FR-044",
+      "text": "No M4 crate MUST depend on wirekit, expose provider modules, or add a global mutable singleton.",
+      "linkedAcceptanceCriteria": ["AC-044"]
+    },
+    {
+      "id": "FR-045",
+      "text": "Each crate MUST have exactly one job and MUST NOT expose application domain types, product nouns, UI, billing rules, or vendor workflow code.",
+      "linkedAcceptanceCriteria": ["AC-044"]
+    }
+  ],
+  "nonFunctionalRequirements": [
+    {
+      "id": "NFR-001",
+      "text": "ffscene output MUST be byte-identical for identical input, independent of hash-map iteration order, wall-clock time, and process identity.",
+      "linkedAcceptanceCriteria": ["AC-001"]
+    },
+    {
+      "id": "NFR-002",
+      "text": "mixbus MUST never allocate, lock, log, or await on the audio thread; buffers MUST be pre-allocated at the maximum block size.",
+      "linkedAcceptanceCriteria": ["AC-012"]
+    },
+    {
+      "id": "NFR-003",
+      "text": "All crates MUST treat input as untrusted and MUST return typed errors with stable codes instead of panicking, aborting, or hanging.",
+      "linkedAcceptanceCriteria": ["AC-002", "AC-032", "AC-034"]
+    },
+    {
+      "id": "NFR-004",
+      "text": "Stream keys, signing keys, and signed tokens MUST NOT appear in Debug, Display, logs, traces, error payloads, or Serialize output (CON-214).",
+      "linkedAcceptanceCriteria": ["AC-027", "AC-033", "AC-038"]
+    },
+    {
+      "id": "NFR-005",
+      "text": "replay-recorder MUST NOT fill the volume: min_free_bytes and max_bytes MUST be enforced before and during writes.",
+      "linkedAcceptanceCriteria": ["AC-016"]
+    },
+    {
+      "id": "NFR-006",
+      "text": "studio-protocol MUST sustain 50 messages per second per participant within its documented latency budget without unbounded memory growth.",
+      "linkedAcceptanceCriteria": ["AC-026"]
+    },
+    {
+      "id": "NFR-007",
+      "text": "Every crate MUST build on Rust 1.85 with edition 2021, no unsafe, and complete rustdoc (CON-102, CON-201, CON-202).",
+      "linkedAcceptanceCriteria": ["AC-041"]
+    },
+    {
+      "id": "NFR-008",
+      "text": "Optional functionality MUST be behind additive Cargo features; defaults MUST be documented and no feature may disable another (CON-204).",
+      "linkedAcceptanceCriteria": ["AC-040"]
+    },
+    {
+      "id": "NFR-009",
+      "text": "Registration and configuration MUST be explicit; no crate may expose a global mutable singleton (CON-109).",
+      "linkedAcceptanceCriteria": ["AC-040", "AC-044"]
+    },
+    {
+      "id": "NFR-010",
+      "text": "Public APIs MUST follow the Rust API Guidelines and MUST NOT ship UI, framework-coupled presentation, or application domain types (CON-106, CON-216, CON-301).",
+      "linkedAcceptanceCriteria": ["AC-041", "AC-043"]
+    },
+    {
+      "id": "NFR-011",
+      "text": "Authentication (CON-511): signing keys and stream keys MUST be caller-supplied, MUST NOT be persisted by any crate, and MUST be validated for presence and shape before use; signedlink MUST fail closed on any unverifiable link and rtmp-publish MUST treat a missing key as an invalid destination.",
+      "linkedAcceptanceCriteria": ["AC-027", "AC-032"]
+    },
+    {
+      "id": "NFR-012",
+      "text": "Authorization (CON-512): studio-protocol MUST enforce every permission check server-side for every message, and signedlink revocation and single use MUST be enforced by the store rather than by client behaviour.",
+      "linkedAcceptanceCriteria": ["AC-021", "AC-039"]
+    },
+    {
+      "id": "NFR-013",
+      "text": "Rate limiting (CON-514): rtmp-publish MUST bound retries and circuit-breaker transitions per destination, and studio-protocol MUST enforce the per-participant message budget with explicit rejection.",
+      "linkedAcceptanceCriteria": ["AC-026", "AC-029"]
+    },
+    {
+      "id": "NFR-014",
+      "text": "Input validation (CON-515): every public entry point accepting a URL, key, scene, packet, message, or link MUST validate it and return a typed error; no input may cause a panic or unbounded allocation.",
+      "linkedAcceptanceCriteria": ["AC-002", "AC-032", "AC-035", "AC-036"]
+    },
+    {
+      "id": "NFR-015",
+      "text": "Injection protection (CON-516): replay-recorder MUST derive spool paths only from validated IDs and MUST reject path traversal; the crates ship no SQL or Redis backend, and the LinkStore contract documents that implementations MUST use parameterised queries or equivalent.",
+      "linkedAcceptanceCriteria": ["AC-014"]
+    },
+    {
+      "id": "NFR-016",
+      "text": "Environment security (CON-519): credentials and signing keys MUST come from caller-supplied configuration or secret stores; the feature MUST NOT add .env files, committed keys, or tokens.",
+      "linkedAcceptanceCriteria": ["AC-027"]
+    },
+    {
+      "id": "NFR-017",
+      "text": "HTTPS / TLS (CON-520): rtmp-publish health probes and redirects MUST use TLS-capable schemes (https, rtmps, whips), MUST reject plaintext credential transport, and MUST document that HSTS is the deployment edge's responsibility; signedlink's redirect handler MUST NOT downgrade the target scheme.",
+      "linkedAcceptanceCriteria": ["AC-028", "AC-032"]
+    },
+    {
+      "id": "NFR-018",
+      "text": "Every acceptance criterion MUST be covered by at least one test supplied by the Test agent (CON-404).",
+      "linkedAcceptanceCriteria": [
+        "AC-001", "AC-002", "AC-003", "AC-004", "AC-005", "AC-006", "AC-007", "AC-008", "AC-009", "AC-010",
+        "AC-011", "AC-012", "AC-013", "AC-014", "AC-015", "AC-016", "AC-017", "AC-018", "AC-019", "AC-020",
+        "AC-021", "AC-022", "AC-023", "AC-024", "AC-025", "AC-026", "AC-027", "AC-028", "AC-029", "AC-030",
+        "AC-031", "AC-032", "AC-033", "AC-034", "AC-035", "AC-036", "AC-037", "AC-038", "AC-039", "AC-040",
+        "AC-041", "AC-042", "AC-043", "AC-044"
+      ]
+    }
+  ],
+  "edgeCases": [
+    {
+      "id": "EC-001",
+      "description": "A layer references itself or a cycle of layers",
+      "expectedBehavior": "CompileError::Cycle naming the cycle members; no graph is produced."
+    },
+    {
+      "id": "EC-002",
+      "description": "A layer references an unknown SourceId",
+      "expectedBehavior": "CompileError::UnknownSource; no graph is produced."
+    },
+    {
+      "id": "EC-003",
+      "description": "Transform values overflow u32 or exceed canvas bounds at 4K/60",
+      "expectedBehavior": "CompileError::TransformOutOfRange; no wrap-around."
+    },
+    {
+      "id": "EC-004",
+      "description": "Two layers normalise to the same label",
+      "expectedBehavior": "Deterministic suffixing; no duplicate labels in the graph."
+    },
+    {
+      "id": "EC-005",
+      "description": "No FFmpeg binary or no hardware encoder is present",
+      "expectedBehavior": "EncoderSupport::Unsupported with the probed list; never a silent switch."
+    },
+    {
+      "id": "EC-006",
+      "description": "mixbus receives a block larger than the pre-allocated maximum",
+      "expectedBehavior": "Typed error; no reallocation on the audio thread."
+    },
+    {
+      "id": "EC-007",
+      "description": "mixbus receives NaN or infinite samples",
+      "expectedBehavior": "Output is sanitised to finite values and a meter flag is set."
+    },
+    {
+      "id": "EC-008",
+      "description": "Loudness measurement of digital silence",
+      "expectedBehavior": "LUFS reports the gated silence value without violating the true-peak ceiling."
+    },
+    {
+      "id": "EC-009",
+      "description": "Crash during index.json write",
+      "expectedBehavior": "The last segment is discarded on recovery and the index is rewritten atomically."
+    },
+    {
+      "id": "EC-010",
+      "description": "Disk full during a segment write",
+      "expectedBehavior": "The pressure policy fires, the partial segment is removed, and an event is emitted."
+    },
+    {
+      "id": "EC-011",
+      "description": "Wall clock moves backwards during recording",
+      "expectedBehavior": "Per-track timestamps remain monotonic; no negative durations."
+    },
+    {
+      "id": "EC-012",
+      "description": "Duplicate MessageId",
+      "expectedBehavior": "Rejected idempotently; state unchanged."
+    },
+    {
+      "id": "EC-013",
+      "description": "Unknown protocol major version",
+      "expectedBehavior": "Rejected with UnsupportedVersion; newer minor fields are accepted."
+    },
+    {
+      "id": "EC-014",
+      "description": "Participant lacks the required permission",
+      "expectedBehavior": "Denied; state unchanged and the attempt is observable."
+    },
+    {
+      "id": "EC-015",
+      "description": "Destination URL uses an unsupported scheme or a plaintext http:// WHIP endpoint",
+      "expectedBehavior": "Rejected before connecting (CON-520)."
+    },
+    {
+      "id": "EC-016",
+      "description": "Destination key is missing, empty, or whitespace",
+      "expectedBehavior": "InvalidKey; no connection attempt."
+    },
+    {
+      "id": "EC-017",
+      "description": "Probe hits DNS failure, refused connection, or timeout",
+      "expectedBehavior": "Distinct Health variants, never a generic failure."
+    },
+    {
+      "id": "EC-018",
+      "description": "Backup destination is the same URL and key as the primary, or two backups point at each other",
+      "expectedBehavior": "Failover refuses to loop."
+    },
+    {
+      "id": "EC-019",
+      "description": "Link expires exactly at now == exp",
+      "expectedBehavior": "Expired; the boundary is closed."
+    },
+    {
+      "id": "EC-020",
+      "description": "Single-use link is replayed",
+      "expectedBehavior": "AlreadyUsed; no claims are returned."
+    },
+    {
+      "id": "EC-021",
+      "description": "Unknown UTM key in a link",
+      "expectedBehavior": "UnknownUtmKey; nothing is dropped silently."
+    },
+    {
+      "id": "EC-022",
+      "description": "Code collision persists past the retry limit",
+      "expectedBehavior": "CodeExhausted; no infinite loop."
+    },
+    {
+      "id": "EC-023",
+      "description": "Redirect target receives the request",
+      "expectedBehavior": "The signature is not present in Referer because the response sets Referrer-Policy: no-referrer."
+    }
+  ],
+  "dependencies": [
+    {
+      "name": "serde",
+      "type": "library",
+      "notes": "Optional; JSON, index, and message serialisation where a crate opts in. Must not break MSRV 1.85."
+    },
+    {
+      "name": "serde_json",
+      "type": "library",
+      "notes": "Optional; replay-recorder index, studio-protocol messages, signedlink claims."
+    },
+    {
+      "name": "uuid",
+      "type": "library",
+      "notes": "Optional, v7 feature; studio-protocol message and participant IDs."
+    },
+    {
+      "name": "chrono",
+      "type": "library",
+      "notes": "Optional; protocol timestamps and the signedlink time source."
+    },
+    {
+      "name": "url",
+      "type": "library",
+      "notes": "rtmp-publish destination parsing and signedlink target parsing."
+    },
+    {
+      "name": "hmac",
+      "type": "library",
+      "notes": "signedlink HMAC-SHA256 token signing and verification."
+    },
+    {
+      "name": "sha2",
+      "type": "library",
+      "notes": "signedlink HMAC-SHA256 digest."
+    },
+    {
+      "name": "base64",
+      "type": "library",
+      "notes": "signedlink URL-safe token encoding."
+    },
+    {
+      "name": "getrandom",
+      "type": "library",
+      "notes": "signedlink base62 code entropy from the operating system."
+    },
+    {
+      "name": "reqwest",
+      "type": "library",
+      "notes": "Optional, rustls TLS; rtmp-publish WHIP health probe only."
+    },
+    {
+      "name": "axum",
+      "type": "library",
+      "notes": "Optional; signedlink redirect handler."
+    },
+    {
+      "name": "crates.io",
+      "type": "service",
+      "notes": "Publication target after merge; every crate name must be re-checked immediately before publish (CON-111)."
+    }
+  ],
+  "risks": [
+    {
+      "id": "RISK-001",
+      "description": "Six crates in one feature create a large review unit.",
+      "mitigation": "Phase the plan per crate, keep each crate independent, and make every phase produce a compiling workspace."
+    },
+    {
+      "id": "RISK-002",
+      "description": "Real-time audio guarantees are hard to prove.",
+      "mitigation": "An aborting allocator test, an injected clock, and explicit no-allocation/no-lock/no-log rules in NFR-002 and AC-012."
+    },
+    {
+      "id": "RISK-003",
+      "description": "FFmpeg filter syntax changes across versions.",
+      "mitigation": "Target FFmpeg 7.x, use golden-file tests, and document the dialect boundary in ffscene."
+    },
+    {
+      "id": "RISK-004",
+      "description": "A stream key leaks through a derived type or a tracing field.",
+      "mitigation": "Redaction by construction, no Serialize for the key, and a property test over key shapes and formats."
+    },
+    {
+      "id": "RISK-005",
+      "description": "Disk-budget enforcement races with concurrent writers.",
+      "mitigation": "Enforce before and during writes, use a single-writer contract per track, and write the index atomically."
+    },
+    {
+      "id": "RISK-006",
+      "description": "Permission checks drift from the message table.",
+      "mitigation": "Keep one permission table in code, generate a matrix test from it, and keep transitions pure."
+    },
+    {
+      "id": "RISK-007",
+      "description": "Dependency additions raise MSRV or pull a runtime.",
+      "mitigation": "Keep dependencies optional and feature-gated; rely on the existing MSRV CI job."
+    },
+    {
+      "id": "RISK-008",
+      "description": "signedlink is mistaken for a stateless revocable link system.",
+      "mitigation": "Require the store for revocation and single use and document the boundary."
+    },
+    {
+      "id": "RISK-009",
+      "description": "Code duplication across crates for IDs, errors, and redaction.",
+      "mitigation": "Keep each crate single-purpose and accept small documented duplication rather than adding a shared framework crate (CON-103)."
+    },
+    {
+      "id": "RISK-010",
+      "description": "Scope creep into M5 providers or platform-core.",
+      "mitigation": "Enforce the out-of-scope list; later work becomes a new feature or a new version."
+    }
+  ]
+}

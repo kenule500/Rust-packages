@@ -43,5 +43,6 @@ tracing.workspace = true
 uuid.workspace = true
 
 [dev-dependencies]
+platform-core.workspace = true
 quota-ledger = { path = "../quota-ledger", version = "0.1.0" }
 tokio.workspace = true

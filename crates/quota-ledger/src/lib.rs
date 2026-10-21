@@ -20,7 +20,8 @@
 //!
 //! # Feature flags
 //!
-//! - `postgres` - the optional Postgres backend. Off by default.
+//! - `postgres` - the optional Postgres backend. Off by default. Connections
+//!   require TLS; the backend collects no `sqlx` types in the default build.
 //!
 //! # Non-goals
 //!
@@ -34,6 +35,8 @@
 mod error;
 mod memory;
 mod policy;
+#[cfg(feature = "postgres")]
+pub mod postgres;
 mod store;
 mod types;
 mod window;

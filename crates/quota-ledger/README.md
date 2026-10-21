@@ -36,9 +36,39 @@ different payload is an `IdempotencyConflict`.
 
 ## Postgres
 
-Enable the `postgres` feature and apply `src/postgres/schema.sql`. Connections
-require TLS by default; an explicit test-only insecure mode exists for local
-development.
+Enable the `postgres` feature. The backend adds three tables:
+
+- `quota_budget` - one row per tenant, provider, metric, and window, with
+  `used_units`, `held_units`, and overage counters.
+- `quota_reservation` - one row per hold, with a partial unique index on
+  `(tenant_id, provider_id, metric, idempotency_key)` and an index for TTL
+  reclaim.
+- `quota_dead_hold` - one row per reclaimed hold, used to return held units
+  exactly once.
+
+Reserve is a single transaction: a per-budget advisory lock, a conditional
+`UPDATE` that only succeeds while `used + held + units <= limit`, and the hold
+insert. Commit and release settle the reservation once; a repeated or late
+settlement is a typed no-op.
+
+Apply `src/postgres/schema.sql` with your migration tool. For local development
+and tests, `PostgresQuotaStore::apply_schema` executes the same file.
+
+```rust
+use quota_ledger::postgres::PostgresQuotaStore;
+
+let store = PostgresQuotaStore::connect("postgres://user:pass@db/app").await?;
+store.apply_schema().await?;
+```
+
+`connect` requires TLS. `connect_insecure_for_tests` disables TLS explicitly and
+must never be used in production. Connection strings are never stored in the
+store or rendered in `Debug`, `Display`, or errors.
+
+The default reservation TTL is five minutes; set it per request with
+`ReserveRequest::with_ttl`. Run `PostgresQuotaStore::reclaim_expired` from a
+periodic job. Reclaim is idempotent: the hold is settled once, recorded in
+`quota_dead_hold` once, and its units are returned once.
 
 ## License
 

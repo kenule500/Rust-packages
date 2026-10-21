@@ -93,27 +93,27 @@ Depends on: P2
 
 Depends on: P3
 
-- [ ] **T4.1 - Add the postgres feature and schema**
+- [x] **T4.1 - Add the postgres feature and schema**
   - Description: Add an optional `postgres` feature with `sqlx` (`postgres`, `runtime-tokio-rustls`, `chrono`, `uuid`, `migrate`). Create `schema.sql` with budget, reservation, and dead-hold tables, a unique index on tenant/provider/metric/idempotency key, and indexes for usage and reclaim. Default features must not pull `sqlx`.
   - Requirements: FR-013, NFR-008
   - Acceptance criteria: AC-018
 
-- [ ] **T4.2 - Implement atomic reservation in Postgres**
+- [x] **T4.2 - Implement atomic reservation in Postgres**
   - Description: Implement `reserve` as one parameterized conditional `UPDATE ... WHERE used + $units <= $limit RETURNING used`, with a unique idempotency index and a follow-up insert of the hold in the same transaction. No string-built SQL and no caller-supplied identifiers.
   - Requirements: FR-013, NFR-004, NFR-005
   - Acceptance criteria: AC-019
 
-- [ ] **T4.3 - Implement settlement, usage, and TTL reclaim**
+- [x] **T4.3 - Implement settlement, usage, and TTL reclaim**
   - Description: Implement `commit`, `release`, and `usage` with tenant-scoped predicates. Reclaim expired reservations exactly once and return the held units. Late settlement is a typed no-op.
   - Requirements: FR-010, FR-013, NFR-001, NFR-004
   - Acceptance criteria: AC-020, AC-021
 
-- [ ] **T4.4 - Require TLS and redact connection configuration**
+- [x] **T4.4 - Require TLS and redact connection configuration**
   - Description: Require TLS by default for Postgres connections. Add an explicit, documented test-only insecure mode. Never print the connection string in `Debug`, `Display`, or errors.
   - Requirements: NFR-002, NFR-009
   - Acceptance criteria: AC-049
 
-- [ ] **T4.5 - Document the Postgres backend**
+- [x] **T4.5 - Document the Postgres backend**
   - Description: Document schema setup, feature flags, TLS expectations, reservation TTL, and the reclaim query in the crate README and rustdoc.
   - Requirements: FR-029
   - Acceptance criteria: AC-053

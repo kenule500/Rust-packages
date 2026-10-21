@@ -371,7 +371,7 @@
         "T7.1"
       ],
       "testIds": [],
-      "status": "not_started"
+      "status": "in_progress"
     },
     {
       "requirementId": "FR-029",
@@ -390,7 +390,7 @@
         "T7.2"
       ],
       "testIds": [],
-      "status": "not_started"
+      "status": "in_progress"
     },
     {
       "requirementId": "NFR-001",
@@ -480,7 +480,7 @@
         "T7.3"
       ],
       "testIds": [],
-      "status": "not_started"
+      "status": "in_progress"
     },
     {
       "requirementId": "NFR-007",
@@ -493,7 +493,7 @@
         "T7.3"
       ],
       "testIds": [],
-      "status": "not_started"
+      "status": "in_progress"
     },
     {
       "requirementId": "NFR-008",
@@ -508,7 +508,7 @@
         "T4.1"
       ],
       "testIds": [],
-      "status": "not_started"
+      "status": "in_progress"
     },
     {
       "requirementId": "NFR-009",

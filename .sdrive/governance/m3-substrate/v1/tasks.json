@@ -11,71 +11,126 @@
           "id": "T1.1",
           "title": "Create the four crate packages with inherited metadata and lints",
           "description": "Add crates/platform-core, crates/quota-ledger, crates/hookgate, and crates/syncforge with version 0.1.0, edition.workspace, rust-version.workspace, license.workspace, description, readme, keywords, categories, and docs.rs all-features metadata. Each crate root declares forbid unsafe_code and deny missing_docs. Keep members = [\"crates/*\"] unchanged.",
-          "linkedRequirements": ["FR-028", "FR-029", "NFR-006", "NFR-007"],
-          "linkedAcceptanceCriteria": ["AC-046", "AC-047", "AC-048", "AC-053"],
-          "completed": false
+          "linkedRequirements": [
+            "FR-028",
+            "FR-029",
+            "NFR-006",
+            "NFR-007"
+          ],
+          "linkedAcceptanceCriteria": [
+            "AC-046",
+            "AC-047",
+            "AC-048",
+            "AC-053"
+          ],
+          "completed": true
         },
         {
           "id": "T1.2",
           "title": "Add the workspace dependency table and feature conventions",
           "description": "Add [workspace.dependencies] for the shared crates and per-crate additive features. Every crate keeps default = [] where a database or native dependency is optional. Document the default feature set in each README.",
-          "linkedRequirements": ["FR-028", "NFR-008"],
-          "linkedAcceptanceCriteria": ["AC-046", "AC-048", "AC-050"],
-          "completed": false
+          "linkedRequirements": [
+            "FR-028",
+            "NFR-008"
+          ],
+          "linkedAcceptanceCriteria": [
+            "AC-046",
+            "AC-048",
+            "AC-050"
+          ],
+          "completed": true
         },
         {
           "id": "T1.3",
           "title": "Update the root README for the new crates",
           "description": "Add the four crates to the package table with one-line responsibilities and mark their status as in development. Do not claim publication before it happens.",
-          "linkedRequirements": ["FR-029"],
-          "linkedAcceptanceCriteria": ["AC-053"],
-          "completed": false
+          "linkedRequirements": [
+            "FR-029"
+          ],
+          "linkedAcceptanceCriteria": [
+            "AC-053"
+          ],
+          "completed": true
         }
       ]
     },
     {
       "phaseId": "P2",
       "name": "platform-core",
-      "dependencies": ["P1"],
+      "dependencies": [
+        "P1"
+      ],
       "tasks": [
         {
           "id": "T2.1",
           "title": "Define identity and capability types",
           "description": "Add TenantId(Uuid), ProviderId(&'static str), ProvisioningMode (Api, Partner, Manual, Unsupported), Capability { key, mode }, and the Provider trait returning an id and a static capability slice. Keep provider and capability vocabularies opaque.",
-          "linkedRequirements": ["FR-001"],
-          "linkedAcceptanceCriteria": ["AC-003"],
+          "linkedRequirements": [
+            "FR-001"
+          ],
+          "linkedAcceptanceCriteria": [
+            "AC-003"
+          ],
           "completed": false
         },
         {
           "id": "T2.2",
           "title": "Implement the explicit registry",
           "description": "Add Registry with explicit register, get, iter, and capabilities. Reject a duplicate provider id with a typed error, preserve registration order, and keep all state instance-scoped. No statics and no implicit registration.",
-          "linkedRequirements": ["FR-002", "FR-003", "NFR-012"],
-          "linkedAcceptanceCriteria": ["AC-002", "AC-004", "AC-005", "AC-006"],
+          "linkedRequirements": [
+            "FR-002",
+            "FR-003",
+            "NFR-012"
+          ],
+          "linkedAcceptanceCriteria": [
+            "AC-002",
+            "AC-004",
+            "AC-005",
+            "AC-006"
+          ],
           "completed": false
         },
         {
           "id": "T2.3",
           "title": "Implement Secret, TokenStore, and MemoryTokenStore",
           "description": "Add a Secret wrapper over secrecy::SecretString with redacted Debug/Display, no Serialize, and explicit exposure. Add an async_trait TokenStore with get, put, and revoke, plus MemoryTokenStore keyed by tenant and provider. Map backend failures to TokenError.",
-          "linkedRequirements": ["FR-004", "FR-005", "NFR-001", "NFR-002"],
-          "linkedAcceptanceCriteria": ["AC-001", "AC-007", "AC-008", "AC-009"],
+          "linkedRequirements": [
+            "FR-004",
+            "FR-005",
+            "NFR-001",
+            "NFR-002"
+          ],
+          "linkedAcceptanceCriteria": [
+            "AC-001",
+            "AC-007",
+            "AC-008",
+            "AC-009"
+          ],
           "completed": false
         },
         {
           "id": "T2.4",
           "title": "Define IntegrationError with stable codes",
           "description": "Add Auth, Scope, RateLimit, Quota, Provider, Transport, Unsupported, DuplicateProvider, and Config variants. Each exposes a stable code; Display includes the code and std::error::Error is implemented. Messages never echo secret values.",
-          "linkedRequirements": ["FR-006"],
-          "linkedAcceptanceCriteria": ["AC-051"],
+          "linkedRequirements": [
+            "FR-006"
+          ],
+          "linkedAcceptanceCriteria": [
+            "AC-051"
+          ],
           "completed": false
         },
         {
           "id": "T2.5",
           "title": "Document platform-core",
           "description": "Write the crate-level docs, module comments with scope and non-goals, feature table, a registry usage example, and the README.",
-          "linkedRequirements": ["FR-029"],
-          "linkedAcceptanceCriteria": ["AC-047", "AC-053"],
+          "linkedRequirements": [
+            "FR-029"
+          ],
+          "linkedAcceptanceCriteria": [
+            "AC-047",
+            "AC-053"
+          ],
           "completed": false
         }
       ]
@@ -83,46 +138,80 @@
     {
       "phaseId": "P3",
       "name": "quota-ledger core",
-      "dependencies": ["P2"],
+      "dependencies": [
+        "P2"
+      ],
       "tasks": [
         {
           "id": "T3.1",
           "title": "Define the quota type model",
           "description": "Add Metric, Window, Budget, QuotaKey, Reservation, ReservationId, Usage, ExhaustionPolicy, and ReserveOutcome. Reuse TenantId and ProviderId from platform-core through a path dependency.",
-          "linkedRequirements": ["FR-007"],
-          "linkedAcceptanceCriteria": ["AC-010", "AC-014"],
+          "linkedRequirements": [
+            "FR-007"
+          ],
+          "linkedAcceptanceCriteria": [
+            "AC-010",
+            "AC-014"
+          ],
           "completed": false
         },
         {
           "id": "T3.2",
           "title": "Implement the in-memory quota store",
           "description": "Add an async_trait QuotaStore with reserve, commit, release, and usage. Perform capacity check, hold insertion, and idempotency lookup under one write lock. commit consumes exactly once, release consumes nothing, and repeated settlement is a typed no-op. A repeated key with a different payload is an idempotency conflict.",
-          "linkedRequirements": ["FR-008", "FR-009", "FR-010", "NFR-001", "NFR-005", "NFR-012"],
-          "linkedAcceptanceCriteria": ["AC-010", "AC-011", "AC-012", "AC-013"],
+          "linkedRequirements": [
+            "FR-008",
+            "FR-009",
+            "FR-010",
+            "NFR-001",
+            "NFR-005",
+            "NFR-012"
+          ],
+          "linkedAcceptanceCriteria": [
+            "AC-010",
+            "AC-011",
+            "AC-012",
+            "AC-013"
+          ],
           "completed": false
         },
         {
           "id": "T3.3",
           "title": "Implement window reset computation",
           "description": "Compute fixed daily and monthly reset instants from the configured timezone and rolling windows from the current instant. The reset boundary never uses the host timezone. Expose the next reset instant in Usage.",
-          "linkedRequirements": ["FR-012"],
-          "linkedAcceptanceCriteria": ["AC-011"],
+          "linkedRequirements": [
+            "FR-012"
+          ],
+          "linkedAcceptanceCriteria": [
+            "AC-011"
+          ],
           "completed": false
         },
         {
           "id": "T3.4",
           "title": "Implement exhaustion policies",
           "description": "Produce the declared outcome for HardStop (denial with reset time), Overage (reservation plus overage units and cost in cents), Degrade (degraded outcome with reset time), and Queue (queued outcome with reset time). Degrade and Queue consume no units.",
-          "linkedRequirements": ["FR-011"],
-          "linkedAcceptanceCriteria": ["AC-014", "AC-015", "AC-016", "AC-017"],
+          "linkedRequirements": [
+            "FR-011"
+          ],
+          "linkedAcceptanceCriteria": [
+            "AC-014",
+            "AC-015",
+            "AC-016",
+            "AC-017"
+          ],
           "completed": false
         },
         {
           "id": "T3.5",
           "title": "Document quota-ledger",
           "description": "Write crate docs, module scope and non-goals, the reserve/commit/release flow, feature table, and the README.",
-          "linkedRequirements": ["FR-029"],
-          "linkedAcceptanceCriteria": ["AC-053"],
+          "linkedRequirements": [
+            "FR-029"
+          ],
+          "linkedAcceptanceCriteria": [
+            "AC-053"
+          ],
           "completed": false
         }
       ]
@@ -130,46 +219,76 @@
     {
       "phaseId": "P4",
       "name": "quota-ledger Postgres",
-      "dependencies": ["P3"],
+      "dependencies": [
+        "P3"
+      ],
       "tasks": [
         {
           "id": "T4.1",
           "title": "Add the postgres feature and schema",
           "description": "Add an optional postgres feature with sqlx (postgres, runtime-tokio-rustls, chrono, uuid, migrate). Create schema.sql with budget, reservation, and dead-hold tables, a unique index on tenant/provider/metric/idempotency key, and indexes for usage and reclaim. Default features must not pull sqlx.",
-          "linkedRequirements": ["FR-013", "NFR-008"],
-          "linkedAcceptanceCriteria": ["AC-018"],
+          "linkedRequirements": [
+            "FR-013",
+            "NFR-008"
+          ],
+          "linkedAcceptanceCriteria": [
+            "AC-018"
+          ],
           "completed": false
         },
         {
           "id": "T4.2",
           "title": "Implement atomic reservation in Postgres",
           "description": "Implement reserve as one parameterized conditional UPDATE ... WHERE used + units <= limit RETURNING used, with a unique idempotency index and a follow-up insert of the hold in the same transaction. No string-built SQL and no caller-supplied identifiers.",
-          "linkedRequirements": ["FR-013", "NFR-004", "NFR-005"],
-          "linkedAcceptanceCriteria": ["AC-019"],
+          "linkedRequirements": [
+            "FR-013",
+            "NFR-004",
+            "NFR-005"
+          ],
+          "linkedAcceptanceCriteria": [
+            "AC-019"
+          ],
           "completed": false
         },
         {
           "id": "T4.3",
           "title": "Implement settlement, usage, and TTL reclaim",
           "description": "Implement commit, release, and usage with tenant-scoped predicates. Reclaim expired reservations exactly once and return the held units. Late settlement is a typed no-op.",
-          "linkedRequirements": ["FR-010", "FR-013", "NFR-001", "NFR-004"],
-          "linkedAcceptanceCriteria": ["AC-020", "AC-021"],
+          "linkedRequirements": [
+            "FR-010",
+            "FR-013",
+            "NFR-001",
+            "NFR-004"
+          ],
+          "linkedAcceptanceCriteria": [
+            "AC-020",
+            "AC-021"
+          ],
           "completed": false
         },
         {
           "id": "T4.4",
           "title": "Require TLS and redact connection configuration",
           "description": "Require TLS by default for Postgres connections. Add an explicit, documented test-only insecure mode. Never print the connection string in Debug, Display, or errors.",
-          "linkedRequirements": ["NFR-002", "NFR-009"],
-          "linkedAcceptanceCriteria": ["AC-049"],
+          "linkedRequirements": [
+            "NFR-002",
+            "NFR-009"
+          ],
+          "linkedAcceptanceCriteria": [
+            "AC-049"
+          ],
           "completed": false
         },
         {
           "id": "T4.5",
           "title": "Document the Postgres backend",
           "description": "Document schema setup, feature flags, TLS expectations, reservation TTL, and the reclaim query in the crate README and rustdoc.",
-          "linkedRequirements": ["FR-029"],
-          "linkedAcceptanceCriteria": ["AC-053"],
+          "linkedRequirements": [
+            "FR-029"
+          ],
+          "linkedAcceptanceCriteria": [
+            "AC-053"
+          ],
           "completed": false
         }
       ]
@@ -177,54 +296,92 @@
     {
       "phaseId": "P5",
       "name": "hookgate",
-      "dependencies": ["P2"],
+      "dependencies": [
+        "P2"
+      ],
       "tasks": [
         {
           "id": "T5.1",
           "title": "Define hookgate types, traits, and errors",
           "description": "Add DeliveryId, IdempotencyKey, InboundRequest (tenant, provider, headers, raw Bytes, received_at), VerifiedEvent, Verifier, DeliveryStore, Outbox, InsertOutcome, DeliveryRecord, and typed VerifyError, StoreError, OutboxError. The raw body is never re-serialized before verification.",
-          "linkedRequirements": ["FR-014", "NFR-003"],
-          "linkedAcceptanceCriteria": ["AC-022"],
+          "linkedRequirements": [
+            "FR-014",
+            "NFR-003"
+          ],
+          "linkedAcceptanceCriteria": [
+            "AC-022"
+          ],
           "completed": false
         },
         {
           "id": "T5.2",
           "title": "Implement the HMAC verifier presets",
           "description": "Add Meta Graph, Stripe, Shopify, Twilio, Slack, GitHub, and a configurable generic HMAC-SHA256 preset. Share one parameterized implementation for header name, encoding (hex/base64), prefix, signed payload shape, and digest. Compare signatures with subtle::ConstantTimeEq.",
-          "linkedRequirements": ["FR-015", "FR-016"],
-          "linkedAcceptanceCriteria": ["AC-022", "AC-023", "AC-025"],
+          "linkedRequirements": [
+            "FR-015",
+            "FR-016"
+          ],
+          "linkedAcceptanceCriteria": [
+            "AC-022",
+            "AC-023",
+            "AC-025"
+          ],
           "completed": false
         },
         {
           "id": "T5.3",
           "title": "Enforce the replay window and body limit",
           "description": "Add ReplayWindow with a configurable timestamp tolerance and maximum body size. Reject stale, future-beyond-tolerance, oversized, and missing-header requests with distinct typed errors before parsing the body.",
-          "linkedRequirements": ["FR-015", "NFR-003"],
-          "linkedAcceptanceCriteria": ["AC-023", "AC-024"],
+          "linkedRequirements": [
+            "FR-015",
+            "NFR-003"
+          ],
+          "linkedAcceptanceCriteria": [
+            "AC-023",
+            "AC-024"
+          ],
           "completed": false
         },
         {
           "id": "T5.4",
           "title": "Implement dedupe and the transactional outbox",
           "description": "Add MemoryDeliveryStore with dedupe on tenant, provider, and provider event id. Insert the delivery and enqueue the outbox row under one lock so either both become visible or neither does. Report Duplicate without a second enqueue. Keep tenant isolation in every key.",
-          "linkedRequirements": ["FR-017", "FR-018", "NFR-001"],
-          "linkedAcceptanceCriteria": ["AC-026", "AC-027", "AC-028", "AC-029"],
+          "linkedRequirements": [
+            "FR-017",
+            "FR-018",
+            "NFR-001"
+          ],
+          "linkedAcceptanceCriteria": [
+            "AC-026",
+            "AC-027",
+            "AC-028",
+            "AC-029"
+          ],
           "completed": false
         },
         {
           "id": "T5.5",
           "title": "Implement dead-letter and replay",
           "description": "Track attempts and write a DeadLetterRecord with the raw body and redacted error text after the configured maximum. Replay re-enqueues the same delivery id and reports Duplicate when it had already succeeded.",
-          "linkedRequirements": ["FR-019"],
-          "linkedAcceptanceCriteria": ["AC-030", "AC-031"],
+          "linkedRequirements": [
+            "FR-019"
+          ],
+          "linkedAcceptanceCriteria": [
+            "AC-030",
+            "AC-031"
+          ],
           "completed": false
         },
         {
           "id": "T5.6",
           "title": "Document hookgate",
           "description": "Write crate docs, preset table, the receive/verify/dedupe/enqueue flow, the at-least-once contract, feature table, and the README.",
-          "linkedRequirements": ["FR-029"],
-          "linkedAcceptanceCriteria": ["AC-053"],
+          "linkedRequirements": [
+            "FR-029"
+          ],
+          "linkedAcceptanceCriteria": [
+            "AC-053"
+          ],
           "completed": false
         }
       ]
@@ -232,70 +389,123 @@
     {
       "phaseId": "P6",
       "name": "syncforge",
-      "dependencies": ["P1"],
+      "dependencies": [
+        "P1"
+      ],
       "tasks": [
         {
           "id": "T6.1",
           "title": "Define action and batch types with UUID v7 identifiers",
           "description": "Add ActionId, Action, EntityType, Operation, Batch, BatchResult, ActionResult, ActionStatus, and ConflictInfo. Generate action ids with Uuid::now_v7() and keep the timestamp component non-decreasing within the process.",
-          "linkedRequirements": ["FR-020", "FR-021"],
-          "linkedAcceptanceCriteria": ["AC-032", "AC-035", "AC-036"],
+          "linkedRequirements": [
+            "FR-020",
+            "FR-021"
+          ],
+          "linkedAcceptanceCriteria": [
+            "AC-032",
+            "AC-035",
+            "AC-036"
+          ],
           "completed": false
         },
         {
           "id": "T6.2",
           "title": "Implement the Storage trait and MemoryStorage",
           "description": "Add an async_trait Storage with append, pending, mark_sent, mark_failed, and record_attempt. MemoryStorage preserves enqueue order deterministically and returns typed errors on failure. Storage is injected explicitly.",
-          "linkedRequirements": ["FR-022", "NFR-010", "NFR-012"],
-          "linkedAcceptanceCriteria": ["AC-032", "AC-033", "AC-034"],
+          "linkedRequirements": [
+            "FR-022",
+            "NFR-010",
+            "NFR-012"
+          ],
+          "linkedAcceptanceCriteria": [
+            "AC-032",
+            "AC-033",
+            "AC-034"
+          ],
           "completed": false
         },
         {
           "id": "T6.3",
           "title": "Implement the Transport trait and MockTransport",
           "description": "Add an async_trait Transport that sends a batch and returns per-action results. MockTransport scripts whole-batch and per-action outcomes for deterministic replay.",
-          "linkedRequirements": ["FR-023", "NFR-010"],
-          "linkedAcceptanceCriteria": ["AC-036", "AC-040"],
+          "linkedRequirements": [
+            "FR-023",
+            "NFR-010"
+          ],
+          "linkedAcceptanceCriteria": [
+            "AC-036",
+            "AC-040"
+          ],
           "completed": false
         },
         {
           "id": "T6.4",
           "title": "Implement the replay engine",
           "description": "Drain pending actions in order and in bounded batches. Return one result per action, mark Applied and Duplicate as sent, retry Retry with capped exponential backoff, and dead-letter after max_attempts without blocking later actions. An empty queue returns an empty result without a transport call.",
-          "linkedRequirements": ["FR-024", "NFR-003", "NFR-010"],
-          "linkedAcceptanceCriteria": ["AC-036", "AC-037", "AC-039", "AC-040"],
+          "linkedRequirements": [
+            "FR-024",
+            "NFR-003",
+            "NFR-010"
+          ],
+          "linkedAcceptanceCriteria": [
+            "AC-036",
+            "AC-037",
+            "AC-039",
+            "AC-040"
+          ],
           "completed": false
         },
         {
           "id": "T6.5",
           "title": "Implement conflict strategies",
           "description": "Add LastWriteWins, ServerWins, ClientWins, and Custom(Arc<dyn CustomMerger>), selectable per entity or action. Record the resolution in ConflictInfo. A conflict without server state is a typed error.",
-          "linkedRequirements": ["FR-025"],
-          "linkedAcceptanceCriteria": ["AC-038", "AC-041", "AC-042", "AC-043", "AC-044"],
+          "linkedRequirements": [
+            "FR-025"
+          ],
+          "linkedAcceptanceCriteria": [
+            "AC-038",
+            "AC-041",
+            "AC-042",
+            "AC-043",
+            "AC-044"
+          ],
           "completed": false
         },
         {
           "id": "T6.6",
           "title": "Implement audit timestamps and tolerance",
           "description": "Preserve client_timestamp, record server_timestamp, and apply a configurable tolerance without rewriting client time. Expose the tolerance decision in the result.",
-          "linkedRequirements": ["FR-026"],
-          "linkedAcceptanceCriteria": ["AC-020", "AC-041"],
+          "linkedRequirements": [
+            "FR-026"
+          ],
+          "linkedAcceptanceCriteria": [
+            "AC-020",
+            "AC-041"
+          ],
           "completed": false
         },
         {
           "id": "T6.7",
           "title": "Emit tracing metrics",
           "description": "Emit events for enqueue, replay start/finish, per-action outcome, conflict resolution, queue depth, and duration.",
-          "linkedRequirements": ["FR-027"],
-          "linkedAcceptanceCriteria": ["AC-052"],
+          "linkedRequirements": [
+            "FR-027"
+          ],
+          "linkedAcceptanceCriteria": [
+            "AC-052"
+          ],
           "completed": false
         },
         {
           "id": "T6.8",
           "title": "Document syncforge",
           "description": "Write crate docs, the replay model, the at-least-once contract, the conflict-strategy table, feature table, and the README.",
-          "linkedRequirements": ["FR-029"],
-          "linkedAcceptanceCriteria": ["AC-053"],
+          "linkedRequirements": [
+            "FR-029"
+          ],
+          "linkedAcceptanceCriteria": [
+            "AC-053"
+          ],
           "completed": false
         }
       ]
@@ -303,30 +513,50 @@
     {
       "phaseId": "P7",
       "name": "Integration example and verification",
-      "dependencies": ["P2", "P3", "P5"],
+      "dependencies": [
+        "P2",
+        "P3",
+        "P5"
+      ],
       "tasks": [
         {
           "id": "T7.1",
           "title": "Add the substrate integration example",
           "description": "Add crates/hookgate/examples/substrate_integration.rs with dev-dependencies on platform-core and quota-ledger. Register one provider, reserve and commit quota, verify a generic-HMAC webhook, insert and enqueue it, and print the outbox result.",
-          "linkedRequirements": ["FR-028"],
-          "linkedAcceptanceCriteria": ["AC-045"],
+          "linkedRequirements": [
+            "FR-028"
+          ],
+          "linkedAcceptanceCriteria": [
+            "AC-045"
+          ],
           "completed": false
         },
         {
           "id": "T7.2",
           "title": "Finalize the root and crate documentation",
           "description": "Update the root README package table and status, cross-link the crate READMEs, and confirm every crate documents its default feature set and non-goals.",
-          "linkedRequirements": ["FR-029"],
-          "linkedAcceptanceCriteria": ["AC-053"],
+          "linkedRequirements": [
+            "FR-029"
+          ],
+          "linkedAcceptanceCriteria": [
+            "AC-053"
+          ],
           "completed": false
         },
         {
           "id": "T7.3",
           "title": "Run production verification",
           "description": "Run cargo fmt --all --check, cargo clippy --workspace --all-features -- -D warnings, cargo build --workspace --all-features, cargo build --workspace --no-default-features, RUSTDOCFLAGS=-D warnings cargo doc --workspace --all-features --no-deps, cargo package --workspace --list, node .sdrive/scripts/validate-governance.js, and sdrive verify m3-substrate. This task does not write or run tests.",
-          "linkedRequirements": ["NFR-006", "NFR-007"],
-          "linkedAcceptanceCriteria": ["AC-046", "AC-047", "AC-048", "AC-050"],
+          "linkedRequirements": [
+            "NFR-006",
+            "NFR-007"
+          ],
+          "linkedAcceptanceCriteria": [
+            "AC-046",
+            "AC-047",
+            "AC-048",
+            "AC-050"
+          ],
           "completed": false
         }
       ]

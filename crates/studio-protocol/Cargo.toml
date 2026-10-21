@@ -1,0 +1,24 @@
+[package]
+name = "studio-protocol"
+version = "0.1.0"
+edition.workspace = true
+rust-version.workspace = true
+license.workspace = true
+repository.workspace = true
+readme = "README.md"
+description = "JSON studio-control protocol: envelopes, messages, server-side permissions, a pure state machine, version negotiation, and a message budget."
+keywords = ["protocol", "json", "state-machine", "broadcast", "studio"]
+categories = ["multimedia::video", "encoding"]
+include = ["Cargo.toml", "README.md", "CHANGELOG.md", "src/**", "examples/**"]
+
+[package.metadata.docs.rs]
+all-features = true
+
+[features]
+default = []
+
+[dependencies]
+serde = { workspace = true }
+serde_json = { workspace = true }
+uuid = { workspace = true, features = ["serde"] }
+chrono = { workspace = true, features = ["serde"] }

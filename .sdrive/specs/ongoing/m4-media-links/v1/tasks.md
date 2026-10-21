@@ -142,13 +142,13 @@ Document the spool layout, the single-writer-per-track contract, the budget sema
 
 | ID | Task | Requirements | Acceptance criteria |
 |---|---|---|---|
-| T4.1 | Scaffold `crates/studio-protocol` with the envelope, IDs, messages, and JSON serde | FR-020, FR-023 | AC-020 |
-| T4.2 | Implement permissions and the role table | FR-021, NFR-012 | AC-021 |
-| T4.3 | Implement the pure state machine and atomic program cut | FR-022 | AC-022, AC-024 |
-| T4.4 | Implement version negotiation | FR-023 | AC-025 |
-| T4.5 | Implement duplicate and out-of-order handling | FR-024 | AC-023, AC-024 |
-| T4.6 | Implement the per-participant message budget | FR-025, NFR-006, NFR-013 | AC-026 |
-| T4.7 | Add the studio-protocol README, changelog, and message-log example | FR-042 | AC-042 |
+| [x] T4.1 | Scaffold `crates/studio-protocol` with the envelope, IDs, messages, and JSON serde | FR-020, FR-023 | AC-020 |
+| [x] T4.2 | Implement permissions and the role table | FR-021, NFR-012 | AC-021 |
+| [x] T4.3 | Implement the pure state machine and atomic program cut | FR-022 | AC-022, AC-024 |
+| [x] T4.4 | Implement version negotiation | FR-023 | AC-025 |
+| [x] T4.5 | Implement duplicate and out-of-order handling | FR-024 | AC-023, AC-024 |
+| [x] T4.6 | Implement the per-participant message budget | FR-025, NFR-006, NFR-013 | AC-026 |
+| [x] T4.7 | Add the studio-protocol README, changelog, and message-log example | FR-042 | AC-042 |
 
 ### T4.1 — Scaffold `crates/studio-protocol` with the envelope, IDs, messages, and JSON serde
 

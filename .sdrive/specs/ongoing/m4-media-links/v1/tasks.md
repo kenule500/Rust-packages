@@ -52,14 +52,14 @@ Add `README.md` describing scope, non-goals, the FFmpeg 7.x dialect boundary, de
 
 | ID | Task | Requirements | Acceptance criteria |
 |---|---|---|---|
-| T2.1 | Scaffold `crates/mixbus` with pre-allocated buffers and typed errors | FR-007, FR-012, NFR-002 | AC-007 |
-| T2.2 | Implement gain and constant-power pan | FR-008 | AC-008 |
-| T2.3 | Implement the gate and compressor | FR-008 | AC-010 |
-| T2.4 | Implement the sidechain ducker | FR-008 | AC-009 |
-| T2.5 | Implement EBU R128 loudness and true-peak limiting | FR-008 | AC-011 |
-| T2.6 | Implement off-thread plan rebuild, block-boundary swap, and latency compensation | FR-009, FR-011, NFR-002 | AC-012 |
-| T2.7 | Implement lock-free meter snapshots | FR-010 | AC-013 |
-| T2.8 | Add the mixbus README, changelog, and process example | FR-042 | AC-042 |
+| [x] T2.1 | Scaffold `crates/mixbus` with pre-allocated buffers and typed errors | FR-007, FR-012, NFR-002 | AC-007 |
+| [x] T2.2 | Implement gain and constant-power pan | FR-008 | AC-008 |
+| [x] T2.3 | Implement the gate and compressor | FR-008 | AC-010 |
+| [x] T2.4 | Implement the sidechain ducker | FR-008 | AC-009 |
+| [x] T2.5 | Implement EBU R128 loudness and true-peak limiting | FR-008 | AC-011 |
+| [x] T2.6 | Implement off-thread plan rebuild, block-boundary swap, and latency compensation | FR-009, FR-011, NFR-002 | AC-012 |
+| [x] T2.7 | Implement lock-free meter snapshots | FR-010 | AC-013 |
+| [x] T2.8 | Add the mixbus README, changelog, and process example | FR-042 | AC-042 |
 
 ### T2.1 — Scaffold `crates/mixbus` with pre-allocated buffers and typed errors
 

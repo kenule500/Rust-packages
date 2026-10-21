@@ -35,27 +35,27 @@ Depends on: none
 
 Depends on: P1
 
-- [ ] **T2.1 - Define identity and capability types**
+- [x] **T2.1 - Define identity and capability types**
   - Description: Add `TenantId(Uuid)`, `ProviderId(&'static str)`, `ProvisioningMode` (`Api`, `Partner`, `Manual`, `Unsupported`), `Capability { key, mode }`, and the `Provider` trait returning an id and a static capability slice. Keep provider and capability vocabularies opaque.
   - Requirements: FR-001
   - Acceptance criteria: AC-003
 
-- [ ] **T2.2 - Implement the explicit registry**
+- [x] **T2.2 - Implement the explicit registry**
   - Description: Add `Registry` with explicit `register`, `get`, `iter`, and `capabilities`. Reject a duplicate provider id with a typed error, preserve registration order, and keep all state instance-scoped. No statics and no implicit registration.
   - Requirements: FR-002, FR-003, NFR-012
   - Acceptance criteria: AC-002, AC-004, AC-005, AC-006
 
-- [ ] **T2.3 - Implement Secret, TokenStore, and MemoryTokenStore**
+- [x] **T2.3 - Implement Secret, TokenStore, and MemoryTokenStore**
   - Description: Add a `Secret` wrapper over `secrecy::SecretString` with redacted `Debug`/`Display`, no `Serialize`, and explicit exposure. Add an `#[async_trait]` `TokenStore` with `get`, `put`, and `revoke`, plus `MemoryTokenStore` keyed by tenant and provider. Map backend failures to `TokenError`.
   - Requirements: FR-004, FR-005, NFR-001, NFR-002
   - Acceptance criteria: AC-001, AC-007, AC-008, AC-009
 
-- [ ] **T2.4 - Define IntegrationError with stable codes**
+- [x] **T2.4 - Define IntegrationError with stable codes**
   - Description: Add `Auth`, `Scope`, `RateLimit`, `Quota`, `Provider`, `Transport`, `Unsupported`, `DuplicateProvider`, and `Config` variants. Each exposes a stable code; `Display` includes the code and `std::error::Error` is implemented. Messages never echo secret values.
   - Requirements: FR-006
   - Acceptance criteria: AC-051
 
-- [ ] **T2.5 - Document platform-core**
+- [x] **T2.5 - Document platform-core**
   - Description: Write the crate-level docs, module comments with scope and non-goals, feature table, a registry usage example, and the README.
   - Requirements: FR-029
   - Acceptance criteria: AC-047, AC-053

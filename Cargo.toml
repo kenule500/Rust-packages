@@ -1,5 +1,7 @@
 [workspace]
-resolver = "2"
+# Resolver 3 makes dependency resolution honour `rust-version`, so a fresh
+# resolve never picks a transitive crate that needs a newer compiler than 1.85.
+resolver = "3"
 members = ["crates/*"]
 
 [workspace.package]

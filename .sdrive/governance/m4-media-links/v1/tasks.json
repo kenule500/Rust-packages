@@ -648,7 +648,7 @@
             "AC-043",
             "AC-044"
           ],
-          "completed": false
+          "completed": true
         },
         {
           "id": "T7.2",
@@ -660,7 +660,7 @@
           "linkedAcceptanceCriteria": [
             "AC-042"
           ],
-          "completed": false
+          "completed": true
         },
         {
           "id": "T7.3",
@@ -672,7 +672,7 @@
           "linkedAcceptanceCriteria": [
             "AC-040"
           ],
-          "completed": false
+          "completed": true
         },
         {
           "id": "T7.4",
@@ -686,7 +686,7 @@
           "linkedAcceptanceCriteria": [
             "AC-041"
           ],
-          "completed": false
+          "completed": true
         },
         {
           "id": "T7.5",
@@ -699,7 +699,7 @@
             "AC-027",
             "AC-032"
           ],
-          "completed": false
+          "completed": true
         },
         {
           "id": "T7.6",
@@ -712,7 +712,7 @@
           "linkedAcceptanceCriteria": [
             "AC-044"
           ],
-          "completed": false
+          "completed": true
         }
       ]
     }

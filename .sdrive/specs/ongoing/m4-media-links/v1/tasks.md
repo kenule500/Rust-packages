@@ -262,12 +262,12 @@ Document the token format, the store requirement, revocation semantics, the UTM 
 
 | ID | Task | Requirements | Acceptance criteria |
 |---|---|---|---|
-| T7.1 | Add metadata, READMEs, changelogs, docs.rs configuration, and packaging settings to all six crates | FR-040, FR-043, FR-045, NFR-009, NFR-010 | AC-040, AC-043, AC-044 |
-| T7.2 | Verify every example builds without network or device access | FR-042 | AC-042 |
-| T7.3 | Verify the feature matrix with `cargo check` | NFR-008 | AC-040 |
-| T7.4 | Run the formatter, clippy with `-D warnings`, and rustdoc with warnings denied | FR-041, NFR-007, NFR-010 | AC-041 |
-| T7.5 | Perform the manual security baseline review | NFR-016 | AC-027, AC-032 |
-| T7.6 | Verify CI coverage and the dependency rules | FR-044, NFR-009 | AC-044 |
+| [x] T7.1 | Add metadata, READMEs, changelogs, docs.rs configuration, and packaging settings to all six crates | FR-040, FR-043, FR-045, NFR-009, NFR-010 | AC-040, AC-043, AC-044 |
+| [x] T7.2 | Verify every example builds without network or device access | FR-042 | AC-042 |
+| [x] T7.3 | Verify the feature matrix with `cargo check` | NFR-008 | AC-040 |
+| [x] T7.4 | Run the formatter, clippy with `-D warnings`, and rustdoc with warnings denied | FR-041, NFR-007, NFR-010 | AC-041 |
+| [x] T7.5 | Perform the manual security baseline review | NFR-016 | AC-027, AC-032 |
+| [x] T7.6 | Verify CI coverage and the dependency rules | FR-044, NFR-009 | AC-044 |
 
 ### T7.1 — Add metadata, READMEs, changelogs, docs.rs configuration, and packaging settings to all six crates
 

@@ -97,6 +97,7 @@ function parseBacklog(markdown) {
       columns = {
         id: idIndex,
         feature: featureIndex,
+        details: header.findIndex((cell) => /^details?$|^description$|what it does|^summary$/.test(cell)),
         milestone: header.findIndex((cell) => /milestone|phase/.test(cell)),
         userValue: header.findIndex((cell) => /user value|value|benefit/.test(cell)),
         priority: header.findIndex((cell) => /priority/.test(cell)),
@@ -118,6 +119,7 @@ function parseBacklog(markdown) {
     items.push({
       id,
       feature: valueAt(columns.feature) || "",
+      details: valueAt(columns.details),
       milestone: valueAt(columns.milestone) || section || "",
       userValue: valueAt(columns.userValue),
       priority: valueAt(columns.priority),

@@ -1238,7 +1238,7 @@ body {
 }
 
 .table-scroll > .backlog-table {
-  min-width: 1240px;
+  min-width: 1350px;
   table-layout: fixed;
 }
 
@@ -1268,6 +1268,50 @@ body {
 
 .backlog-table th:nth-child(8) {
   width: 90px;
+}
+
+.backlog-table th:nth-child(9) {
+  width: 118px;
+}
+
+.backlog-actions-col {
+  text-align: right !important;
+}
+
+.backlog-action-cell {
+  text-align: right;
+  white-space: nowrap;
+}
+
+.backlog-view {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  padding: 6px 10px;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  background: var(--surface-2);
+  color: var(--text-2);
+  font-size: 11.5px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 0.15s ease, border-color 0.15s ease, color 0.15s ease;
+}
+
+.backlog-view:hover {
+  background: var(--accent-soft);
+  border-color: var(--accent-border);
+  color: var(--accent);
+}
+
+.backlog-view:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
+}
+
+.backlog-view span {
+  font-size: 12px;
+  line-height: 1;
 }
 
 .backlog-table {
@@ -2981,6 +3025,59 @@ body.drawer-open {
 .command-drawer.open {
   transform: translateX(0);
   visibility: visible;
+}
+
+/* Product backlog drawer: same motion, a little wider for prose, and the
+   visibility flip is delayed so closing also animates off-screen. */
+.backlog-drawer {
+  width: min(560px, 94vw);
+  transition: transform 0.32s cubic-bezier(0.22, 1, 0.36, 1),
+    visibility 0s linear 0.32s;
+}
+
+.backlog-drawer.open {
+  transition: transform 0.32s cubic-bezier(0.22, 1, 0.36, 1),
+    visibility 0s linear 0s;
+}
+
+.backlog-drawer .drawer-fact dd {
+  word-break: break-word;
+}
+
+.backlog-drawer-deps {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.backlog-drawer-dep-row {
+  display: grid;
+  grid-template-columns: 112px minmax(0, 1fr);
+  gap: 12px;
+  align-items: start;
+}
+
+.backlog-drawer-dep-label {
+  padding-top: 2px;
+  color: var(--text-3);
+  font-size: 10.5px;
+  font-weight: 700;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+}
+
+.backlog-drawer-empty {
+  color: var(--text-3);
+  font-size: 12.5px;
+  font-style: italic;
+  line-height: 1.5;
+}
+
+@media (max-width: 720px) {
+  .backlog-drawer-dep-row {
+    grid-template-columns: 1fr;
+    gap: 4px;
+  }
 }
 
 .command-drawer-head {

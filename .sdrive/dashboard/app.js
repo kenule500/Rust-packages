@@ -1107,6 +1107,16 @@ function renderProduct(product, productType) {
             <span class="chip ${tone}" title="${escapeHtml(statusDetail)}">${escapeHtml(lifecycle)}</span>
             ${planNote}
           </td>
+          <td class="backlog-action-cell">
+            <button
+              class="backlog-view"
+              type="button"
+              data-backlog-detail="${escapeHtml(item.id)}"
+              aria-label="View details for ${escapeHtml(item.feature)}"
+            >
+              View more <span aria-hidden="true">→</span>
+            </button>
+          </td>
         </tr>`;
   };
 
@@ -1189,6 +1199,7 @@ function renderProduct(product, productType) {
               <th>Base for</th>
               <th>Wave</th>
               <th>Status</th>
+              <th class="backlog-actions-col">Details</th>
             </tr>
           </thead>
           <tbody id="backlog-body"></tbody>
@@ -1447,7 +1458,7 @@ function renderProduct(product, productType) {
     const slice = paginate(visible, "product-backlog", BACKLOG_PER_PAGE);
     bodyHost.innerHTML = visible.length
       ? slice.items.map(backlogRow).join("")
-      : `<tr><td colspan="8" class="product-empty">No backlog items match these filters.</td></tr>`;
+      : `<tr><td colspan="9" class="product-empty">No backlog items match these filters.</td></tr>`;
     pagerHost.innerHTML = "";
     const pager = renderPager(visible.length, "product-backlog", BACKLOG_PER_PAGE, repaint);
     if (pager) pagerHost.appendChild(pager);
@@ -1471,6 +1482,15 @@ function renderProduct(product, productType) {
       div.querySelector(`#${id}`).value = "";
     }
     resetAndRepaint();
+  });
+
+  // One delegated listener survives every page and filter repaint. The drawer
+  // itself is a static shell in index.html so its slide animation is not rebuilt.
+  bodyHost.addEventListener("click", (event) => {
+    const trigger = event.target.closest && event.target.closest("[data-backlog-detail]");
+    if (!trigger) return;
+    const item = backlog.find((entry) => entry.id === trigger.dataset.backlogDetail);
+    if (item) openBacklogDrawer(item, trigger);
   });
 
   repaint();
@@ -3634,6 +3654,201 @@ function setupCommandDrawer() {
   });
 }
 
+/* ============================================================
+   PRODUCT BACKLOG DETAIL DRAWER
+   One static shell, filled per item. Reuses the command drawer's
+   slide-in motion so a row's "View more" feels like the rest of
+   the dashboard instead of a modal dropped on top of it.
+   ============================================================ */
+let backlogDrawerReturnFocus = null;
+
+function backlogWaveText(item) {
+  const wave = Number(item.wave);
+  return Number.isFinite(wave) ? (wave === 0 ? "start" : `W${wave}`) : "—";
+}
+
+function backlogDepRow(label, content, emptyText) {
+  return `<div class="backlog-drawer-dep-row">
+    <span class="backlog-drawer-dep-label">${escapeHtml(label)}</span>
+    <div class="dep-list">${content || `<span class="backlog-drawer-empty">${escapeHtml(emptyText)}</span>`}</div>
+  </div>`;
+}
+
+function backlogDrawerBody(item) {
+  const sections = [];
+  const lifecycle = item.lifecycleStatus || "backlog";
+  const details = item.details || "";
+  const userValue = item.userValue || "";
+  const dependsOn = item.dependsOn || [];
+  const external = item.externalDependencies || [];
+  const blockedBy = item.blockedBy || [];
+  const baseFor = item.baseFor || [];
+  const parallelWith = item.parallelWith || [];
+
+  const prose = [];
+  if (details) prose.push(drawerProse("What this feature does", details));
+  if (userValue) {
+    prose.push(drawerProse(details ? "Why it matters" : "What this feature is for", userValue));
+  }
+  if (item.confidence) prose.push(drawerProse("Confidence / source", item.confidence));
+  if (prose.length) sections.push(`<div class="drawer-prose">${prose.join("")}</div>`);
+
+  const facts = [];
+  if (item.milestone) facts.push(drawerFact("Milestone", item.milestone));
+  if (item.priority) facts.push(drawerFact("Priority", item.priority));
+  facts.push(drawerFact("Wave", backlogWaveText(item)));
+  facts.push(drawerFact("Lifecycle", lifecycle));
+  if (item.planStatus && item.planStatus !== lifecycle) {
+    facts.push(drawerFact("Plan status", item.planStatus));
+  }
+  if (item.featureName) facts.push(drawerFact("Feature", item.featureName));
+  if (item.branch) facts.push(drawerFact("Branch", item.branch));
+  if (item.base) facts.push(drawerFact("Base", item.base));
+  if (facts.length) {
+    sections.push(`
+      <section class="drawer-section">
+        <h3 class="drawer-section-title">At a glance</h3>
+        <dl class="drawer-facts">${facts.join("")}</dl>
+      </section>
+    `);
+  }
+
+  const chipList = (ids, kind = "") =>
+    ids.map((id) => `<span class="dep-chip ${kind}">${escapeHtml(id)}</span>`).join("");
+  const externalList = external
+    .map((text) => `<span class="dep-external">${escapeHtml(text)}</span>`)
+    .join("");
+
+  sections.push(`
+    <section class="drawer-section">
+      <h3 class="drawer-section-title">Dependencies &amp; sequencing</h3>
+      <div class="backlog-drawer-deps">
+        ${backlogDepRow(
+          "Depends on",
+          chipList(dependsOn),
+          "Nothing feature-related — this can start now."
+        )}
+        ${backlogDepRow("Outside blockers", externalList, "None recorded.")}
+        ${baseFor.length ? backlogDepRow("Unlocks", chipList(baseFor, "base"), "") : ""}
+        ${parallelWith.length ? backlogDepRow("Can run with", chipList(parallelWith), "") : ""}
+      </div>
+    </section>
+  `);
+
+  if (item.worktreePath) {
+    sections.push(`
+      <section class="drawer-section">
+        <h3 class="drawer-section-title">Prepared worktree</h3>
+        <code class="drawer-path">${escapeHtml(item.worktreePath)}</code>
+      </section>
+    `);
+  }
+
+  let nextLabel = "Next step";
+  let nextText = "Review the plan, then promote this item when it is ready.";
+  if (lifecycle === "completed") {
+    nextLabel = "Archived";
+    nextText = "This version is complete and immutable. New scope requires sdrive version:new.";
+  } else if (item.featureName) {
+    nextText = `Feature ${item.featureName} already exists${
+      item.branch ? ` on ${item.branch}` : ""
+    }. Continue with /sdrive:propose, /sdrive:apply, or /sdrive:review.`;
+  } else if (item.worktreePath) {
+    nextLabel = "Worktree prepared";
+    nextText = `Run /sdrive:propose from ${item.worktreePath}; it will reuse the prepared branch.`;
+  } else if (item.eligible) {
+    nextLabel = "Ready now";
+    nextText = `Run /sdrive:worktree to prepare ${item.id}, or /sdrive:propose to plan it directly.`;
+  } else if (blockedBy.length) {
+    nextLabel = "Blocked";
+    nextText = `Finish ${blockedBy.join(", ")} before this item can start.`;
+  } else if (external.length) {
+    nextLabel = "Outside blocker";
+    nextText = `Waiting on ${external.join(", ")}. Clear it before starting this item.`;
+  } else if (item.planStatus && item.planStatus !== "backlog") {
+    nextLabel = `Plan: ${item.planStatus}`;
+    nextText = "This item is parked. Change its plan status before preparing work.";
+  }
+  sections.push(`
+    <aside class="drawer-note">
+      <span class="drawer-note-label">${escapeHtml(nextLabel)}</span>
+      <p>${escapeHtml(nextText)}</p>
+    </aside>
+  `);
+
+  return sections.join("");
+}
+
+function openBacklogDrawer(item, trigger) {
+  const drawer = document.getElementById("backlog-drawer");
+  const backdrop = document.getElementById("backlog-drawer-backdrop");
+  const title = document.getElementById("backlog-drawer-title");
+  const eyebrow = document.getElementById("backlog-drawer-eyebrow");
+  const body = document.getElementById("backlog-drawer-body");
+  if (!drawer || !body) return;
+
+  backlogDrawerReturnFocus = trigger || document.activeElement;
+
+  if (title) title.textContent = item.feature || item.id;
+  if (eyebrow) eyebrow.textContent = `${item.id} · ${item.lifecycleStatus || "backlog"}`;
+  body.innerHTML = backlogDrawerBody(item);
+
+  drawer.classList.add("open");
+  drawer.setAttribute("aria-hidden", "false");
+  if (backdrop) backdrop.classList.add("open");
+  document.body.classList.add("drawer-open");
+
+  const close = document.getElementById("backlog-drawer-close");
+  if (close) close.focus();
+}
+
+function closeBacklogDrawer() {
+  const drawer = document.getElementById("backlog-drawer");
+  const backdrop = document.getElementById("backlog-drawer-backdrop");
+  if (!drawer || !drawer.classList.contains("open")) return;
+
+  drawer.classList.remove("open");
+  drawer.setAttribute("aria-hidden", "true");
+  if (backdrop) backdrop.classList.remove("open");
+  document.body.classList.remove("drawer-open");
+
+  if (backlogDrawerReturnFocus && backlogDrawerReturnFocus.focus) {
+    backlogDrawerReturnFocus.focus();
+  }
+  backlogDrawerReturnFocus = null;
+}
+
+function setupBacklogDrawer() {
+  const drawer = document.getElementById("backlog-drawer");
+  const close = document.getElementById("backlog-drawer-close");
+  const backdrop = document.getElementById("backlog-drawer-backdrop");
+  if (!drawer) return;
+
+  if (close) close.addEventListener("click", closeBacklogDrawer);
+  if (backdrop) backdrop.addEventListener("click", closeBacklogDrawer);
+
+  document.addEventListener("keydown", (event) => {
+    if (event.key === "Escape") closeBacklogDrawer();
+  });
+
+  drawer.addEventListener("keydown", (event) => {
+    if (event.key !== "Tab") return;
+    const focusables = [...drawer.querySelectorAll(
+      'button, [href], input, select, textarea, [tabindex]:not([tabindex="-1"])'
+    )].filter((element) => !element.disabled && element.offsetParent !== null);
+    if (!focusables.length) return;
+    const first = focusables[0];
+    const last = focusables[focusables.length - 1];
+    if (event.shiftKey && document.activeElement === first) {
+      event.preventDefault();
+      last.focus();
+    } else if (!event.shiftKey && document.activeElement === last) {
+      event.preventDefault();
+      first.focus();
+    }
+  });
+}
+
 function renderWorkflowCards() {
   const container = document.getElementById("workflow-cards");
   if (!container) return;
@@ -4113,6 +4328,7 @@ async function main() {
   setupNav();
   setupSidebarDrawer();
   setupFeatureDetail();
+  setupBacklogDrawer();
   syncTopbarHeight();
 
   await renderFeatures();

@@ -21,7 +21,7 @@ You plan at the whole-product level. `/sdrive:propose` remains responsible for t
 - Separate confirmed decisions, user-provided assumptions, and agent recommendations in the documents.
 - If an existing product plan, roadmap, backlog, architecture document, or design system exists, read it first. Preserve it and ask before replacing or materially changing it.
 - The user may skip any section, defer decisions, or stop the workflow. Mark unresolved items as open questions rather than blocking the user.
-- Ask whether the user has design/product inspiration (for example, Figma, Dribbble, screenshots, or other products). Record URLs, names, and the user's stated interpretation. Summarize high-level patterns only; do not copy protected layouts, text, assets, or branded designs.
+- Ask whether the user has visual or product inspiration: an existing prototype (Figma, Framer, Penpot, Sketch, Adobe XD, or another tool), gallery references (Dribbble, Behance, Mobbin, Awwwards), screenshots, or a similar/competing product. Ask for a link or authorized export when available, and what they like about each one — layout, flow, tone, component, or interaction. Record source, type, access status, and the user's stated interpretation. Treat these as high-level guidance only; do not copy protected layouts, text, assets, or branded designs.
 - Do not access private/authenticated design files or attempt to bypass access restrictions. If a reference cannot be inspected, ask the user to describe it or provide an authorized export.
 - Never block the workflow on an unreadable reference. If you cannot view an image (unsupported format or access denied), say so once, then continue using whatever text you do have (file names, folder names, link titles, alt text, captions, or the user's own words). Record the reference as an open question and move on. Do not ask the user to describe images you cannot see unless they volunteer it.
 - Do not invent package choices, vendors, APIs, estimates, dates, or commitments. Record technical tools/packages as candidates with rationale and status `proposed` until the user approves them.
@@ -41,6 +41,7 @@ Understand only what is needed to create a useful first product plan. Ask conver
 - Existing plans, requirements, milestones, feature ideas, and technical choices.
 - Existing design systems, design constraints, or brand guidance.
 - Design inspiration and what the user likes about each reference.
+- Any prototype the user already has (Figma, Framer, Penpot, Sketch, Adobe XD, or another source), even a rough one.
 - Success measures, risks, and unresolved decisions.
 
 Do not require the user to answer every question. Offer to mark unknown items as open questions.
@@ -55,7 +56,7 @@ Do not require the user to answer every question. Offer to mark unknown items as
 
 2. **Interview and collect references**
    - Ask targeted product questions, honoring previous answers.
-   - Ask whether the user has inspiration links or files. For each reference, capture source, date/access context when known, what the user likes, and patterns to adapt.
+   - Ask whether the user has inspiration links or files. Ask separately about an existing prototype (Figma, Framer, Penpot, Sketch, Adobe XD, or another tool), visual references (Dribbble, Behance, Mobbin, screenshots), and products they admire. For each reference, capture source, type, date/access context when known, what the user likes, and patterns to adapt.
    - Mark inaccessible sources and unverified statements transparently.
    - **If you cannot view an image** (vision unavailable, unsupported format, or access denied): do not stop and do not ask the user to describe it. Instead, extract every available text signal — file name, folder name, link title, alt text, caption, or surrounding note — and use that as high-level guidance. Record the reference in the overview under open questions with a note that the visual content was not inspected. Continue the interview and drafting.
 
@@ -75,7 +76,7 @@ Do not require the user to answer every question. Offer to mark unknown items as
    - Present a concise preview of all proposed documents and request explicit approval to write them.
    - Create the directory `.sdrive/product/` only after approval.
    - Create or carefully update these Markdown files:
-     - `.sdrive/product/overview.md` — product context, user input, guidance, inspirations, assumptions, and open questions.
+     - `.sdrive/product/overview.md` — product context, user input, guidance, inspirations, assumptions, and open questions. Record each prototype or visual reference with its source, type, access status, what the user liked, and the patterns to adapt.
      - `.sdrive/product/mockup.md` — conceptual app map, screen/area overview, navigation, and user journeys.
      - `.sdrive/product/design-system.md` — sourced design principles and clearly labeled candidate visual/component guidance.
      - `.sdrive/product/roadmap.md` — suggested milestones, order, dependencies, rationale, and tentative time horizons if approved.
@@ -91,16 +92,26 @@ Do not require the user to answer every question. Offer to mark unknown items as
 <backlog-entry-fields>
 Each approved product-level backlog item should capture, when known:
 - Stable short identifier (for example `BP-001`), title, and concise user value.
+- A `Details` description of what the feature does: one or two sentences the dashboard can show when someone opens the item. Explain the capability, not acceptance criteria or implementation tasks.
 - Suggested milestone, priority, dependencies, and status (initially `backlog`).
 - Confidence/source note and open questions where information is uncertain.
 
-Do not assign implementation estimates or dates unless the user asks and confirms the assumptions.
+Use this table shape unless the user already has a compatible backlog:
+
+```markdown
+| ID | Feature | Details | User value | Milestone | Priority | Depends on | Status | Confidence / source |
+|---|---|---|---|---|---|---|---|---|
+| BP-001 | Example feature | What the feature does in one or two sentences. | The benefit to the user. | M0 - Foundation | P0 | - | backlog | High / user interview |
+```
+
+Keep the section heading as the milestone fallback. Use `—` rather than repeating the title when a detail is not known. Do not assign implementation estimates or dates unless the user asks and confirms the assumptions.
 </backlog-entry-fields>
 
 <definition-of-done>
 - [ ] The user confirmed the product scope.
 - [ ] Confirmed facts are distinguished from assumptions and recommendations.
 - [ ] Inspiration is attributed and represented as high-level guidance, not copied design.
+- [ ] The user was asked about an existing prototype or visual references (Figma, Dribbble, screenshots, a similar product), not just about the product idea.
 - [ ] Unreadable or inaccessible references were recorded as open questions instead of blocking the workflow.
 - [ ] The app overview mockup is conceptual only; no working prototype was created.
 - [ ] Roadmap and milestones are proposals unless explicitly approved.

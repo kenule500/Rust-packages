@@ -22,9 +22,6 @@ const cliCommands = [
   )
 ];
 
-// Hidden/deprecated aliases are intentionally absent from user-facing tables.
-const HIDDEN = new Set(["reopen"]);
-
 const documentedIn = (file, pattern) => {
   const text = read(file);
   return [...new Set([...text.matchAll(pattern)].map((match) => match[1]))];
@@ -33,9 +30,7 @@ const documentedIn = (file, pattern) => {
 const readmeCommands = documentedIn("README.md", /^\|\s*`sdrive ([a-z][a-z0-9:-]*)/gm);
 const docsCommands = documentedIn("docs/commands.md", /^###\s*`sdrive ([a-z][a-z0-9:-]*)/gm);
 
-const visible = cliCommands.filter((command) => !HIDDEN.has(command));
-
-for (const command of visible) {
+for (const command of cliCommands) {
   if (!readmeCommands.includes(command)) {
     errors.push(`README.md terminal table is missing: sdrive ${command}`);
   }
@@ -110,5 +105,5 @@ if (errors.length > 0) {
 }
 
 console.log(
-  `✅ Docs and registry agree: ${visible.length} CLI command(s), ${(manifest.commands || []).length} slash command(s).`
+  `✅ Docs and registry agree: ${cliCommands.length} CLI command(s), ${(manifest.commands || []).length} slash command(s).`
 );

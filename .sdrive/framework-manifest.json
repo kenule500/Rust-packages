@@ -1,6 +1,6 @@
 {
   "cliVersion": "0.1.44",
-  "installedAt": "2026-10-23T12:05:04.118Z",
+  "installedAt": "2026-10-23T14:24:49.552Z",
   "files": {
     "agents/00-onboarding.md": "sha256:d0a90bad4f40ce607e93883f1b5adb0d43200e2f71f23561dd68812a3bf94ba3",
     "agents/01-constitution.md": "sha256:884b4d4ddac6fba36ca447c2a52895134088b37943229f2901c4b04e4d95c2ca",
@@ -16,7 +16,7 @@
     "agents/11-test.md": "sha256:3da9b5b2e4a81d1f5b5241189d0f10c8057164dad1d8e8e036123393ade028ce",
     "agents/12-product-plan.md": "sha256:b4890351bfd7d56625b86bebc7fb53adb962e683e547bbae006b5a0008c6b197",
     "agents/13-update-propose.md": "sha256:57476464846d50446cd532919ba930104bbea52bf00fa3ffabd1f83754a49b23",
-    "agents/14-archive.md": "sha256:ffa923bf740ba21736306545abe1eba7f28e1c4363876b4442941c423be9b4d6",
+    "agents/14-archive.md": "sha256:59153452bfbaa88fadf8a86b53eca32dcd1c95829a9c3ae50de6ecf7305b7a49",
     "agents/15-debug.md": "sha256:1955823c6b27af4df8a0d16f41a3d84b4fead3dd1c059fd9e89652c7c522d144",
     "agents/16-worktree.md": "sha256:a1fca940cf67250359384f20d0b18591921157d2aeab9f84f424e10ebd52da50",
     "commands/archive.js": "sha256:0979d8253748195909f8a9beff9a25b08e7dcf616a43dfaf024607cbea096914",
@@ -42,9 +42,9 @@
     "schemas/workflow-state.schema.json": "sha256:b4fe00785009411152c53d9de4dd82a7e40a1fa892849e4c0e90ee803cd46b5c",
     "scripts/anti-redundancy.js": "sha256:650476dbd49c4afbbcbaa1fc9cf8dbb5ec78347c8cf98bf6664aa0398abf2244",
     "scripts/audit-log.js": "sha256:f9f637de800fe4371dd10aad8396d015340aac3662bcc2fef3f7a72baccdd4cc",
-    "scripts/check-docs.js": "sha256:b744d481a62e1ab825208670d1a9eba373780b277228a98b19582972cfcc0a33",
+    "scripts/check-docs.js": "sha256:09a9b4df816ba3810ff822163f7ae0cf782bc02fe88a592e8a0f7dbbdbe9ab42",
     "scripts/check-encoding.js": "sha256:8da85c5ccd8906eaa80b547f694f53c1eaefb7d4bbe56db16980b12d5375f39a",
-    "scripts/check-permission.js": "sha256:17edb60a16a65b0b06b0a670b70962fdae2cc2c25d7488c3c5bb7cdae99d5d58",
+    "scripts/check-permission.js": "sha256:6c1a7ceaced6f8087d9b25981af812e81f87a42e3f7cb094fec7e62b455eb468",
     "scripts/check-syntax.js": "sha256:b90b1c07edb5ef426054dbc187ddbbdaccc40596e1a144bba4038a863d4e5e89",
     "scripts/diff-spec.js": "sha256:c815923b05739e4bd5f2eda935be6dcd387500a7e82107f054b0cc22bfe56268",
     "scripts/diff-version.js": "sha256:7ac2f125b2fd3ce894dd2fa4b507ef4f9ae2b3383cd7ed1accbe24d238a5c0f9",

@@ -299,7 +299,7 @@ function checkGateRequirements(root, feature, version, gate) {
 
   if (location && location.stage === "completed") {
     blockers.push(
-      `"${feature.name}" is archived in specs/completed/. Gates on a completed feature are history - run \`sdrive amend ${feature.name}\` first.`
+      `"${feature.name}" is archived in specs/completed/. Archived features are immutable. Use \`sdrive version:new ${feature.name}\` only for new scope; the completed version stays archived.`
     );
   }
 

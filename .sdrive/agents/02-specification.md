@@ -129,6 +129,22 @@ For feature `<feature-name>` and version `<version>`, create these files:
    - **Dirty-Tree Precondition (MANDATORY).** Run `git status --porcelain`. If it
      prints anything, STOP and ask the user to commit or stash first. Never create
      a branch over uncommitted work.
+   - **Prepared-worktree check (before asking for a base).** Read `worktrees` in
+     `.sdrive/workflow-state.json`. Match a record by the `BP-###` in the request,
+     the current branch, or `git rev-parse --show-toplevel` against the record's
+     `path`.
+     - If a record matches and you are **not** in that worktree, STOP and tell the
+       user to run `/sdrive:propose` from the recorded path. Do not create a second
+       branch.
+     - If you are in that worktree, use the recorded `branch` and `base`, skip the
+       base-branch question and branch creation, and verify
+       `git branch --show-current` matches. This is the handoff from
+       `/sdrive:worktree`.
+     - Record the product item IDs on the feature (see the `productItems` field
+       below), so the Product Plan can show live lifecycle status.
+   - **Product item source.** If the request names one or more `BP-###` IDs, keep
+     them verbatim. They are the product-plan link used by the dashboard and
+     `/sdrive:worktree`.
    - **Resolve the integration branch** (never assume `main` — CON-608):
      `git symbolic-ref refs/remotes/origin/HEAD --short`, then a conventional
      `main` / `master` / `trunk` / `develop` remote-tracking branch, then the
@@ -173,10 +189,17 @@ For feature `<feature-name>` and version `<version>`, create these files:
      git checkout -b <branch-name>                # create and switch to the feature branch
      ```
 
-     - Name it `feature/<feature-name>` (CON-607). If that name exists locally or
-       remotely, suggest `-v2`, `-v3`, … rather than stopping at a dead end.
-     - Confirm the suggested name in the same flow, pre-selected; use a name the
-       user supplies verbatim.
+     - **Ask how to name the branch before creating it.** Every branch starts with
+       `feature/` (CON-607). Offer the choices that fit the request:
+       - **Product ID** — `feature/BP-003`. Offer this when the request names a
+         `BP-###`; it keeps the branch tied to the Product Plan.
+       - **Readable name** — for example `feature/chat`. Generate 2-3 kebab-case
+         suggestions from the feature title and let the user pick one or type a
+         custom name, with or without the `feature/` prefix.
+       If no `BP-###` is present, skip the ID option and offer readable names.
+     - If the chosen name exists locally or remotely, suggest `-v2`, `-v3`, and so
+       on rather than stopping at a dead end. Use a custom name the user supplies
+       verbatim after validating `feature/<slug>`.
      - Verify with `git branch --show-current` that you are ON `<branch-name>`.
        Never leave the user on the base branch.
 
@@ -184,12 +207,18 @@ For feature `<feature-name>` and version `<version>`, create these files:
      `.sdrive/workflow-state.json`:
 
      ```json
-     { "name": "<feature>", "branch": "<branch-name>", "base": "<target-branch>", "currentVersion": "v1", "versions": [ ... ] }
+     { "name": "<feature>", "branch": "<branch-name>", "base": "<target-branch>", "productItems": ["BP-003"], "currentVersion": "v1", "versions": [ ... ] }
      ```
 
+     `productItems` is the Product Plan link. Record every `BP-###` the feature
+     covers, including a range written as separate IDs. It is what lets the
+     dashboard show this item as `ongoing` or `completed`.
+
      `feature.branch` is the single source of truth for `/sdrive:apply`,
-     `/sdrive:review`, `/sdrive:secure`, `/sdrive:archive` and `sdrive amend`.
-     `feature.base` is the merge target `/sdrive/archive` recommends.
+     `/sdrive:review`, `/sdrive:secure`, `/sdrive:archive`, and
+     `/sdrive:worktree`.
+     `feature.base` is the merge target `/sdrive/archive` uses. `/sdrive:apply`
+     and `/sdrive:review` only read it; they never ask for it again.
 
    - **Existing feature, new version:** if `feature.branch` is recorded and that
      branch still exists, ask whether to reuse it (switch to it) or create a new
@@ -331,8 +360,11 @@ As a [role], I want [action], so that [benefit].
 The specification phase is NOT complete until:
 - [ ] Feature name generated from description and confirmed by user.
 - [ ] Base branch chosen from the listed branches, before any file was written.
-- [ ] `feature/<feature>` created from that base, and the working tree is ON it.
-- [ ] `branch` and `base` recorded on the feature in `workflow-state.json`.
+- [ ] Branch naming choice offered (Product ID or readable name), and the chosen
+      `feature/<name>` created from that base or reused from a prepared worktree.
+- [ ] Working tree is ON the chosen branch.
+- [ ] `branch`, `base`, and `productItems` recorded on the feature in
+      `workflow-state.json`.
 - [ ] Current version detected from `workflow-state.json` (default `v1`).
 - [ ] Constitution alignment verified.
 - [ ] Duplicate check passed.

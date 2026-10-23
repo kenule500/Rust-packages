@@ -64,6 +64,11 @@
     ],
     "/sdrive:onboard": [
       "admin"
+    ],
+    "/sdrive:worktree": [
+      "admin",
+      "reviewer",
+      "developer"
     ]
   },
   "cli": {

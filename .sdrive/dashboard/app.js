@@ -1007,25 +1007,64 @@ function renderProduct(product, productType) {
     return div;
   }
 
-  const backlog = product.backlog || [];
-  const pending = backlog.filter((item) => /pending|backlog/i.test(item.status)).length;
-  const deferred = backlog.filter((item) => /deferred/i.test(item.status)).length;
+  const BACKLOG_PER_PAGE = 20;
+  const backlog = (product.backlog || []).slice().sort(compareBacklogItems);
+  const counts = { backlog: 0, ongoing: 0, completed: 0 };
+  for (const item of backlog) {
+    const status = item.lifecycleStatus || "backlog";
+    if (counts[status] != null) counts[status] += 1;
+  }
 
-  const BACKLOG_PER_PAGE = 10;
+  function backlogMilestoneRank(value) {
+    const match = String(value || "").match(/\bM(\d+)\b/i);
+    return match ? Number(match[1]) : 999;
+  }
+
+  function backlogPriorityRank(value) {
+    const match = String(value || "").match(/\bP(\d+)\b/i);
+    return match ? Number(match[1]) : 99;
+  }
+
+  function compareBacklogItems(a, b) {
+    return (
+      (a.wave || 0) - (b.wave || 0) ||
+      backlogMilestoneRank(a.milestone) - backlogMilestoneRank(b.milestone) ||
+      backlogPriorityRank(a.priority) - backlogPriorityRank(b.priority) ||
+      String(a.id).localeCompare(String(b.id), undefined, { numeric: true })
+    );
+  }
+
+  function backlogWaveLabel(wave) {
+    return Number(wave) === 0 ? "start" : `W${Number(wave) || 0}`;
+  }
+
+  const waveOptions = [...new Set(backlog.map((item) => item.wave))].sort((a, b) => a - b);
+  const milestoneOptions = [...new Set(backlog.map((item) => item.milestone).filter(Boolean))].sort(
+    (a, b) => backlogMilestoneRank(a) - backlogMilestoneRank(b) || a.localeCompare(b)
+  );
+  const priorityOptions = [...new Set(backlog.map((item) => item.priority).filter(Boolean))].sort(
+    (a, b) => backlogPriorityRank(a) - backlogPriorityRank(b) || a.localeCompare(b)
+  );
 
   const backlogRow = (item) => {
-    const tone = /deferred/i.test(item.status)
-      ? "slate"
-      : /pending|backlog/i.test(item.status)
-      ? "amber"
-      : "green";
+    const lifecycle = item.lifecycleStatus || "backlog";
+    const tone = lifecycle === "completed" ? "green" : lifecycle === "ongoing" ? "blue" : "";
+    const statusDetail = item.featureName
+      ? `Feature: ${item.featureName}${item.branch ? ` · ${item.branch}` : ""}`
+      : item.worktreePath
+      ? `Worktree prepared: ${item.worktreePath}`
+      : "Not promoted yet";
+    const planNote =
+      item.planStatus && item.planStatus !== "backlog"
+        ? `<div class="backlog-plan-note">plan: ${escapeHtml(item.planStatus)}</div>`
+        : "";
 
     const dependsOn = item.dependsOn || [];
     const external = item.externalDependencies || [];
     const baseFor = item.baseFor || [];
     const parallelWith = item.parallelWith || [];
     const wave = Number.isFinite(item.wave) ? item.wave : 0;
-    const waveLabel = wave === 0 ? "start" : `W${wave}`;
+    const waveLabel = backlogWaveLabel(wave);
     const waveTitle = parallelWith.length
       ? `Can be developed in parallel with ${parallelWith.join(", ")}`
       : "No other item is at this stage";
@@ -1037,7 +1076,7 @@ function renderProduct(product, productType) {
             <div class="backlog-feature">${escapeHtml(item.feature)}</div>
             ${item.userValue ? `<div class="backlog-value">${escapeHtml(item.userValue)}</div>` : ""}
           </td>
-          <td>${item.milestone ? `<span class="chip slate">${escapeHtml(item.milestone)}</span>` : "—"}</td>
+          <td>${item.milestone ? `<span class="chip">${escapeHtml(item.milestone)}</span>` : "—"}</td>
           <td>${item.priority ? escapeHtml(item.priority) : "—"}</td>
           <td>
             <div class="dep-list">
@@ -1064,34 +1103,32 @@ function renderProduct(product, productType) {
           <td>
             <span class="wave-chip${wave === 0 ? " now" : ""}" title="${escapeHtml(waveTitle)}">${waveLabel}</span>
           </td>
-          <td><span class="chip ${tone}">${escapeHtml(item.status)}</span></td>
+          <td>
+            <span class="chip ${tone}" title="${escapeHtml(statusDetail)}">${escapeHtml(lifecycle)}</span>
+            ${planNote}
+          </td>
         </tr>`;
   };
-
-  const backlogSlice = paginate(backlog, "product-backlog", BACKLOG_PER_PAGE);
-  const backlogRows = backlog.length
-    ? backlogSlice.items.map(backlogRow).join("")
-    : `<tr><td colspan="8" class="product-empty">No backlog items yet.</td></tr>`;
 
   div.innerHTML = `
     <div class="product-plan-wrap">
       <div class="stat-card tone-accent">
         <span class="stat-icon">▤</span>
-        <span class="stat-label">Backlog Items</span>
-        <span class="stat-value">${backlog.length}</span>
-        <span class="stat-sub">product-level candidates</span>
+        <span class="stat-label">Backlog</span>
+        <span class="stat-value">${counts.backlog}</span>
+        <span class="stat-sub">not started</span>
       </div>
       <div class="stat-card tone-amber">
-        <span class="stat-icon">⏳</span>
-        <span class="stat-label">Pending</span>
-        <span class="stat-value">${pending}</span>
-        <span class="stat-sub">awaiting promotion</span>
+        <span class="stat-icon">◐</span>
+        <span class="stat-label">Ongoing</span>
+        <span class="stat-value">${counts.ongoing}</span>
+        <span class="stat-sub">in progress or prepared</span>
       </div>
-      <div class="stat-card tone-slate">
-        <span class="stat-icon">💤</span>
-        <span class="stat-label">Deferred</span>
-        <span class="stat-value">${deferred}</span>
-        <span class="stat-sub">parked for later</span>
+      <div class="stat-card tone-green">
+        <span class="stat-icon">✓</span>
+        <span class="stat-label">Completed</span>
+        <span class="stat-value">${counts.completed}</span>
+        <span class="stat-sub">archived, immutable</span>
       </div>
     </div>
 
@@ -1099,9 +1136,45 @@ function renderProduct(product, productType) {
       <div class="detail-block-label">Artifacts</div>
       <div class="product-plan-artifacts">
         ${product.overview ? `<span class="artifact-chip">📄 overview.md</span>` : ""}
-        ${product.mockup ? `<span class="artifact-chip">🗺️ mockup.md</span>` : ""}
+        ${product.mockup ? `<span class="artifact-chip">🗺️ mockup.md</span>` : ""}
         ${product.designSystem ? `<span class="artifact-chip">🎨 design-system.md</span>` : ""}
-        ${product.roadmap ? `<span class="artifact-chip">🛣️ roadmap.md</span>` : ""}
+        ${product.roadmap ? `<span class="artifact-chip">🛣️ roadmap.md</span>` : ""}
+      </div>
+
+      <div class="filters backlog-filters">
+        <div class="filter-search">
+          <span class="filter-search-icon">⌕</span>
+          <input id="backlog-search" type="search" placeholder="Search by ID or feature name…" autocomplete="off" />
+        </div>
+        <select id="backlog-status" class="filter-select" aria-label="Filter by lifecycle status">
+          <option value="">All statuses</option>
+          <option value="backlog">Backlog</option>
+          <option value="ongoing">Ongoing</option>
+          <option value="completed">Completed</option>
+        </select>
+        <select id="backlog-wave" class="filter-select" aria-label="Filter by wave">
+          <option value="">All waves</option>
+          ${waveOptions
+            .map(
+              (wave) =>
+                `<option value="${escapeHtml(String(wave))}">${escapeHtml(backlogWaveLabel(wave))}</option>`
+            )
+            .join("")}
+        </select>
+        <select id="backlog-milestone" class="filter-select" aria-label="Filter by milestone">
+          <option value="">All milestones</option>
+          ${milestoneOptions
+            .map((milestone) => `<option value="${escapeHtml(milestone)}">${escapeHtml(milestone)}</option>`)
+            .join("")}
+        </select>
+        <select id="backlog-priority" class="filter-select" aria-label="Filter by priority">
+          <option value="">All priorities</option>
+          ${priorityOptions
+            .map((priority) => `<option value="${escapeHtml(priority)}">${escapeHtml(priority)}</option>`)
+            .join("")}
+        </select>
+        <button id="backlog-clear" class="filter-clear" type="button">Clear</button>
+        <span id="backlog-result-count" class="backlog-result-count">${backlog.length} items</span>
       </div>
 
       <div class="table-scroll">
@@ -1118,21 +1191,225 @@ function renderProduct(product, productType) {
               <th>Status</th>
             </tr>
           </thead>
-          <tbody id="backlog-body">${backlogRows}</tbody>
+          <tbody id="backlog-body"></tbody>
         </table>
       </div>
 
       <div id="backlog-pager"></div>
 
-      <div class="product-note backlog-legend">
-        <strong>Depends on</strong> lists prerequisites; <strong>Base for</strong> lists the items that
-        build on this one. Items in the same <strong>wave</strong> have no dependency between them
-        and can be developed in parallel; <code>start</code> means no feature dependency.
-      </div>
+      <section class="backlog-guide" aria-label="How to read the backlog table">
+        <div class="backlog-guide-head">
+          <h3>How to read this table</h3>
+          <span>
+            <strong>Depends on</strong> = what's first. <strong>Base for</strong> = what's next.
+            <strong>Wave</strong> = what can run together.
+          </span>
+        </div>
 
-      <div class="product-note">
-        Backlog items are product-level candidates. Promote one with <code>/sdrive:propose</code> to start detailed planning.
-      </div>
+        <div class="backlog-guide-grid">
+          <div class="backlog-guide-card">
+            <div class="backlog-guide-term">Depends on</div>
+            <p>
+              Finish these first. A dash (<strong>—</strong>) means nothing feature-related is
+              blocking this item. Italic text is an outside blocker, such as
+              <code>app review</code>, and still has to be cleared.
+            </p>
+          </div>
+          <div class="backlog-guide-card">
+            <div class="backlog-guide-term">Base for</div>
+            <p>
+              These items need this feature first. If the list is long, build this feature early —
+              it unlocks a lot of other work.
+            </p>
+          </div>
+          <div class="backlog-guide-card">
+            <div class="backlog-guide-term">Wave</div>
+            <p>
+              A simple build order: <code>start</code> = begin now, <code>W1</code> = wait for
+              start, <code>W2</code> = wait for W1. <strong>Same wave = work on them at the same
+              time.</strong> <code>/sdrive:worktree</code> prepares branches for one ready wave.
+            </p>
+          </div>
+        </div>
+
+        <details class="backlog-guide-more" open>
+          <summary>Go deeper: worked example, how to choose, common mistakes, and glossary</summary>
+
+          <div class="backlog-guide-deep">
+            <p class="backlog-guide-analogy">
+              <strong>Think of it like a recipe:</strong> you cannot ice a cake before baking it.
+              <strong>Depends on</strong> is what must be cooked first, <strong>Base for</strong> is
+              what this step unlocks, and <strong>Wave</strong> is the order of steps. Dishes in the
+              same wave can be cooked at the same time.
+            </p>
+
+            <div class="backlog-guide-deep-grid">
+              <section class="backlog-guide-section">
+                <h4>Worked example: one real chain</h4>
+                <ol class="backlog-guide-timeline">
+                  <li>
+                    <div class="backlog-guide-step-head">
+                      <span class="dep-chip">BP-001</span>
+                      <span class="wave-chip now">start</span>
+                      <strong>YAML parser</strong>
+                    </div>
+                    <p>No feature dependencies. This is safe to start now.</p>
+                  </li>
+                  <li>
+                    <div class="backlog-guide-step-head">
+                      <span class="dep-chip">BP-005</span>
+                      <span class="wave-chip">W1</span>
+                      <strong>wirekit core</strong>
+                    </div>
+                    <p>Waits for BP-001. Do not start it until BP-001 is done.</p>
+                  </li>
+                  <li>
+                    <div class="backlog-guide-step-head">
+                      <span class="dep-chip">BP-006–009</span>
+                      <span class="wave-chip">W2</span>
+                      <strong>provider modules</strong>
+                    </div>
+                    <p>
+                      All four wait for BP-005, but not for each other. That is why they share a
+                      wave and can be built at the same time.
+                    </p>
+                  </li>
+                  <li>
+                    <div class="backlog-guide-step-head">
+                      <span class="dep-chip">BP-010</span>
+                      <span class="wave-chip">W3</span>
+                      <strong>first publish</strong>
+                    </div>
+                    <p>Waits for all four provider modules. It is the last step in this chain.</p>
+                  </li>
+                </ol>
+                <p class="backlog-guide-takeaway">
+                  <strong>Why the wave goes up:</strong> each step waits for something in the wave
+                  before it. A wave is a layer, not a date or a priority.
+                </p>
+              </section>
+
+              <div class="backlog-guide-side">
+                <section class="backlog-guide-section">
+                  <h4>How to choose what to work on next</h4>
+                  <ol class="backlog-guide-steps">
+                    <li>
+                      Start with a <code>start</code> row. Its <strong>Depends on</strong> is
+                      <strong>—</strong>, so no feature is blocking it.
+                    </li>
+                    <li>
+                      When no <code>start</code> row is left, pick the lowest wave whose
+                      <strong>Depends on</strong> items are all done.
+                    </li>
+                    <li>
+                      Finish every item in <strong>Depends on</strong> and clear any italic outside
+                      blocker.
+                    </li>
+                    <li>
+                      If several rows in that wave are ready, work on them in parallel.
+                    </li>
+                    <li>
+                      After finishing, check <strong>Base for</strong> to see what you just
+                      unlocked, then repeat.
+                    </li>
+                  </ol>
+                </section>
+
+                <section class="backlog-guide-section">
+                  <h4>Common mistakes</h4>
+                  <ul class="backlog-guide-mistakes">
+                    <li>
+                      <strong>P0 does not mean start now.</strong> Priority says how important it
+                      is; wave says when it is safe.
+                    </li>
+                    <li>
+                      <strong>A long Base for list is not a blocker.</strong> It means this item
+                      unlocks a lot of work, so do it early when its own dependencies are clear.
+                    </li>
+                    <li>
+                      <strong>A later milestone is not a later wave.</strong> Check
+                      <strong>Depends on</strong>, not the milestone.
+                    </li>
+                    <li>
+                      <strong>Italic blockers still block.</strong> They do not change the wave, but
+                      you cannot finish without them.
+                    </li>
+                    <li>
+                      <strong>Same wave does not mean same work.</strong> It means the items do not
+                      depend on each other, so they can run at the same time.
+                    </li>
+                  </ul>
+                </section>
+              </div>
+            </div>
+
+            <section class="backlog-guide-section backlog-guide-glossary-wrap">
+              <h4>Words used in this table</h4>
+              <dl class="backlog-guide-glossary">
+                <div>
+                  <dt>Backlog item</dt>
+                  <dd>A feature idea, not started work. <code>BP-###</code> is its ID.</dd>
+                </div>
+                <div>
+                  <dt>Depends on</dt>
+                  <dd>
+                    Work that must be finished first. <code>—</code> means no feature blocker.
+                  </dd>
+                </div>
+                <div>
+                  <dt>Base for</dt>
+                  <dd>
+                    The opposite view: items that need this one first. It is what this item
+                    unlocks.
+                  </dd>
+                </div>
+                <div>
+                  <dt>Wave</dt>
+                  <dd>
+                    A layer in the build order. <code>start</code> has no feature dependencies;
+                    <code>W1</code> waits on <code>start</code>; <code>W2</code> waits on earlier
+                    waves. Same wave = can run at the same time.
+                  </dd>
+                </div>
+                <div>
+                  <dt>Milestone</dt>
+                  <dd>
+                    A product phase (M0, M1, ...), not a build order. A later milestone item can
+                    still be <code>start</code>.
+                  </dd>
+                </div>
+                <div>
+                  <dt>Outside blocker</dt>
+                  <dd>
+                    A non-feature dependency in italics, such as <code>app review</code>, a
+                    contract, or an approval. It still blocks, but it does not change the wave.
+                  </dd>
+                </div>
+                <div>
+                  <dt>Priority</dt>
+                  <dd>How important the item is (P0-P3). It is not the same as the wave.</dd>
+                </div>
+                <div>
+                  <dt>Status</dt>
+                  <dd>
+                    The live lifecycle: <code>backlog</code> (not started), <code>ongoing</code>
+                    (worktree or spec in progress), or <code>completed</code> (archived and
+                    immutable). A plan note such as <code>deferred</code> can sit underneath the
+                    lifecycle status.
+                  </dd>
+                </div>
+              </dl>
+            </section>
+          </div>
+        </details>
+
+        <p class="backlog-guide-footer">
+          Backlog items are ideas, not started work. Promote one with
+          <code>/sdrive:propose</code> when you are ready to plan it, or use
+          <code>/sdrive:worktree</code> to prepare branches and isolated worktrees for a whole
+          ready wave. Archived features are immutable.
+        </p>
+      </section>
     </div>
   `;
 
@@ -1140,13 +1417,62 @@ function renderProduct(product, productType) {
   // stat cards and artifact chips are never rebuilt.
   const pagerHost = div.querySelector("#backlog-pager");
   const bodyHost = div.querySelector("#backlog-body");
-  const repaint = () => {
-    const slice = paginate(backlog, "product-backlog", BACKLOG_PER_PAGE);
-    bodyHost.innerHTML = slice.items.map(backlogRow).join("");
-    pagerHost.innerHTML = "";
-    const pager = renderPager(backlog.length, "product-backlog", BACKLOG_PER_PAGE, repaint);
-    if (pager) pagerHost.appendChild(pager);
+  const resultCount = div.querySelector("#backlog-result-count");
+
+  const readFilters = () => ({
+    search: (div.querySelector("#backlog-search").value || "").trim().toLowerCase(),
+    status: div.querySelector("#backlog-status").value,
+    wave: div.querySelector("#backlog-wave").value,
+    milestone: div.querySelector("#backlog-milestone").value,
+    priority: div.querySelector("#backlog-priority").value
+  });
+
+  const matchingBacklog = () => {
+    const filters = readFilters();
+    return backlog.filter((item) => {
+      if (filters.search) {
+        const haystack = `${item.id} ${item.feature}`.toLowerCase();
+        if (!haystack.includes(filters.search)) return false;
+      }
+      if (filters.status && item.lifecycleStatus !== filters.status) return false;
+      if (filters.wave && String(item.wave) !== filters.wave) return false;
+      if (filters.milestone && item.milestone !== filters.milestone) return false;
+      if (filters.priority && item.priority !== filters.priority) return false;
+      return true;
+    });
   };
+
+  const repaint = () => {
+    const visible = matchingBacklog();
+    const slice = paginate(visible, "product-backlog", BACKLOG_PER_PAGE);
+    bodyHost.innerHTML = visible.length
+      ? slice.items.map(backlogRow).join("")
+      : `<tr><td colspan="8" class="product-empty">No backlog items match these filters.</td></tr>`;
+    pagerHost.innerHTML = "";
+    const pager = renderPager(visible.length, "product-backlog", BACKLOG_PER_PAGE, repaint);
+    if (pager) pagerHost.appendChild(pager);
+    if (resultCount) {
+      resultCount.textContent = `${visible.length} of ${backlog.length} items`;
+    }
+  };
+
+  const resetAndRepaint = () => {
+    pagerState["product-backlog"] = 1;
+    repaint();
+  };
+
+  div.querySelector("#backlog-search").addEventListener("input", resetAndRepaint);
+  for (const id of ["backlog-status", "backlog-wave", "backlog-milestone", "backlog-priority"]) {
+    div.querySelector(`#${id}`).addEventListener("change", resetAndRepaint);
+  }
+  div.querySelector("#backlog-clear").addEventListener("click", () => {
+    div.querySelector("#backlog-search").value = "";
+    for (const id of ["backlog-status", "backlog-wave", "backlog-milestone", "backlog-priority"]) {
+      div.querySelector(`#${id}`).value = "";
+    }
+    resetAndRepaint();
+  });
+
   repaint();
 
   return div;

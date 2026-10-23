@@ -18,6 +18,14 @@
           "base": {
             "type": "string"
           },
+          "productItems": {
+            "type": "array",
+            "items": {
+              "type": "string",
+              "pattern": "^BP-[0-9]{3}$"
+            },
+            "uniqueItems": true
+          },
           "currentVersion": {
             "type": "string",
             "pattern": "^v[0-9]+$"
@@ -87,6 +95,42 @@
           }
         },
         "required": ["name", "currentVersion", "versions"]
+      }
+    },
+    "worktrees": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "item": {
+            "type": "string",
+            "pattern": "^BP-[0-9]{3}$"
+          },
+          "branch": {
+            "type": "string",
+            "minLength": 1
+          },
+          "base": {
+            "type": "string",
+            "minLength": 1
+          },
+          "path": {
+            "type": "string",
+            "minLength": 1
+          },
+          "title": {
+            "type": "string"
+          },
+          "createdAt": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "status": {
+            "enum": ["prepared", "active", "released"]
+          }
+        },
+        "required": ["item", "branch", "path", "createdAt", "status"],
+        "additionalProperties": false
       }
     },
     "onboarding": {

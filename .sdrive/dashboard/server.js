@@ -5,6 +5,7 @@ const fs = require("fs");
 const os = require("os");
 const path = require("path");
 const { execFile } = require("child_process");
+const productPlan = require("../scripts/lib/product-plan");
 
 let projectRoot = process.cwd();
 let sdriveRoot = path.join(projectRoot, ".sdrive");
@@ -2006,198 +2007,6 @@ function readProductFile(fileName) {
   }
 }
 
-function parseBacklog(markdown) {
-  if (!markdown) return [];
-
-  const rows = [];
-  let section = "";
-  let columns = null;
-
-  // Map header text to fields instead of trusting column positions. A product
-  // backlog is hand-written Markdown, and the columns have drifted (this file
-  // gained `User value` and `Confidence / source`), which used to push the user
-  // value into the Milestone column.
-  const headerKey = (value) => {
-    const key = String(value || "")
-      .toLowerCase()
-      .replace(/\s+/g, " ")
-      .trim();
-
-    if (key === "id") return "id";
-    if (key === "feature") return "feature";
-    if (key === "user value") return "userValue";
-    if (key === "milestone") return "milestone";
-    if (key === "priority") return "priority";
-    if (key === "depends on" || key === "dependencies" || key === "dependency") {
-      return "dependencies";
-    }
-    if (key === "status") return "status";
-    if (key === "confidence / source" || key === "confidence" || key === "source") {
-      return "confidence";
-    }
-    return null;
-  };
-
-  for (const line of markdown.split(/\r?\n/)) {
-    const trimmed = line.trim();
-
-    // The milestone lives in the section heading (`## M0 - Foundation`), not in
-    // every row. Track it so each item can say which milestone it belongs to.
-    const heading = trimmed.match(/^##\s+(.+?)\s*$/);
-    if (heading) {
-      section = heading[1];
-      columns = null;
-      continue;
-    }
-
-    if (!trimmed.startsWith("|")) {
-      columns = null;
-      continue;
-    }
-
-    if (/^\|[\s:|-]+\|$/.test(trimmed)) continue;
-
-    const cells = trimmed
-      .split("|")
-      .slice(1, -1)
-      .map((cell) => cell.trim());
-
-    // A table is a backlog table only if it has both an ID and a Feature
-    // header. This keeps the summary and legend tables out of the item list.
-    if (!columns) {
-      const keys = cells.map(headerKey);
-      if (keys.includes("id") && keys.includes("feature")) columns = keys;
-      continue;
-    }
-
-    if (cells.length < columns.length) continue;
-
-    const item = {};
-    columns.forEach((key, index) => {
-      if (key) item[key] = cells[index];
-    });
-
-    if (!item.id || !item.feature) continue;
-
-    rows.push({
-      id: item.id,
-      feature: item.feature,
-      userValue: item.userValue || "",
-      milestone: item.milestone || section,
-      priority: item.priority || "",
-      dependencies: item.dependencies || "",
-      status: item.status || "",
-      confidence: item.confidence || ""
-    });
-  }
-
-  return rows;
-}
-
-// `Depends on` mixes feature IDs (`BP-005`, `BP-011 to BP-015`) with external
-// prerequisites (`app review`, `partner access`). Separate the two: only the
-// feature IDs form edges in the dependency graph.
-function parseDependencyCell(raw) {
-  const text = String(raw || "").replace(/[\u2013\u2014]/g, "-");
-  const ids = [];
-
-  const add = (id) => {
-    if (!ids.includes(id)) ids.push(id);
-  };
-
-  let remainder = text.replace(
-    /\bBP-(\d{3})\s*(?:to|through|-)\s*BP-(\d{3})\b/gi,
-    (match, from, to) => {
-      const start = Number(from);
-      const end = Number(to);
-
-      if (start <= end) {
-        for (let n = start; n <= end; n += 1) add(`BP-${String(n).padStart(3, "0")}`);
-      } else {
-        for (let n = start; n >= end; n -= 1) add(`BP-${String(n).padStart(3, "0")}`);
-      }
-
-      return " ";
-    }
-  );
-
-  remainder = remainder.replace(/\bBP-(\d{3})\b/gi, (match) => {
-    add(match.toUpperCase());
-    return " ";
-  });
-
-  const external = remainder
-    .split(/[;,]/)
-    .map((part) => part.replace(/^[-\u2013\u2014]\s*/, "").trim())
-    .filter((part) => part && part !== "-");
-
-  return { ids, external };
-}
-
-// The dashboard answers three questions the raw Markdown cannot:
-//   - What does this item depend on?           -> dependsOn
-//   - What builds on it (its base targets)?    -> baseFor
-//   - What can be worked on at the same time?  -> wave
-// Wave is the longest dependency path from an item with no prerequisites.
-// Items on the same wave cannot depend on each other, so they can be developed
-// in parallel. External prerequisites do not create a wave; they are listed
-// beside the feature dependencies instead.
-function annotateBacklog(items) {
-  const known = new Set(items.map((item) => item.id));
-  const dependsOn = new Map();
-  const external = new Map();
-
-  for (const item of items) {
-    const parsed = parseDependencyCell(item.dependencies);
-    dependsOn.set(item.id, parsed.ids);
-    external.set(item.id, parsed.external);
-  }
-
-  const featureDeps = (id) =>
-    (dependsOn.get(id) || []).filter((dep) => known.has(dep) && dep !== id);
-
-  const baseFor = new Map(items.map((item) => [item.id, []]));
-
-  for (const item of items) {
-    for (const dep of featureDeps(item.id)) {
-      baseFor.get(dep).push(item.id);
-    }
-  }
-
-  const waves = new Map();
-  const visiting = new Set();
-
-  const waveOf = (id) => {
-    if (waves.has(id)) return waves.get(id);
-    // A malformed backlog can contain a cycle. Do not recurse forever; report
-    // the item as a root and let the dependency lists show the links.
-    if (visiting.has(id)) return 0;
-
-    visiting.add(id);
-    const deps = featureDeps(id);
-    const wave = deps.length ? Math.max(...deps.map((dep) => waveOf(dep) + 1)) : 0;
-    visiting.delete(id);
-
-    waves.set(id, wave);
-    return wave;
-  };
-
-  return items.map((item) => {
-    const wave = waveOf(item.id);
-
-    return {
-      ...item,
-      dependsOn: dependsOn.get(item.id) || [],
-      externalDependencies: external.get(item.id) || [],
-      baseFor: baseFor.get(item.id) || [],
-      wave,
-      parallelWith: items
-        .filter((other) => other.id !== item.id && waveOf(other.id) === wave)
-        .map((other) => other.id)
-    };
-  });
-}
-
 function apiProduct() {
   const overview = readProductFile("overview.md");
   const mockup = readProductFile("mockup.md");
@@ -2206,6 +2015,11 @@ function apiProduct() {
   const backlogMarkdown = readProductFile("backlog.md");
 
   const exists = Boolean(overview || mockup || designSystem || roadmap || backlogMarkdown);
+  const state = loadJson(path.join(sdriveRoot, "workflow-state.json"), { features: [] });
+  const enriched = productPlan.enrichBacklog(
+    productPlan.annotateBacklog(productPlan.parseBacklog(backlogMarkdown)),
+    { sdriveRoot, state }
+  );
 
   return {
     exists,
@@ -2213,7 +2027,9 @@ function apiProduct() {
     mockup,
     designSystem,
     roadmap,
-    backlog: annotateBacklog(parseBacklog(backlogMarkdown)),
+    backlog: productPlan.sortBacklog(enriched.items),
+    counts: enriched.counts,
+    waves: enriched.waves,
     summary: parseProductOverview(overview)
   };
 }
@@ -2326,7 +2142,7 @@ const CLI_COMMANDS = [
     example: "sdrive create user-login" },
   { command: "sdrive update-propose <feature>", description: "Validate an existing feature for extension (internal)", group: "Features",
     what: "Checks the feature exists, is not already completed, and has a spec folder to extend.",
-    why: "Extension has preconditions — a shipped feature must be reopened before new requirements can be added.",
+    why: "Extension has preconditions - a completed version is immutable, so new scope needs a new version instead.",
     when: "Usually run for you by /sdrive:update-propose.",
     example: "sdrive update-propose user-login" },
   { command: "sdrive assign <feature> <username>", description: "Assign a team member as the owner of a feature", group: "Features",
@@ -2344,11 +2160,6 @@ const CLI_COMMANDS = [
     why: "Lets you evolve a shipped feature without erasing its history.",
     when: "When adding significant new scope to a completed feature.",
     example: "sdrive version:new user-login" },
-  { command: "sdrive amend <feature> --reason \"...\"", description: "Reopen a wrongly-closed feature to correct its record (corrective action)", group: "Governance",
-    what: "Moves a closed version back into active work so missing evidence can be gathered, then asks which branch the work should happen on and which branch to base it on. The reason is required and recorded.",
-    why: "Some closures are simply wrong — a feature shipped without the tests its own acceptance criteria required. Amending that same version is what makes its record true; issuing a new version instead would attach v1's proofs to a version nobody shipped.",
-    when: "Only when a lifecycle was closed incorrectly. To change or extend a released feature, use sdrive version:new instead.",
-    example: "sdrive amend user-login --reason \"archived before tests were written\"" },
   { command: "sdrive diff:version <feature> <a> <b>", description: "Compare two versions of a feature", group: "Features",
     what: "Shows what changed between two versions of a feature.",
     why: "Makes it easy to review scope changes over time.",
@@ -2469,7 +2280,8 @@ const SLASH_DETAILS = {
       "Writes the feature specification with numbered requirements",
       "Derives acceptance criteria and a traceability matrix",
       "Produces a technical plan and an ordered task list",
-      "Opens a feature branch for the work"
+      "Offers a Product ID branch (feature/BP-003) or a readable branch name",
+      "Opens the feature branch, or reuses a worktree prepared by /sdrive:worktree"
     ],
     produces: [
       ".sdrive/specs/ongoing/<feature>/<version>/spec.md",
@@ -2480,6 +2292,28 @@ const SLASH_DETAILS = {
     ],
     reads: [".sdrive/constitution.md", ".sdrive/product/backlog.md"],
     handsOff: "/sdrive:apply"
+  },
+  "/sdrive:worktree": {
+    what: "Prepares branches and isolated worktrees for the next ready Product Plan wave.",
+    why: "Lets independent items in the same wave start in parallel without opening a later wave early.",
+    when: "After the product plan, when a wave's dependencies are completed and archived.",
+    does: [
+      "Reads the backlog's Depends on and Wave columns",
+      "Offers Product ID branches or readable names with suggestions",
+      "Creates one branch and worktree per selected item",
+      "Records prepared worktrees so /sdrive:propose reuses them"
+    ],
+    produces: [
+      "A feature branch per selected item",
+      "An isolated git worktree per selected item",
+      ".sdrive/workflow-state.json worktrees entries"
+    ],
+    reads: [
+      ".sdrive/product/backlog.md",
+      ".sdrive/workflow-state.json",
+      "git branches and existing worktrees"
+    ],
+    handsOff: "/sdrive:propose"
   },
   "/sdrive:update-propose": {
     what: "Extends an existing specification with new requirements.",
@@ -2714,13 +2548,14 @@ const PRODUCT_WORKFLOWS = [
     icon: "✦",
     summary:
       "You are beginning with a clean slate — either an empty folder or a freshly scaffolded repo that has no plan in place yet. SpecDrive walks you from that starting point all the way to governed, specified, and tested code.",
-    steps: ["/sdrive:constitution", "/sdrive:product-plan"],
-    // product-plan is the only optional setup step. It is for a project that has an
-    // idea but no written plan, or an empty repo. A project that already knows what
-    // it is building can go straight from the constitution to /sdrive:propose.
-    optional: ["/sdrive:product-plan"],
+    steps: ["/sdrive:constitution", "/sdrive:product-plan", "/sdrive:worktree"],
+    // product-plan and worktree are optional setup steps. The plan is for a project
+    // that has an idea but no written plan (or an empty repo); worktree is for a
+    // project that wants to prepare a whole dependency wave in parallel. A project
+    // that already knows what it is building can go straight to /sdrive:propose.
+    optional: ["/sdrive:product-plan", "/sdrive:worktree"],
     optionalNote:
-      "/sdrive:product-plan is optional: run it when you have an idea but no written plan, or an empty repo. You can go straight from the constitution to /sdrive:propose.",
+      "/sdrive:product-plan is optional: run it when you have an idea but no written plan, or an empty repo. /sdrive:worktree is optional too: after a plan, it prepares branches and isolated worktrees for one ready wave. /sdrive:propose can still create a branch by itself.",
     iteration: ["/sdrive:propose", "/sdrive:apply", "/sdrive:test", "/sdrive:review", "/sdrive:archive"]
   },
   {

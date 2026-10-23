@@ -1322,6 +1322,43 @@ body {
   line-height: 1.4;
 }
 
+.backlog-plan-note {
+  margin-top: 4px;
+  color: var(--text-3);
+  font-size: 10.5px;
+  line-height: 1.3;
+  white-space: nowrap;
+}
+
+.backlog-filters {
+  margin-top: 16px;
+}
+
+.filter-clear {
+  padding: 8px 12px;
+  font-size: 12.5px;
+  font-weight: 600;
+  color: var(--text-2);
+  background: var(--surface-2);
+  border: 1px solid var(--border-strong);
+  border-radius: var(--radius-sm);
+  cursor: pointer;
+  transition: border-color 0.15s, color 0.15s, background 0.15s;
+}
+
+.filter-clear:hover {
+  color: var(--text);
+  background: var(--surface);
+  border-color: var(--accent-2);
+}
+
+.backlog-result-count {
+  margin-left: auto;
+  color: var(--text-3);
+  font-size: 12px;
+  white-space: nowrap;
+}
+
 .dep-list {
   display: flex;
   flex-wrap: wrap;
@@ -1374,9 +1411,316 @@ body {
   color: var(--green);
 }
 
-.backlog-legend {
-  max-width: 90ch;
+.backlog-guide {
+  margin-top: 20px;
+  padding: 18px 20px;
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  background: var(--surface-2);
+}
+
+.backlog-guide-head {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 8px 18px;
+  margin-bottom: 14px;
+}
+
+.backlog-guide-head h3 {
+  margin: 0;
+  color: var(--text);
+  font-size: 13px;
+  font-weight: 700;
+}
+
+.backlog-guide-head span {
+  max-width: 72ch;
+  color: var(--text-3);
+  font-size: 12px;
+  text-align: right;
+}
+
+.backlog-guide-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 18px;
+}
+
+.backlog-guide-term {
+  margin-bottom: 5px;
+  color: var(--text-3);
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.6px;
+  text-transform: uppercase;
+}
+
+.backlog-guide-card:nth-child(2) .backlog-guide-term {
+  color: var(--accent);
+}
+
+.backlog-guide-card:nth-child(3) .backlog-guide-term {
+  color: var(--green);
+}
+
+.backlog-guide-card p {
+  margin: 0;
+  color: var(--text-2);
+  font-size: 12.5px;
+  line-height: 1.55;
+}
+
+.backlog-guide code {
+  padding: 2px 6px;
+  border-radius: 5px;
+  background: var(--slate-soft);
+  color: var(--accent);
+  font-family: var(--mono);
+  font-size: 11.5px;
+}
+
+.backlog-guide-more {
+  margin-top: 16px;
+  padding-top: 16px;
+  border-top: 1px solid var(--border);
+}
+
+.backlog-guide-more > summary {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  cursor: pointer;
+  color: var(--accent);
+  font-size: 12px;
+  font-weight: 700;
+  list-style: none;
+}
+
+.backlog-guide-more > summary::-webkit-details-marker {
+  display: none;
+}
+
+.backlog-guide-more > summary::before {
+  content: "▸";
+  color: var(--text-3);
+  font-size: 10px;
+  transition: transform 0.15s ease;
+}
+
+.backlog-guide-more[open] > summary::before {
+  transform: rotate(90deg);
+}
+
+.backlog-guide-deep {
+  margin-top: 14px;
+}
+
+.backlog-guide-analogy {
+  margin: 0 0 18px;
+  padding: 12px 14px;
+  border: 1px solid var(--border);
+  border-left: 3px solid var(--accent);
+  border-radius: 8px;
+  background: var(--surface);
+  color: var(--text-2);
+  font-size: 12.5px;
+  line-height: 1.55;
+}
+
+.backlog-guide-deep-grid {
+  display: grid;
+  grid-template-columns: minmax(0, 1.15fr) minmax(0, 1fr);
+  gap: 24px;
+}
+
+.backlog-guide-side {
+  display: grid;
+  gap: 18px;
+  align-content: start;
+}
+
+.backlog-guide-section {
+  margin: 0;
+}
+
+.backlog-guide-section h4 {
+  margin: 0 0 10px;
+  color: var(--text-3);
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.6px;
+  text-transform: uppercase;
+}
+
+.backlog-guide-timeline {
+  display: grid;
+  gap: 12px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.backlog-guide-timeline li {
+  position: relative;
+  padding-left: 28px;
+}
+
+.backlog-guide-timeline li::before {
+  content: "";
+  position: absolute;
+  left: 7px;
+  top: 7px;
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: var(--accent);
+  box-shadow: 0 0 0 3px var(--accent-soft);
+}
+
+.backlog-guide-timeline li:not(:last-child)::after {
+  content: "";
+  position: absolute;
+  left: 10px;
+  top: 21px;
+  bottom: -12px;
+  width: 2px;
+  background: var(--border);
+}
+
+.backlog-guide-step-head {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 6px;
+}
+
+.backlog-guide-step-head strong {
+  color: var(--text);
+  font-size: 12.5px;
+  font-weight: 600;
+}
+
+.backlog-guide-timeline p {
+  margin: 4px 0 0;
+  color: var(--text-3);
+  font-size: 12.25px;
   line-height: 1.5;
+}
+
+.backlog-guide-takeaway {
+  margin: 12px 0 0;
+  padding: 10px 12px;
+  border-radius: 7px;
+  background: var(--slate-soft);
+  color: var(--text-2);
+  font-size: 12px;
+  line-height: 1.5;
+}
+
+.backlog-guide-steps {
+  margin: 0;
+  padding-left: 19px;
+  color: var(--text-2);
+  font-size: 12.5px;
+  line-height: 1.55;
+}
+
+.backlog-guide-steps li {
+  margin-bottom: 7px;
+  padding-left: 2px;
+}
+
+.backlog-guide-steps li:last-child {
+  margin-bottom: 0;
+}
+
+.backlog-guide-mistakes {
+  display: grid;
+  gap: 8px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.backlog-guide-mistakes li {
+  position: relative;
+  padding-left: 17px;
+  color: var(--text-3);
+  font-size: 12.25px;
+  line-height: 1.5;
+}
+
+.backlog-guide-mistakes li::before {
+  content: "×";
+  position: absolute;
+  left: 0;
+  top: -1px;
+  color: var(--red);
+  font-weight: 700;
+}
+
+.backlog-guide-glossary-wrap {
+  margin-top: 18px;
+  padding-top: 18px;
+  border-top: 1px solid var(--border);
+}
+
+.backlog-guide-glossary {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 12px 24px;
+  margin: 0;
+}
+
+.backlog-guide-glossary > div {
+  padding-left: 10px;
+  border-left: 2px solid var(--border);
+}
+
+.backlog-guide-glossary dt {
+  margin: 0 0 2px;
+  color: var(--text);
+  font-size: 12px;
+  font-weight: 700;
+}
+
+.backlog-guide-glossary dd {
+  margin: 0;
+  color: var(--text-3);
+  font-size: 12px;
+  line-height: 1.5;
+}
+
+.backlog-guide-footer {
+  margin: 12px 0 0;
+  padding-top: 12px;
+  border-top: 1px solid var(--border);
+  color: var(--text-3);
+  font-size: 12px;
+}
+
+@media (max-width: 1100px) {
+  .backlog-guide-deep-grid {
+    grid-template-columns: 1fr;
+    gap: 18px;
+  }
+}
+
+@media (max-width: 900px) {
+  .backlog-guide-head span {
+    text-align: left;
+  }
+
+  .backlog-guide-grid,
+  .backlog-guide-glossary {
+    grid-template-columns: 1fr;
+  }
+
+  .backlog-guide-grid {
+    gap: 12px;
+  }
 }
 
 .product-note {

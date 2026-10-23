@@ -52,7 +52,7 @@ You ensure all documents remain aligned and every new requirement is traceable.
   - `.sdrive/governance/<feature>/<version>/`
 - **GATE AWARENESS:** If the feature's spec gate is already approved, adding new requirements INVALIDATES that approval.
   - Reset the `specification` gate to `pending` and record why in the version history.
-  - If the feature is already `completed`, STOP. Extension is `sdrive version:new <feature>`, which creates a new version and leaves the released one untouched. (`sdrive amend` is only for correcting a closure that was wrong — never for adding scope.)
+  - If the feature is already `completed`, STOP. Extension is `sdrive version:new <feature>`, which creates a new version and leaves the released one untouched. Archived versions are immutable; there is no amend or reopen path.
 - **SELF-CASCADE RULE (CRITICAL):** This command updates `spec.md`, `plan.md`, `tasks.md`, AND `traceability.json` in a single run.
   - You are responsible for cascading the new requirements all the way down the hierarchy yourself.
   - Do NOT tell the user to run `/sdrive:sync` afterward — that would be redundant and could cause drift.

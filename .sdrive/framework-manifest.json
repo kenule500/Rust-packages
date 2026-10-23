@@ -1,6 +1,6 @@
 {
   "cliVersion": "0.1.44",
-  "installedAt": "2026-10-23T14:46:23.460Z",
+  "installedAt": "2026-10-23T15:11:56.254Z",
   "files": {
     "agents/00-onboarding.md": "sha256:d0a90bad4f40ce607e93883f1b5adb0d43200e2f71f23561dd68812a3bf94ba3",
     "agents/01-constitution.md": "sha256:884b4d4ddac6fba36ca447c2a52895134088b37943229f2901c4b04e4d95c2ca",
@@ -28,7 +28,7 @@
     "dashboard/app.js": "sha256:317cea79bb1d0f167bf1c9254872e9ebd9f47edae9ec8645f4ca7c4c183e18c2",
     "dashboard/index.html": "sha256:9123a698982297ca1659515fcc4dc13866deca29011ad06632529bd5cbfca963",
     "dashboard/server.js": "sha256:95e151a498e6b8117e8a936bdd7cc145c474a4c99a155de6f0cfa0bbb2c6107a",
-    "dashboard/style.css": "sha256:d7df74b4cdf17508de68fffb052fed3620e143032129094d4eddf3f9cc2fe16d",
+    "dashboard/style.css": "sha256:a24cada96affb583fccf7de5fe2d3da9247026dc4ca17f537d3a694ee5bea26c",
     "dashboard/theme.js": "sha256:8aeaaa166fc0b72b63fd62e7b51e19e6da76b61ea9aace0f560a7c25f1678f39",
     "mcp/mcp.json": "sha256:a358e914b1f961bb58f83bf24daea1b50b1270ea8431b41ee1248f2875c85aac",
     "mcp/server.js": "sha256:95c310c3d97f06dd7a5045fbfbac259551f825a64ca693da756bf852d27a003e",

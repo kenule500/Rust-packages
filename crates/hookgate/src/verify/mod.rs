@@ -1,6 +1,7 @@
 //! Raw-byte HMAC verification, replay windows, and signature presets.
 
 use std::fmt;
+use std::time::Instant;
 
 use base64::engine::general_purpose::STANDARD as BASE64;
 use base64::Engine;
@@ -12,6 +13,7 @@ use sha1::Sha1;
 use sha2::Sha256;
 use subtle::ConstantTimeEq;
 use thiserror::Error;
+use tracing::{info, warn};
 
 use crate::{DeliveryId, InboundRequest, ProviderId, VerifiedEvent};
 
@@ -214,12 +216,8 @@ pub trait Verifier: Send + Sync {
     fn verify(&self, request: &InboundRequest) -> Result<VerifiedEvent, VerifyError>;
 }
 
-impl Verifier for HmacPreset {
-    fn provider(&self) -> ProviderId {
-        self.provider
-    }
-
-    fn verify(&self, request: &InboundRequest) -> Result<VerifiedEvent, VerifyError> {
+impl HmacPreset {
+    fn verify_inner(&self, request: &InboundRequest) -> Result<VerifiedEvent, VerifyError> {
         if request.provider != self.provider {
             return Err(VerifyError::ProviderMismatch {
                 expected: self.provider.to_string(),
@@ -322,6 +320,40 @@ impl Verifier for HmacPreset {
             payload,
             raw: request.body.clone(),
         })
+    }
+}
+
+impl Verifier for HmacPreset {
+    fn provider(&self) -> ProviderId {
+        self.provider
+    }
+
+    fn verify(&self, request: &InboundRequest) -> Result<VerifiedEvent, VerifyError> {
+        let started = Instant::now();
+        let result = self.verify_inner(request);
+        let duration_ms = u64::try_from(started.elapsed().as_millis()).unwrap_or(u64::MAX);
+
+        match &result {
+            Ok(event) => info!(
+                delivery = %event.delivery,
+                tenant = %event.tenant,
+                provider = %event.provider,
+                event_id = event.event_id.as_deref().unwrap_or_default(),
+                event_type = %event.event_type,
+                duration_ms,
+                "hookgate.webhook.verified"
+            ),
+            Err(error) => warn!(
+                tenant = %request.tenant,
+                provider = %request.provider,
+                body_len = request.body.len(),
+                duration_ms,
+                error = %error,
+                "hookgate.webhook.rejected"
+            ),
+        }
+
+        result
     }
 }
 

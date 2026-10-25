@@ -3,6 +3,7 @@ use std::fmt;
 use std::sync::{Mutex, MutexGuard};
 
 use async_trait::async_trait;
+use tracing::{debug, info, warn};
 
 use crate::store::now;
 use crate::{
@@ -113,15 +114,37 @@ impl DeliveryStore for MemoryDeliveryStore {
         let mut inner = self.lock()?;
         let key = (record.tenant, record.delivery);
         if inner.deliveries.contains_key(&key) {
+            debug!(
+                delivery = %record.delivery,
+                tenant = %record.tenant,
+                provider = %record.provider,
+                "hookgate.delivery.duplicate"
+            );
             return Ok(InsertOutcome::Duplicate);
         }
 
         let dedupe_key = (record.tenant, record.provider, record.event_id.clone());
         if inner.dedupe.contains_key(&dedupe_key) {
+            debug!(
+                delivery = %record.delivery,
+                tenant = %record.tenant,
+                provider = %record.provider,
+                event_id = %record.event_id,
+                "hookgate.delivery.duplicate"
+            );
             return Ok(InsertOutcome::Duplicate);
         }
 
         inner.dedupe.insert(dedupe_key, record.delivery);
+        info!(
+            delivery = %record.delivery,
+            tenant = %record.tenant,
+            provider = %record.provider,
+            event_id = %record.event_id,
+            event_type = %record.event_type,
+            outbox_depth = inner.outbox.len() + 1,
+            "hookgate.delivery.inserted"
+        );
         inner.messages.insert(key, message.clone());
         inner.deliveries.insert(key, record);
         inner.outbox.push_back(message);
@@ -173,6 +196,18 @@ impl DeliveryStore for MemoryDeliveryStore {
 
         if let Some(dead_letter) = &dead_letter {
             inner.dead_letters.push(dead_letter.clone());
+            warn!(
+                delivery = %dead_letter.delivery,
+                tenant = %dead_letter.tenant,
+                provider = %dead_letter.provider,
+                "hookgate.delivery.dead_letter"
+            );
+        } else {
+            debug!(
+                delivery = %id,
+                tenant = %tenant,
+                "hookgate.delivery.failed"
+            );
         }
         Ok(dead_letter)
     }
@@ -206,6 +241,11 @@ impl DeliveryStore for MemoryDeliveryStore {
                 .get_mut(&key)
                 .ok_or_else(|| StoreError::NotFound(id.to_string()))?;
             if record.status == DeliveryStatus::Processed {
+                debug!(
+                    delivery = %id,
+                    tenant = %tenant,
+                    "hookgate.delivery.duplicate"
+                );
                 return Ok(InsertOutcome::Duplicate);
             }
             record.status = DeliveryStatus::Pending;
@@ -218,6 +258,12 @@ impl DeliveryStore for MemoryDeliveryStore {
             .cloned()
             .ok_or_else(|| StoreError::Backend("outbox message is missing".to_owned()))?;
         inner.outbox.push_back(message);
+        info!(
+            delivery = %id,
+            tenant = %tenant,
+            outbox_depth = inner.outbox.len(),
+            "hookgate.delivery.replayed"
+        );
         Ok(InsertOutcome::Inserted)
     }
 }

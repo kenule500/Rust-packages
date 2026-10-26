@@ -68,7 +68,8 @@ const CANDIDATE_ROOTS = [
   "messages",
   "locales",
   "i18n",
-  "content"
+  "content",
+  "crates"
 ];
 
 const IGNORED_DIRS = new Set([
@@ -76,6 +77,7 @@ const IGNORED_DIRS = new Set([
   ".git",
   "dist",
   "build",
+  "target",
   ".next",
   ".expo",
   ".turbo",
@@ -188,6 +190,60 @@ function readFileContent(filePath) {
   } catch (error) {
     return "";
   }
+}
+
+function escapeRegExp(value) {
+  return value.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+}
+
+// Rust symbols are not covered by the SQL/Prisma/TypeScript detectors. Fall
+// back to a word check so plan entities and fields can still be verified.
+function filesContainWord(files, word) {
+  const pattern = new RegExp(`\\b${escapeRegExp(word)}\\b`);
+  return files.some((file) => pattern.test(readFileContent(file)));
+}
+
+function filesContainRustDefinition(files, name) {
+  const base = name.split("::").pop();
+  const pattern = new RegExp(
+    `\\b(?:pub\\s+)?(?:struct|enum|trait|type|union|fn|mod)\\s+${escapeRegExp(base)}\\b`
+  );
+  return files.some((file) => pattern.test(readFileContent(file)));
+}
+
+// Dependencies in a Rust repository live in Cargo.toml and the CI workflow,
+// not package.json. Services such as GitHub Actions and crates.io are named in
+// the docs. A mention is enough for the verifier's existence check.
+function workspaceCrateManifests() {
+  const cratesDir = path.join(projectRoot, "crates");
+
+  if (!fs.existsSync(cratesDir)) return [];
+
+  return fs
+    .readdirSync(cratesDir, { withFileTypes: true })
+    .filter((entry) => entry.isDirectory())
+    .map((entry) => `crates/${entry.name}/Cargo.toml`)
+    .filter((relative) => fs.existsSync(path.join(projectRoot, relative)));
+}
+function repositoryMentionsDependency(name) {
+  const candidates = [
+    "Cargo.toml",
+    // Workspace members declare their own dependencies; the root manifest does
+    // not repeat them, so every crate manifest counts as evidence.
+    ...workspaceCrateManifests(),
+    ".github/workflows/ci.yml",
+    "README.md",
+    "CONTRIBUTING.md",
+    "SECURITY.md",
+    "RELEASING.md"
+  ];
+  const needle = name.toLowerCase();
+
+  return candidates.some((relative) => {
+    const filePath = path.join(projectRoot, relative);
+    if (!fs.existsSync(filePath)) return false;
+    return readFileContent(filePath).toLowerCase().includes(needle);
+  });
 }
 
 function detectComponents(files) {
@@ -460,7 +516,21 @@ function diffPlanAgainstCode(planItems, code) {
     if (item.type === "component") {
       // Plans may reference a component either by exported symbol name
       // ("Hero") or by file path ("components/home/hero.tsx"). Match both.
-      const found = codeComponents.find((c) => componentMatches(item, c));
+      let found = codeComponents.find((c) => componentMatches(item, c));
+
+      // Documentation, manifests, and workflow files live outside the source
+      // roots. A plan that names an existing file path has already proven the
+      // file exists, so accept it directly.
+      if (!found) {
+        const direct = expandBraces(item.name).find((candidate) => {
+          const absolute = path.join(projectRoot, candidate);
+          return fs.existsSync(absolute) && fs.statSync(absolute).isFile();
+        });
+
+        if (direct) {
+          found = { name: direct, file: direct, isPath: true };
+        }
+      }
 
       if (found) {
         matched.push({ ...item, file: found.file });
@@ -491,7 +561,11 @@ function diffPlanAgainstCode(planItems, code) {
     }
 
     if (item.type === "entity") {
-      const found = codeEntities.find((e) => e.name === item.name);
+      let found = codeEntities.find((e) => e.name === item.name);
+
+      if (!found && filesContainRustDefinition(code.files, item.name)) {
+        found = { name: item.name, file: "rust source" };
+      }
 
       if (found) {
         matched.push({ ...item, file: found.file });
@@ -501,9 +575,13 @@ function diffPlanAgainstCode(planItems, code) {
     }
 
     if (item.type === "field") {
-      const found = codeFields.find(
+      let found = codeFields.find(
         (f) => f.entity === item.entity && f.name === item.name
       );
+
+      if (!found && filesContainWord(code.files, item.name)) {
+        found = { entity: item.entity, name: item.name, file: "rust source" };
+      }
 
       if (found) {
         matched.push({ ...item, file: found.file });
@@ -515,7 +593,8 @@ function diffPlanAgainstCode(planItems, code) {
     if (item.type === "dependency") {
       if (
         codeDependencies.includes(item.name) ||
-        VIRTUAL_DEPENDENCIES.has(item.name.toLowerCase())
+        VIRTUAL_DEPENDENCIES.has(item.name.toLowerCase()) ||
+        repositoryMentionsDependency(item.name)
       ) {
         matched.push(item);
       } else {

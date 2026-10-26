@@ -73,6 +73,10 @@ serde_json = "1.0.140"
 # Pinned exactly: 0.6.4+ use `let` chains in conditions and need Rust 1.88,
 # which would break the MSRV 1.85 test job (Cargo.lock is not committed).
 wiremock = "=0.6.3"
+# Integration tests are separate crates: they cannot borrow the library's own
+# `tokio` or `tracing` dependencies, so the test harness declares them itself.
+tokio = { version = "1.44.2", features = ["macros", "rt", "time"] }
+tracing = "0.1.41"
 
 [[example]]
 name = "noaa"

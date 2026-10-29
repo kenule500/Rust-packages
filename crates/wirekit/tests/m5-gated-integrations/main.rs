@@ -1,8 +1,10 @@
 //! Acceptance tests for the `m5-gated-integrations` feature.
 //!
 //! Covers the half that needs no network: the Angi parser, importer, dedupe key
-//! and webhook verifier, plus secret redaction. The LSA and Intacct mock-server
-//! tests land separately.
+//! and webhook verifier, plus secret redaction. Intacct's mock-server tests live
+//! in `intacct.rs`.
+
+mod intacct;
 
 use wirekit::angi::{import_csv, parse_email, AngiWebhook, ColumnMap, ImportOutcome};
 use wirekit::Secret;
@@ -54,7 +56,8 @@ Received: 2026-10-01
 
 #[test]
 fn ac_002_an_unknown_template_fails_naming_a_field() {
-    let error = parse_email("This is not an Angi template at all.").expect_err("unknown template fails");
+    let error =
+        parse_email("This is not an Angi template at all.").expect_err("unknown template fails");
 
     assert_eq!(error.field, "lead id");
     assert!(error.reason.contains("documented Angi template"));
@@ -101,7 +104,10 @@ fn ac_003_a_missing_mapped_column_fails_before_any_row() {
     let error = import_csv(export.as_bytes(), &angi_columns()).expect_err("a missing column fails");
 
     assert_eq!(error.code(), "W2006");
-    assert!(error.to_string().contains("Phone"), "names the missing column");
+    assert!(
+        error.to_string().contains("Phone"),
+        "names the missing column"
+    );
 }
 
 #[test]
@@ -128,7 +134,10 @@ Received: 2026-10-01
         b.dedupe_key(),
         "spacing, punctuation and case must not change the key"
     );
-    assert_eq!(a.dedupe_key(), "phy:5550100100|1 main st springfield|2026 10 01");
+    assert_eq!(
+        a.dedupe_key(),
+        "phy:5550100100|1 main st springfield|2026 10 01"
+    );
 }
 
 #[test]
@@ -164,7 +173,13 @@ fn ac_012_the_intacct_sender_password_never_renders() {
     };
 
     let rendered = format!("{config:?}");
-    assert!(!rendered.contains("hunter2"), "the password must not appear");
+    assert!(
+        !rendered.contains("hunter2"),
+        "the password must not appear"
+    );
     assert!(rendered.contains("***"), "the password renders redacted");
-    assert!(rendered.contains("sender-1"), "the sender id is still visible");
+    assert!(
+        rendered.contains("sender-1"),
+        "the sender id is still visible"
+    );
 }

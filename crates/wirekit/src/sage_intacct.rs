@@ -343,6 +343,7 @@ fn parse_response(body: &[u8], max_bytes: usize) -> Result<IntacctOutcome, Wirek
 
     let mut stack: Vec<String> = Vec::new();
     let mut in_data = 0_usize;
+    let mut in_result = 0_usize;
 
     loop {
         match reader.read_event() {
@@ -359,12 +360,18 @@ fn parse_response(body: &[u8], max_bytes: usize) -> Result<IntacctOutcome, Wirek
                 if name == "data" {
                     in_data += 1;
                 }
+                if name == "result" {
+                    in_result += 1;
+                }
                 stack.push(name);
             }
             Ok(Event::End(_)) => {
                 if let Some(closed) = stack.pop() {
                     if closed == "data" {
                         in_data = in_data.saturating_sub(1);
+                    }
+                    if closed == "result" {
+                        in_result = in_result.saturating_sub(1);
                     }
                 }
             }
@@ -376,6 +383,10 @@ fn parse_response(body: &[u8], max_bytes: usize) -> Result<IntacctOutcome, Wirek
 
                 let current = stack.last().cloned().unwrap_or_default();
                 match current.as_str() {
+                    // The control block carries its own `status`; the authoritative
+                    // one is inside `<result>`. Reading only the first made a
+                    // failed operation look successful (caught by ac_011).
+                    "status" if in_result > 0 => outcome.status = value.to_lowercase(),
                     "status" if outcome.status.is_empty() => {
                         outcome.status = value.to_lowercase();
                     }

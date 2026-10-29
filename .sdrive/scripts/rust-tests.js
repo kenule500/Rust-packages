@@ -1,4 +1,4 @@
-﻿#!/usr/bin/env node
+#!/usr/bin/env node
 
 // Rust test reporter for SpecDrive's `sdrive test` evidence.
 //

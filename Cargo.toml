@@ -1,5 +1,7 @@
 [workspace]
-resolver = "2"
+# Resolver 3 is MSRV-aware: dependencies are resolved against the `rust-version`
+# below, so a fresh lockfile stays buildable on Rust 1.85 (AC-039).
+resolver = "3"
 members = ["crates/*"]
 
 [workspace.package]

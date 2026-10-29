@@ -1,0 +1,526 @@
+{
+  "feature": "m1-first-publish",
+  "version": 1,
+  "architecture": {
+    "approach": "Add crates/wirekit as a workspace member delivering M1 in dependency order. First the core contract (BP-005): a single #[non_exhaustive] WirekitError with stable W#### codes; one retry policy (exponential backoff with jitter, 3 attempts by default, retry on 5xx/429/network, honor Retry-After, never retry other 4xx); a hand-rolled per-provider token bucket; one shared reqwest::Client with HTTPS-only base URLs and a caller injection path; one auth layer (Bearer, Basic, API key header/query, HMAC, OAuth2 client credentials) over a redacting Secret<T>; tracing events for start, finish, retry, rate-limit hit, and error; and one request pipeline (auth, rate limit, retry, send, decode) with the CON-213 body-level error hook. Then four feature-gated provider modules built only against that contract: noaa, twilio, sendgrid, slack; each verifies webhooks over raw bytes (CON-215) and introduces no second error type. Then release preparation (BP-010): changelog, complete metadata, README with provider matrix, feature-flag table and error reference, one runnable example per provider, a verified cargo package --list and cargo publish -p wirekit --dry-run, and a wirekit section in RELEASING.md. The real publish and the wirekit-v0.1.0 tag stay manual post-merge. The core is always compiled; default = [] means no provider enabled. No application domain types, database, or global singleton.",
+    "components": [
+      {
+        "name": "crates/wirekit/Cargo.toml",
+        "action": "create",
+        "description": "Package metadata inheriting edition, rust-version, and license; default = []; additive provider features noaa, twilio, sendgrid, slack; rustls-tls default with a native-tls alternative; docs.rs all-features; include list for src, examples, README, CHANGELOG, and licenses."
+      },
+      {
+        "name": "crates/wirekit/src/lib.rs",
+        "action": "create",
+        "description": "Crate-level forbid(unsafe_code) and deny(missing_docs), module declarations for the core and the four feature-gated providers, and documentation of the feature table and the always-compiled core."
+      },
+      {
+        "name": "crates/wirekit/src/error.rs",
+        "action": "create",
+        "description": "The #[non_exhaustive] WirekitError enum (Api, Auth, RateLimit, Timeout, Network, InvalidConfig, Decode) with stable W#### codes, Display, std::error::Error, and mapping helpers from status codes and bodies."
+      },
+      {
+        "name": "crates/wirekit/src/client.rs",
+        "action": "create",
+        "description": "WirekitClient builder and the process-shared reqwest::Client, with caller injection, timeouts, TLS, proxy, default headers, pool limits, and HTTPS-only base URL validation."
+      },
+      {
+        "name": "crates/wirekit/src/retry.rs",
+        "action": "create",
+        "description": "RetryPolicy (attempts, base delay, max delay, jitter bounds), retry classification, exponential backoff with jitter, and Retry-After parsing for numeric and HTTP-date forms."
+      },
+      {
+        "name": "crates/wirekit/src/rate_limit.rs",
+        "action": "create",
+        "description": "A hand-rolled per-provider/account token bucket with overrides and an async acquire that never blocks the runtime thread."
+      },
+      {
+        "name": "crates/wirekit/src/auth.rs",
+        "action": "create",
+        "description": "The object-safe AuthScheme trait and Bearer, Basic, API-key-in-header, API-key-in-query, HMAC signature, and OAuth2 client-credentials implementations, including token caching, single-flight fetch, and pre-expiry refresh."
+      },
+      {
+        "name": "crates/wirekit/src/secret.rs",
+        "action": "create",
+        "description": "The Secret<T> wrapper that redacts Debug and Display output and never implements Serialize for a secret field."
+      },
+      {
+        "name": "crates/wirekit/src/pipeline.rs",
+        "action": "create",
+        "description": "The ordered request pipeline (auth, rate limit, retry, send, decode), serde decoding, the CON-213 body-level error hook, and a configurable response size bound."
+      },
+      {
+        "name": "crates/wirekit/src/trace.rs",
+        "action": "create",
+        "description": "Tracing events for request start, request finish with duration, retry, rate-limit hit, and error, with redacted fields."
+      },
+      {
+        "name": "crates/wirekit/src/noaa.rs",
+        "action": "create",
+        "description": "The noaa feature module: NoaaClient with a required descriptive User-Agent, typed point forecast, alert list/get, and radar metadata models, problem+json error mapping, and an optional grid/zone cache with a TTL. No auth."
+      },
+      {
+        "name": "crates/wirekit/src/twilio.rs",
+        "action": "create",
+        "description": "The twilio feature module: Basic or API-key authentication, form-encoded bodies, typed SMS, WhatsApp, voice, MFA, and lookup requests, code/message/status error mapping with 401 to Auth, X-Twilio-Signature verification over raw bytes, and a per-account token bucket."
+      },
+      {
+        "name": "crates/wirekit/src/sendgrid.rs",
+        "action": "create",
+        "description": "The sendgrid feature module: bearer authentication, typed email, template, attachment, and contact models, sandbox mode, errors[] mapping with the full list retained, and ECDSA event-webhook verification on raw bytes."
+      },
+      {
+        "name": "crates/wirekit/src/slack.rs",
+        "action": "create",
+        "description": "The slack feature module: bot-token authentication, typed messages, Block Kit blocks, channels, users, and files, the ok:false body-level error hook, no retry for channel_not_found or not_in_channel, Retry-After handling with channel caching, and X-Slack-Signature verification with timestamp replay rejection."
+      },
+      {
+        "name": "crates/wirekit/README.md",
+        "action": "create",
+        "description": "Crate purpose, feature table, provider matrix (auth, base URL, feature flag), the W#### error reference, and minimal usage."
+      },
+      {
+        "name": "crates/wirekit/CHANGELOG.md",
+        "action": "create",
+        "description": "A 0.1.0 entry describing the core and the four provider modules."
+      },
+      {
+        "name": "crates/wirekit/examples/noaa.rs",
+        "action": "create",
+        "description": "A runnable NOAA example that needs no credentials."
+      },
+      {
+        "name": "crates/wirekit/examples/twilio.rs",
+        "action": "create",
+        "description": "A Twilio example that exits with a clear message when credentials are absent."
+      },
+      {
+        "name": "crates/wirekit/examples/sendgrid.rs",
+        "action": "create",
+        "description": "A SendGrid example that exits with a clear message when credentials are absent."
+      },
+      {
+        "name": "crates/wirekit/examples/slack.rs",
+        "action": "create",
+        "description": "A Slack example that exits with a clear message when credentials are absent."
+      },
+      {
+        "name": ".github/workflows/ci.yml",
+        "action": "modify",
+        "description": "Add a wirekit feature-matrix build (default and each provider feature) and an MSRV build; do not add or modify test files."
+      },
+      {
+        "name": "RELEASING.md",
+        "action": "modify",
+        "description": "Add the wirekit release section covering pre-flight, version and changelog, dry-run, the wirekit-v0.1.0 tag, publish, verification, and yank or rollback."
+      }
+    ],
+    "referencedRequirementIds": [
+      "FR-001", "FR-002", "FR-003", "FR-004", "FR-005", "FR-006", "FR-007", "FR-008",
+      "FR-009", "FR-010", "FR-011", "FR-012", "FR-013", "FR-014", "FR-015", "FR-016",
+      "FR-017", "FR-018", "FR-019", "FR-020", "FR-021", "FR-022", "FR-023", "FR-024",
+      "FR-025", "FR-026", "FR-027", "FR-028", "FR-029", "FR-030", "FR-031", "FR-032",
+      "FR-033", "FR-034", "FR-035", "FR-036", "FR-037", "FR-038", "FR-039", "FR-040",
+      "FR-041", "FR-042", "FR-043", "FR-044", "FR-045", "FR-046", "FR-047", "FR-048",
+      "FR-049", "FR-050",
+      "NFR-001", "NFR-002", "NFR-003", "NFR-004", "NFR-005", "NFR-006", "NFR-007",
+      "NFR-008", "NFR-009", "NFR-010", "NFR-011", "NFR-012", "NFR-013", "NFR-014",
+      "NFR-015", "NFR-016", "NFR-017", "NFR-018", "NFR-019", "NFR-020", "NFR-021",
+      "NFR-022"
+    ]
+  },
+  "dataModel": {
+    "entities": [
+      {
+        "name": "WirekitError",
+        "action": "create",
+        "fields": [
+          { "name": "Api", "type": "{ status, code, message }", "nullable": false, "action": "add" },
+          { "name": "Auth", "type": "{ message }", "nullable": false, "action": "add" },
+          { "name": "RateLimit", "type": "{ retry_after }", "nullable": true, "action": "add" },
+          { "name": "Timeout", "type": "unit", "nullable": false, "action": "add" },
+          { "name": "Network", "type": "{ source }", "nullable": false, "action": "add" },
+          { "name": "InvalidConfig", "type": "{ message }", "nullable": false, "action": "add" },
+          { "name": "Decode", "type": "{ message }", "nullable": false, "action": "add" }
+        ]
+      },
+      {
+        "name": "RetryPolicy",
+        "action": "create",
+        "fields": [
+          { "name": "attempts", "type": "u32", "nullable": false, "action": "add" },
+          { "name": "base_delay", "type": "Duration", "nullable": false, "action": "add" },
+          { "name": "max_delay", "type": "Duration", "nullable": false, "action": "add" },
+          { "name": "jitter", "type": "JitterBounds", "nullable": false, "action": "add" }
+        ]
+      },
+      {
+        "name": "RateLimitConfig",
+        "action": "create",
+        "fields": [
+          { "name": "capacity", "type": "u32", "nullable": false, "action": "add" },
+          { "name": "refill_per_second", "type": "f64", "nullable": false, "action": "add" }
+        ]
+      },
+      {
+        "name": "TokenBucket",
+        "action": "create",
+        "fields": [
+          { "name": "capacity", "type": "u32", "nullable": false, "action": "add" },
+          { "name": "available", "type": "f64", "nullable": false, "action": "add" },
+          { "name": "refill_rate", "type": "f64", "nullable": false, "action": "add" },
+          { "name": "last_refill", "type": "Instant", "nullable": false, "action": "add" }
+        ]
+      },
+      {
+        "name": "Secret",
+        "action": "create",
+        "fields": [
+          { "name": "inner", "type": "T", "nullable": false, "action": "add" }
+        ]
+      },
+      {
+        "name": "AuthScheme",
+        "action": "create",
+        "fields": [
+          { "name": "Bearer", "type": "Secret<String>", "nullable": false, "action": "add" },
+          { "name": "Basic", "type": "{ user, password: Secret<String> }", "nullable": false, "action": "add" },
+          { "name": "ApiKeyHeader", "type": "{ header, key: Secret<String> }", "nullable": false, "action": "add" },
+          { "name": "ApiKeyQuery", "type": "{ param, key: Secret<String> }", "nullable": false, "action": "add" },
+          { "name": "Hmac", "type": "{ algorithm, key: Secret<Vec<u8>> }", "nullable": false, "action": "add" },
+          { "name": "OAuth2ClientCredentials", "type": "{ token_url, client_id, client_secret: Secret<String>, scopes }", "nullable": false, "action": "add" }
+        ]
+      },
+      {
+        "name": "OAuth2Token",
+        "action": "create",
+        "fields": [
+          { "name": "access_token", "type": "Secret<String>", "nullable": false, "action": "add" },
+          { "name": "expires_at", "type": "Instant", "nullable": false, "action": "add" }
+        ]
+      },
+      {
+        "name": "WirekitClient",
+        "action": "create",
+        "fields": [
+          { "name": "http", "type": "reqwest::Client", "nullable": false, "action": "add" },
+          { "name": "retry", "type": "RetryPolicy", "nullable": false, "action": "add" },
+          { "name": "rate_limit", "type": "Option<RateLimitConfig>", "nullable": true, "action": "add" },
+          { "name": "auth", "type": "Option<Box<dyn AuthScheme>>", "nullable": true, "action": "add" },
+          { "name": "base_url", "type": "Url", "nullable": false, "action": "add" }
+        ]
+      },
+      {
+        "name": "RequestSpec",
+        "action": "create",
+        "fields": [
+          { "name": "method", "type": "http::Method", "nullable": false, "action": "add" },
+          { "name": "url", "type": "Url", "nullable": false, "action": "add" },
+          { "name": "headers", "type": "http::HeaderMap", "nullable": false, "action": "add" },
+          { "name": "body", "type": "Option<Vec<u8>>", "nullable": true, "action": "add" },
+          { "name": "response_type", "type": "fn(&[u8]) -> Result<T, WirekitError>", "nullable": false, "action": "add" },
+          { "name": "body_error_hook", "type": "Option<fn(&[u8], u16) -> Option<WirekitError>>", "nullable": true, "action": "add" }
+        ]
+      },
+      {
+        "name": "NoaaClient",
+        "action": "create",
+        "fields": [
+          { "name": "client", "type": "WirekitClient", "nullable": false, "action": "add" },
+          { "name": "user_agent", "type": "String", "nullable": false, "action": "add" },
+          { "name": "cache_ttl", "type": "Option<Duration>", "nullable": true, "action": "add" }
+        ]
+      },
+      {
+        "name": "ForecastRequest",
+        "action": "create",
+        "fields": [
+          { "name": "lat", "type": "f64", "nullable": false, "action": "add" },
+          { "name": "lon", "type": "f64", "nullable": false, "action": "add" }
+        ]
+      },
+      {
+        "name": "ForecastResponse",
+        "action": "create",
+        "fields": [
+          { "name": "periods", "type": "Vec<ForecastPeriod>", "nullable": false, "action": "add" },
+          { "name": "temperature", "type": "f64", "nullable": true, "action": "add" },
+          { "name": "precipitation", "type": "Option<f64>", "nullable": true, "action": "add" }
+        ]
+      },
+      {
+        "name": "WeatherAlert",
+        "action": "create",
+        "fields": [
+          { "name": "id", "type": "String", "nullable": false, "action": "add" },
+          { "name": "event", "type": "String", "nullable": false, "action": "add" },
+          { "name": "severity", "type": "String", "nullable": false, "action": "add" },
+          { "name": "areas", "type": "Vec<String>", "nullable": false, "action": "add" },
+          { "name": "description", "type": "String", "nullable": false, "action": "add" }
+        ]
+      },
+      {
+        "name": "RadarMetadata",
+        "action": "create",
+        "fields": [
+          { "name": "station", "type": "String", "nullable": false, "action": "add" },
+          { "name": "updated", "type": "String", "nullable": false, "action": "add" },
+          { "name": "bounds", "type": "Option<[f64; 4]>", "nullable": true, "action": "add" }
+        ]
+      },
+      {
+        "name": "TwilioClient",
+        "action": "create",
+        "fields": [
+          { "name": "client", "type": "WirekitClient", "nullable": false, "action": "add" },
+          { "name": "account_sid", "type": "String", "nullable": false, "action": "add" },
+          { "name": "auth", "type": "AuthScheme", "nullable": false, "action": "add" }
+        ]
+      },
+      {
+        "name": "SendSmsRequest",
+        "action": "create",
+        "fields": [
+          { "name": "to", "type": "String", "nullable": false, "action": "add" },
+          { "name": "from", "type": "String", "nullable": false, "action": "add" },
+          { "name": "body", "type": "String", "nullable": false, "action": "add" }
+        ]
+      },
+      {
+        "name": "MessageResponse",
+        "action": "create",
+        "fields": [
+          { "name": "sid", "type": "String", "nullable": false, "action": "add" },
+          { "name": "status", "type": "String", "nullable": false, "action": "add" }
+        ]
+      },
+      {
+        "name": "CallRequest",
+        "action": "create",
+        "fields": [
+          { "name": "to", "type": "String", "nullable": false, "action": "add" },
+          { "name": "from", "type": "String", "nullable": false, "action": "add" },
+          { "name": "twiml", "type": "String", "nullable": false, "action": "add" }
+        ]
+      },
+      {
+        "name": "CallStatus",
+        "action": "create",
+        "fields": [
+          { "name": "sid", "type": "String", "nullable": false, "action": "add" },
+          { "name": "status", "type": "String", "nullable": false, "action": "add" }
+        ]
+      },
+      {
+        "name": "MfaChallenge",
+        "action": "create",
+        "fields": [
+          { "name": "service_sid", "type": "String", "nullable": false, "action": "add" },
+          { "name": "to", "type": "String", "nullable": false, "action": "add" }
+        ]
+      },
+      {
+        "name": "MfaVerification",
+        "action": "create",
+        "fields": [
+          { "name": "valid", "type": "bool", "nullable": false, "action": "add" }
+        ]
+      },
+      {
+        "name": "LookupResult",
+        "action": "create",
+        "fields": [
+          { "name": "phone_number", "type": "String", "nullable": false, "action": "add" },
+          { "name": "validation", "type": "Option<serde_json::Value>", "nullable": true, "action": "add" }
+        ]
+      },
+      {
+        "name": "SendGridClient",
+        "action": "create",
+        "fields": [
+          { "name": "client", "type": "WirekitClient", "nullable": false, "action": "add" },
+          { "name": "api_key", "type": "Secret<String>", "nullable": false, "action": "add" }
+        ]
+      },
+      {
+        "name": "SendEmailRequest",
+        "action": "create",
+        "fields": [
+          { "name": "from", "type": "String", "nullable": false, "action": "add" },
+          { "name": "to", "type": "Vec<String>", "nullable": false, "action": "add" },
+          { "name": "subject", "type": "Option<String>", "nullable": true, "action": "add" },
+          { "name": "template", "type": "Option<String>", "nullable": true, "action": "add" },
+          { "name": "substitutions", "type": "Option<serde_json::Value>", "nullable": true, "action": "add" },
+          { "name": "attachments", "type": "Vec<Attachment>", "nullable": false, "action": "add" },
+          { "name": "sandbox_mode", "type": "bool", "nullable": false, "action": "add" }
+        ]
+      },
+      {
+        "name": "SendGridError",
+        "action": "create",
+        "fields": [
+          { "name": "code", "type": "String", "nullable": false, "action": "add" },
+          { "name": "message", "type": "String", "nullable": false, "action": "add" },
+          { "name": "details", "type": "Vec<serde_json::Value>", "nullable": false, "action": "add" }
+        ]
+      },
+      {
+        "name": "SendGridEvent",
+        "action": "create",
+        "fields": [
+          { "name": "sg_event_id", "type": "String", "nullable": false, "action": "add" },
+          { "name": "event", "type": "String", "nullable": false, "action": "add" },
+          { "name": "timestamp", "type": "i64", "nullable": false, "action": "add" },
+          { "name": "email", "type": "String", "nullable": false, "action": "add" }
+        ]
+      },
+      {
+        "name": "SlackClient",
+        "action": "create",
+        "fields": [
+          { "name": "client", "type": "WirekitClient", "nullable": false, "action": "add" },
+          { "name": "token", "type": "Secret<String>", "nullable": false, "action": "add" },
+          { "name": "signing_secret", "type": "Option<Secret<String>>", "nullable": true, "action": "add" }
+        ]
+      },
+      {
+        "name": "SlackMessage",
+        "action": "create",
+        "fields": [
+          { "name": "channel", "type": "String", "nullable": false, "action": "add" },
+          { "name": "text", "type": "Option<String>", "nullable": true, "action": "add" },
+          { "name": "blocks", "type": "Vec<SlackBlock>", "nullable": false, "action": "add" },
+          { "name": "thread_ts", "type": "Option<String>", "nullable": true, "action": "add" }
+        ]
+      },
+      {
+        "name": "SlackBlock",
+        "action": "create",
+        "fields": [
+          { "name": "block_type", "type": "String", "nullable": false, "action": "add" },
+          { "name": "fields", "type": "serde_json::Value", "nullable": false, "action": "add" }
+        ]
+      },
+      {
+        "name": "SlackChannel",
+        "action": "create",
+        "fields": [
+          { "name": "id", "type": "String", "nullable": false, "action": "add" },
+          { "name": "name", "type": "String", "nullable": false, "action": "add" }
+        ]
+      },
+      {
+        "name": "SlackUser",
+        "action": "create",
+        "fields": [
+          { "name": "id", "type": "String", "nullable": false, "action": "add" },
+          { "name": "name", "type": "String", "nullable": false, "action": "add" }
+        ]
+      },
+      {
+        "name": "SlackFile",
+        "action": "create",
+        "fields": [
+          { "name": "channels", "type": "Vec<String>", "nullable": false, "action": "add" },
+          { "name": "content", "type": "Vec<u8>", "nullable": false, "action": "add" },
+          { "name": "filename", "type": "String", "nullable": false, "action": "add" },
+          { "name": "filetype", "type": "Option<String>", "nullable": true, "action": "add" }
+        ]
+      }
+    ],
+    "flowDescription": "A provider builds a RequestSpec and hands it to its provider client, which delegates to the shared WirekitClient. The pipeline applies the configured auth scheme, acquires a token from the provider's bucket, sends the request through the shared reqwest::Client inside a retry loop, then decodes the body with serde and the optional body-level error hook. Every step maps failures into WirekitError. Provider-specific work is limited to request shaping (NOAA query parameters, Twilio form encoding, SendGrid JSON, Slack JSON), response decoding, canonical-form signing, and webhook signature verification over raw bytes. All state (client, buckets, OAuth2 token, NOAA cache, Slack channel cache) is in-process and dropped with the client; nothing is persisted or transmitted by the crate itself."
+  },
+  "apiContracts": [],
+  "securityConsiderations": [
+    {
+      "requirementId": "NFR-011",
+      "description": "CON-511 Authentication: the pipeline applies the configured scheme to every outbound request for every provider (NOAA is intentionally auth-free and applies none) and fails closed with WirekitError::InvalidConfig when credentials are missing; secrets are wrapped in Secret<T>."
+    },
+    {
+      "requirementId": "NFR-012",
+      "description": "CON-514 Rate limiting: a per-provider/account token bucket is enforced before every outbound request, with per-provider overrides, so the aggregate rate per provider is respected."
+    },
+    {
+      "requirementId": "NFR-013",
+      "description": "CON-515 Input validation: URLs, header values, form bodies, and response bodies are validated; malformed input returns a typed WirekitError and never panics."
+    },
+    {
+      "requirementId": "NFR-014",
+      "description": "CON-519 Environment security: credentials come from caller-supplied configuration or secret stores; the crate never reads .env files and never commits a secret."
+    },
+    {
+      "requirementId": "NFR-015",
+      "description": "CON-520 HTTPS: non-HTTPS base URLs are rejected before any socket is opened, and all outbound requests use TLS; HSTS is documented as a deployment-edge concern."
+    },
+    {
+      "requirementId": "NFR-007",
+      "description": "CON-214 Secret redaction: secrets never appear in Debug, Display, logs, traces, or error payloads, and no secret field implements Serialize."
+    },
+    {
+      "requirementId": "NFR-016",
+      "description": "CON-215 Webhook verification: every provider verifier (Twilio HMAC-SHA1, SendGrid ECDSA, Slack HMAC-SHA256) operates on the raw request bytes and never re-serializes the body."
+    },
+    {
+      "requirementId": "NFR-017",
+      "description": "Provider secrets (auth tokens, API keys, signing secrets) are redacted in Debug, Display, logs, and traces across all four provider clients."
+    },
+    {
+      "requirementId": "NFR-022",
+      "description": "No committed credentials: documentation, examples, and fixtures contain placeholders only, and examples exit clearly when credentials are absent."
+    }
+  ],
+  "performanceConsiderations": [
+    {
+      "requirementId": "NFR-005",
+      "strategy": "Token acquisition and retry backoff await an async timer; std::thread::sleep and busy-waiting are forbidden, so no runtime thread is blocked."
+    },
+    {
+      "requirementId": "NFR-006",
+      "strategy": "One shared reqwest::Client per process reuses TCP connections and applies default request timeouts and connection-pool limits."
+    },
+    {
+      "requirementId": "NFR-009",
+      "strategy": "Per-request work stays small: one bucket lookup, one header mutation set, and one decode; no per-request client or pool allocation. The NOAA module additionally caches forecasts and alerts by grid or zone with a configurable TTL, and Slack caches channel and user lookups, so repeated reads avoid the network entirely."
+    }
+  ],
+  "dependencies": [
+    { "name": "reqwest", "type": "library", "action": "add", "notes": "HTTP client; rustls-tls is the default backend and a native-tls feature is the alternative. The single shared client per process (CON-210)." },
+    { "name": "tokio", "type": "library", "action": "add", "notes": "Features rt, time, and macros; supplies the timers used by retry backoff and token-bucket waiting." },
+    { "name": "tracing", "type": "library", "action": "add", "notes": "Observability events for request start, finish, retry, rate-limit hit, and error (CON-211)." },
+    { "name": "thiserror", "type": "library", "action": "add", "notes": "Derives Display and Error for WirekitError." },
+    { "name": "serde", "type": "library", "action": "add", "notes": "Typed request and response models." },
+    { "name": "serde_json", "type": "library", "action": "add", "notes": "JSON encoding and decoding of provider bodies." },
+    { "name": "http", "type": "library", "action": "add", "notes": "Shared HTTP types: HeaderMap, StatusCode, Method." },
+    { "name": "rand", "type": "library", "action": "add", "notes": "Jitter for exponential backoff." },
+    { "name": "async-trait", "type": "library", "action": "add", "notes": "Object-safe async auth and transport traits." },
+    { "name": "url", "type": "library", "action": "add", "notes": "URL parsing and HTTPS validation." },
+    { "name": "hmac", "type": "library", "action": "add", "notes": "Webhook signature computation for Twilio and Slack." },
+    { "name": "sha1", "type": "library", "action": "add", "notes": "Twilio X-Twilio-Signature digest." },
+    { "name": "sha2", "type": "library", "action": "add", "notes": "Slack X-Slack-Signature digest." },
+    { "name": "base64", "type": "library", "action": "add", "notes": "Basic auth encoding and SendGrid attachments." },
+    { "name": "hex", "type": "library", "action": "add", "notes": "Slack signature and SendGrid event encoding." },
+    { "name": "percent-encoding", "type": "library", "action": "add", "notes": "Slack signature base-string encoding." },
+    { "name": "serde_urlencoded", "type": "library", "action": "add", "notes": "Twilio form-encoded request bodies." },
+    { "name": "p256", "type": "library", "action": "add", "notes": "Elliptic-curve primitives for SendGrid event-webhook signature verification." },
+    { "name": "ecdsa", "type": "library", "action": "add", "notes": "ECDSA verification for the SendGrid event-webhook signature." },
+    { "name": "wiremock", "type": "library", "action": "add", "notes": "Dev-dependency only: local HTTP mock for provider tests. Never published and never a runtime dependency." },
+    { "name": "crates.io", "type": "service", "action": "no_change", "notes": "Existing publication target; the wirekit name must be checked immediately before publish in BP-010 (CON-111)." },
+    { "name": "GitHub Actions", "type": "service", "action": "no_change", "notes": "CI execution from BP-002; add a wirekit feature-matrix build and an MSRV build." }
+  ],
+  "risks": [
+    { "description": "A single crate carrying 26+ provider features becomes a release and build-time bottleneck.", "mitigation": "M1 ships four providers; measure build times and propose a companion crate if needed (CON-104 amendment path)." },
+    { "description": "0.x churn in the error, retry, or auth contract breaks provider modules.", "mitigation": "#[non_exhaustive], stable W#### codes, an additive-only feature policy, and shared-pipeline use until the 1.0 freeze." },
+    { "description": "A dependency raises its MSRV above 1.85.", "mitigation": "The MSRV CI job fails fast; pin or downgrade with a recorded decision." },
+    { "description": "rustls versus native-tls surprises on a platform.", "mitigation": "rustls is the default and a documented feature selects native-tls." },
+    { "description": "A secret leaks into logs, traces, an error payload, a fixture, or an example.", "mitigation": "Secret<T>, no Serialize for secret fields, redacted tracing fields, placeholder-only fixtures, and property tests from the Test agent." },
+    { "description": "A provider needs behavior the pipeline cannot express.", "mitigation": "The body-level error hook, per-provider retry and rate-limit overrides, injectable clients, and canonical-form signing hooks." },
+    { "description": "The rate limiter blocks the async runtime or is unfair under concurrency.", "mitigation": "Async token acquisition, per-provider buckets, and EC-015." },
+    { "description": "Twilio A2P 10DLC or toll-free verification is a launch blocker for SMS at scale.", "mitigation": "The module is sender-agnostic; registration stays a consumer concern and is recorded as an open question, not a stub." },
+    { "description": "SendGrid sender authentication (SPF, DKIM, DMARC) or data residency limits real use.", "mitigation": "The module is documented as transport-only; deliverability configuration stays with the consumer." },
+    { "description": "Slack app review or scopes delay real use.", "mitigation": "The module ships bot-token usage and documented scopes; the install flow is deferred to BP-015." },
+    { "description": "NOAA polling across many workspaces is expensive in aggregate.", "mitigation": "The optional grid/zone cache and a documented 15-minute polling budget." },
+    { "description": "Provider error-shape drift (new codes, changed bodies) silently changes behavior.", "mitigation": "Fixtures pin the shapes, unknown bodies map to WirekitError::Api rather than panicking, and tests are owned by /sdrive:test." },
+    { "description": "Examples that need credentials cannot be verified in CI.", "mitigation": "Examples compile in CI and exit with a clear message when credentials are absent; the NOAA example runs without a key." },
+    { "description": "Scope creeps into other providers or stateful crates.", "mitigation": "The explicit out-of-scope list; later work becomes a new version of this feature (CON-612)." }
+  ]
+}

@@ -77,6 +77,9 @@ pub mod google_lsa;
 #[cfg(feature = "noaa")]
 pub mod noaa;
 
+#[cfg(feature = "sage-intacct")]
+pub mod sage_intacct;
+
 #[cfg(feature = "sendgrid")]
 pub mod sendgrid;
 

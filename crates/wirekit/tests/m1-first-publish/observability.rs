@@ -28,7 +28,9 @@ async fn ac_028_a_started_request_is_traced_with_a_redacted_url() {
         .auth(Arc::new(ApiKeyQuery::new("api_key", "query_SECRET")));
     client.send(spec).await.expect("the request is sent");
 
-    let event = capture.find("request started").expect("the start is traced");
+    let event = capture
+        .find("request started")
+        .expect("the start is traced");
     assert_eq!(event.target, "wirekit::request");
     assert_eq!(event.field("method"), Some("GET"));
     let url = event.field("url").expect("the URL is recorded");

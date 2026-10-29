@@ -71,10 +71,7 @@ async fn ac_043_a_point_forecast_returns_typed_periods_temperature_and_precipita
     assert_eq!(response.precipitation, Some(30.0));
     assert_eq!(response.periods[0].name, "Today");
     assert_eq!(response.periods[0].temperature_unit.as_deref(), Some("F"));
-    assert_eq!(
-        response.periods[0].short_forecast.as_deref(),
-        Some("Sunny")
-    );
+    assert_eq!(response.periods[0].short_forecast.as_deref(), Some("Sunny"));
     assert_eq!(point.hits(), 1);
     assert_eq!(
         point.last().header("user-agent"),
@@ -191,7 +188,10 @@ async fn ac_045_one_alert_is_fetched_by_id_and_an_unknown_id_is_an_api_error() {
     .await;
 
     let client = noaa(&server);
-    let alert = client.alert(" known ").await.expect("the alert is returned");
+    let alert = client
+        .alert(" known ")
+        .await
+        .expect("the alert is returned");
     assert_eq!(alert.id, "known");
     // The mock server rebuilds the URL from the Host header, so assert the
     // path rather than the host.
@@ -210,7 +210,10 @@ async fn ac_045_one_alert_is_fetched_by_id_and_an_unknown_id_is_an_api_error() {
         other => panic!("expected Api, got {other:?}"),
     }
 
-    let error = client.alert("   ").await.expect_err("a blank id is invalid");
+    let error = client
+        .alert("   ")
+        .await
+        .expect_err("a blank id is invalid");
     assert_eq!(error.code(), "W2006");
 }
 
@@ -247,9 +250,14 @@ async fn ac_046_a_problem_json_body_maps_to_an_api_error() {
             ref details,
         } => {
             assert_eq!(status, 500);
-            assert_eq!(code, "http_500", "no provider code exists, so the status is used");
+            assert_eq!(
+                code, "http_500",
+                "no provider code exists, so the status is used"
+            );
             assert_eq!(message, "The upstream grid data is unavailable.");
-            let details = details.as_ref().expect("the parsed problem document is kept");
+            let details = details
+                .as_ref()
+                .expect("the parsed problem document is kept");
             assert_eq!(details["title"], json!("Service Unavailable"));
         }
         other => panic!("expected Api, got {other:?}"),
@@ -350,11 +358,7 @@ async fn ac_048_a_repeated_request_within_the_ttl_is_served_from_cache() {
         .alerts_active(&AlertQuery::new().area("TX"))
         .await
         .expect("the call succeeds");
-    assert_eq!(
-        recorder.hits(),
-        4,
-        "a disabled cache sends every request"
-    );
+    assert_eq!(recorder.hits(), 4, "a disabled cache sends every request");
 }
 
 #[tokio::test]
@@ -397,7 +401,9 @@ async fn ac_049_noaa_retries_share_the_backoff_policy_and_honour_retry_after() {
         .expect_err("the 429 is not hidden");
     assert_eq!(error.code(), "W2003");
     assert_eq!(limited.hits(), 2, "the shared policy retried once");
-    let retry = capture.find("retrying request").expect("the retry is traced");
+    let retry = capture
+        .find("retrying request")
+        .expect("the retry is traced");
     assert_eq!(
         retry.field("delay_ms"),
         Some("5"),

@@ -47,11 +47,21 @@ fn ac_013_each_provider_uses_its_own_bucket_and_override() {
     let bursty = TokenBucket::new(RateLimitConfig::new(5, 5.0).expect("a valid bucket"));
     let strict = TokenBucket::new(RateLimitConfig::new(1, 1.0).expect("a valid bucket"));
 
-    assert_eq!(bursty.config(), RateLimitConfig::new(5, 5.0).expect("a valid bucket"));
-    assert_eq!(strict.config(), RateLimitConfig::new(1, 1.0).expect("a valid bucket"));
+    assert_eq!(
+        bursty.config(),
+        RateLimitConfig::new(5, 5.0).expect("a valid bucket")
+    );
+    assert_eq!(
+        strict.config(),
+        RateLimitConfig::new(1, 1.0).expect("a valid bucket")
+    );
 
     for _ in 0..5 {
-        assert_eq!(bursty.try_acquire(), None, "the bursty bucket has five tokens");
+        assert_eq!(
+            bursty.try_acquire(),
+            None,
+            "the bursty bucket has five tokens"
+        );
     }
     assert!(
         bursty.try_acquire().is_some(),
@@ -84,10 +94,7 @@ fn ac_013_each_provider_uses_its_own_bucket_and_override() {
     );
 
     assert!(RateLimitConfig::new(0, 1.0).is_err(), "zero capacity fails");
-    assert!(
-        RateLimitConfig::new(1, 0.0).is_err(),
-        "zero refill fails"
-    );
+    assert!(RateLimitConfig::new(1, 0.0).is_err(), "zero refill fails");
     assert_eq!(
         RateLimitConfig::per_second(4.0).expect("a valid bucket"),
         RateLimitConfig::new(4, 4.0).expect("a valid bucket")

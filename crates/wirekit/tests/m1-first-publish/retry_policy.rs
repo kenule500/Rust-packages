@@ -54,8 +54,7 @@ async fn ac_007_retry_after_is_honoured_and_survives_an_exhausted_policy() {
         &server,
         "GET",
         "/v1/limited",
-        common::Recorder::json(429, json!({ "code": "rate_limited" }))
-            .header("retry-after", "1"),
+        common::Recorder::json(429, json!({ "code": "rate_limited" })).header("retry-after", "1"),
     )
     .await;
 
@@ -241,7 +240,10 @@ fn ac_010_delays_grow_exponentially_with_bounded_jitter() {
     );
 
     assert!(JitterBounds::new(1.5, 0.5).is_err(), "inverted bounds fail");
-    assert!(JitterBounds::new(-1.0, 1.0).is_err(), "negative bounds fail");
+    assert!(
+        JitterBounds::new(-1.0, 1.0).is_err(),
+        "negative bounds fail"
+    );
     assert!(
         RetryPolicy {
             attempts: 0,

@@ -206,7 +206,10 @@ fn ac_077_published_metadata_resolves() {
 
     let categories = list_entries(row(&manifest, "categories ="), "categories");
     assert!(!categories.is_empty());
-    assert!(categories.len() <= 5, "crates.io allows at most five categories");
+    assert!(
+        categories.len() <= 5,
+        "crates.io allows at most five categories"
+    );
     for category in &categories {
         assert!(
             category
@@ -256,7 +259,12 @@ fn ac_078_the_changelog_describes_the_first_release() {
         .split_once("\n## [")
         .map_or(entry, |(section, _)| section);
 
-    for required in ["WirekitClient", "WirekitError", "RetryPolicy", "RateLimitConfig"] {
+    for required in [
+        "WirekitClient",
+        "WirekitError",
+        "RetryPolicy",
+        "RateLimitConfig",
+    ] {
         assert!(
             entry.contains(required),
             "the 0.1.0 entry describes the core type {required}"
@@ -301,8 +309,7 @@ fn ac_079_the_provider_matrix_lists_auth_base_url_and_feature() {
 
         let doc_row = row(&lib, prefix);
         assert!(
-            doc_row.to_lowercase().contains(&auth.to_lowercase())
-                && doc_row.contains(base_url),
+            doc_row.to_lowercase().contains(&auth.to_lowercase()) && doc_row.contains(base_url),
             "the crate docs carry the same matrix entry: {doc_row}"
         );
     }

@@ -68,12 +68,7 @@ fn ac_002_every_variant_reports_a_stable_w_code_in_debug_and_display() {
     let cases = [
         (WirekitError::api(400, "bad_request", "nope"), "W2001"),
         (WirekitError::auth("rejected"), "W2002"),
-        (
-            WirekitError::RateLimit {
-                retry_after: None,
-            },
-            "W2003",
-        ),
+        (WirekitError::RateLimit { retry_after: None }, "W2003"),
         (WirekitError::Timeout, "W2004"),
         (WirekitError::network("unreachable"), "W2005"),
         (WirekitError::invalid_config("no token"), "W2006"),
@@ -86,7 +81,9 @@ fn ac_002_every_variant_reports_a_stable_w_code_in_debug_and_display() {
         assert_eq!(code.len(), 5, "{code} must be W followed by four digits");
         assert!(code.starts_with('W'));
         assert!(
-            code[1..].chars().all(|character| character.is_ascii_digit()),
+            code[1..]
+                .chars()
+                .all(|character| character.is_ascii_digit()),
             "{code} must be W followed by four digits"
         );
         assert!(
@@ -123,7 +120,8 @@ fn ac_003_debug_and_display_never_render_a_credential_or_a_body() {
 
     // A provider message is rendered, but the credential is never part of it:
     // the pipeline only stores what the provider reported.
-    let api = WirekitError::api_from_body(401, br#"{"code":"unauthorized","message":"invalid token"}"#);
+    let api =
+        WirekitError::api_from_body(401, br#"{"code":"unauthorized","message":"invalid token"}"#);
     let rendered = format!("{api:?}");
     assert!(rendered.contains("unauthorized"));
     assert!(!rendered.contains("Bearer"));

@@ -71,7 +71,8 @@ async fn ac_023_an_api_key_in_a_header_reaches_the_provider() {
 
     let client = common::client(&server);
     let scheme = ApiKeyHeader::new("x-api-key", "key_abc").expect("a valid header name");
-    let spec = RequestSpec::get(client.url("v1/keyed").expect("the request URL")).auth(Arc::new(scheme));
+    let spec =
+        RequestSpec::get(client.url("v1/keyed").expect("the request URL")).auth(Arc::new(scheme));
     client.send(spec).await.expect("the request is sent");
 
     let request = recorder.last();
@@ -151,7 +152,9 @@ async fn ac_025_the_hmac_scheme_signs_the_canonical_request_bytes() {
         HmacAlgorithm::Sha256,
     )
     .expect("a valid header name");
-    let spec = RequestSpec::post(url).auth(Arc::new(scheme)).bytes_body(body);
+    let spec = RequestSpec::post(url)
+        .auth(Arc::new(scheme))
+        .bytes_body(body);
     client.send(spec).await.expect("the request is sent");
 
     let request = recorder.last();
@@ -188,7 +191,8 @@ async fn ac_026_oauth2_fails_closed_and_fetches_a_token_before_the_request() {
         .expect("a syntactically valid token URL")
         .with_scopes(["read:things"])
         .with_refresh_margin(Duration::from_secs(30));
-    let spec = RequestSpec::get(client.url("v1/oauth").expect("the request URL")).auth(Arc::new(scheme));
+    let spec =
+        RequestSpec::get(client.url("v1/oauth").expect("the request URL")).auth(Arc::new(scheme));
     let error = client.send(spec).await.expect_err("no credentials");
     assert_eq!(error.code(), "W2006");
     assert_eq!(recorder.hits(), 0, "no API request is sent");
@@ -201,7 +205,8 @@ async fn ac_026_oauth2_fails_closed_and_fetches_a_token_before_the_request() {
     let token_url = format!("https://127.0.0.1:{port}/token");
     let scheme =
         OAuth2ClientCredentials::new(token_url, "client-id", "client-secret").expect("a valid URL");
-    let spec = RequestSpec::get(client.url("v1/oauth").expect("the request URL")).auth(Arc::new(scheme));
+    let spec =
+        RequestSpec::get(client.url("v1/oauth").expect("the request URL")).auth(Arc::new(scheme));
     let error = client
         .send(spec)
         .await
@@ -232,21 +237,30 @@ fn ac_027_secrets_render_as_stars_everywhere() {
         Box::new(ApiKeyHeader::new("x-api-key", "header_VALUE").expect("a valid header name")),
         Box::new(ApiKeyQuery::new("api_key", "query_VALUE")),
         Box::new(
-            HmacAuth::new(
-                b"hmac_VALUE".to_vec(),
-                "x-signature",
-                HmacAlgorithm::Sha256,
-            )
-            .expect("a valid header name"),
+            HmacAuth::new(b"hmac_VALUE".to_vec(), "x-signature", HmacAlgorithm::Sha256)
+                .expect("a valid header name"),
         ),
         Box::new(
-            OAuth2ClientCredentials::new("https://example.com/token", "client_VALUE", "secret_VALUE")
-                .expect("a valid token URL"),
+            OAuth2ClientCredentials::new(
+                "https://example.com/token",
+                "client_VALUE",
+                "secret_VALUE",
+            )
+            .expect("a valid token URL"),
         ),
     ];
     for scheme in schemes {
         let rendered = format!("{scheme:?}");
-        for marker in ["bearer_VALUE", "basic_USER", "basic_VALUE", "header_VALUE", "query_VALUE", "hmac_VALUE", "client_VALUE", "secret_VALUE"] {
+        for marker in [
+            "bearer_VALUE",
+            "basic_USER",
+            "basic_VALUE",
+            "header_VALUE",
+            "query_VALUE",
+            "hmac_VALUE",
+            "client_VALUE",
+            "secret_VALUE",
+        ] {
             assert!(
                 !rendered.contains(marker),
                 "{marker} leaked into {rendered}"

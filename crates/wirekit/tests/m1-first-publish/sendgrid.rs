@@ -101,7 +101,11 @@ async fn ac_060_a_sent_email_returns_the_message_id_header() {
     assert_eq!(missing_content.code(), "W2006");
 
     let no_recipient = sendgrid(&server)
-        .send_email(&SendEmailRequest::new(EmailAddress::new("")).subject("hi").text("body"))
+        .send_email(
+            &SendEmailRequest::new(EmailAddress::new(""))
+                .subject("hi")
+                .text("body"),
+        )
         .await
         .expect_err("a recipient is required");
     assert_eq!(no_recipient.code(), "W2006");
@@ -118,10 +122,8 @@ async fn ac_061_a_template_request_carries_the_dynamic_data() {
     )
     .await;
 
-    let request = SendEmailRequest::new(EmailAddress::new("to@example.com")).template(
-        "d-0123456789",
-        json!({ "name": "Ada", "order": 42 }),
-    );
+    let request = SendEmailRequest::new(EmailAddress::new("to@example.com"))
+        .template("d-0123456789", json!({ "name": "Ada", "order": 42 }));
     let response = sendgrid(&server)
         .send_email(&request)
         .await
@@ -366,5 +368,9 @@ async fn ac_066_attachments_are_base64_encoded_within_the_size_limit() {
         .expect_err("an oversized attachment is rejected before sending");
     assert_eq!(error.code(), "W2006");
     assert!(error.to_string().contains("limit"));
-    assert_eq!(recorder.hits(), 1, "the oversized send never left the process");
+    assert_eq!(
+        recorder.hits(),
+        1,
+        "the oversized send never left the process"
+    );
 }

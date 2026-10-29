@@ -40,7 +40,11 @@ async fn ac_050_account_credentials_authenticate_every_request() {
     .await;
 
     twilio(&server)
-        .send_sms(&SendSmsRequest::new("+15550002222", "+15550001111", "hello"))
+        .send_sms(&SendSmsRequest::new(
+            "+15550002222",
+            "+15550001111",
+            "hello",
+        ))
         .await
         .expect("the message is accepted");
 
@@ -64,7 +68,11 @@ async fn ac_050_account_credentials_authenticate_every_request() {
         .build()
         .expect("the API-key client builds");
     client
-        .send_sms(&SendSmsRequest::new("+15550002222", "+15550001111", "hello"))
+        .send_sms(&SendSmsRequest::new(
+            "+15550002222",
+            "+15550001111",
+            "hello",
+        ))
         .await
         .expect("the message is accepted");
     assert_eq!(
@@ -122,10 +130,7 @@ async fn ac_051_send_sms_posts_a_form_and_returns_the_message() {
     assert_eq!(message.num_segments.as_deref(), Some("1"));
 
     let request = recorder.last();
-    assert_eq!(
-        request.method, "POST",
-        "the message endpoint is posted to"
-    );
+    assert_eq!(request.method, "POST", "the message endpoint is posted to");
     assert_eq!(
         request.header("content-type"),
         Some("application/x-www-form-urlencoded")
@@ -224,7 +229,10 @@ async fn ac_053_calls_are_created_with_twiml_and_status_is_fetchable() {
     let body = calls.last().text();
     assert!(body.contains("Twiml="), "the TwiML is posted: {body}");
 
-    let current = client.call_status(" CA1 ").await.expect("the status is read");
+    let current = client
+        .call_status(" CA1 ")
+        .await
+        .expect("the status is read");
     assert_eq!(current.sid, "CA1");
     assert_eq!(current.status, "in-progress");
     assert_eq!(current.duration.as_deref(), Some("12"));
@@ -392,7 +400,10 @@ async fn ac_057_webhook_signatures_are_computed_and_compared_in_constant_time() 
         .expect("the Twilio client builds");
 
     let computed = client
-        .compute_webhook_signature(common::TWILIO_WEBHOOK_URL, common::TWILIO_WEBHOOK_BODY.as_bytes())
+        .compute_webhook_signature(
+            common::TWILIO_WEBHOOK_URL,
+            common::TWILIO_WEBHOOK_BODY.as_bytes(),
+        )
         .expect("the signature is computed");
     assert_eq!(
         computed,
@@ -529,4 +540,3 @@ async fn ac_058_sends_are_throttled_per_account() {
     );
     assert_eq!(other.hits(), 3);
 }
-

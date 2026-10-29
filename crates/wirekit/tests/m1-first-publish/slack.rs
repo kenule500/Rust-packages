@@ -9,9 +9,7 @@
 use std::time::{Duration, Instant};
 
 use serde_json::json;
-use wirekit::slack::{
-    FileUpload, SlackBlock, SlackClient, SlackMessage, MAX_FILE_BYTES,
-};
+use wirekit::slack::{FileUpload, SlackBlock, SlackClient, SlackMessage, MAX_FILE_BYTES};
 use wirekit::{JitterBounds, RetryPolicy};
 
 use crate::common;
@@ -128,7 +126,10 @@ async fn ac_068_text_and_block_messages_return_the_channel_and_timestamp() {
         .await
         .expect("the typed block message is accepted");
     assert!(typed.ok);
-    assert_eq!(recorder.last().json()["blocks"][0]["type"], json!("divider"));
+    assert_eq!(
+        recorder.last().json()["blocks"][0]["type"],
+        json!("divider")
+    );
 
     let no_content = client
         .post_message(&SlackMessage::default())
@@ -313,7 +314,10 @@ async fn ac_071_retry_after_is_honoured_and_channels_are_cached() {
     assert_eq!(info.hits(), 1, "the second lookup is served from cache");
 
     cached.clear_cache();
-    cached.channel_info("C1").await.expect("the channel reloads");
+    cached
+        .channel_info("C1")
+        .await
+        .expect("the channel reloads");
     assert_eq!(info.hits(), 2, "clearing the cache forces a lookup");
 
     let uncached = SlackClient::builder(common::client(&cache_server))
@@ -321,8 +325,14 @@ async fn ac_071_retry_after_is_honoured_and_channels_are_cached() {
         .disable_channel_cache()
         .build()
         .expect("the Slack client builds");
-    uncached.channel_info("C1").await.expect("the channel loads");
-    uncached.channel_info("C1").await.expect("the channel loads again");
+    uncached
+        .channel_info("C1")
+        .await
+        .expect("the channel loads");
+    uncached
+        .channel_info("C1")
+        .await
+        .expect("the channel loads again");
     assert_eq!(info.hits(), 4, "a disabled cache always looks up");
 }
 
@@ -461,10 +471,22 @@ async fn ac_073_files_are_uploaded_as_multipart_within_the_limits() {
         "content type was {content_type}"
     );
     let body = request.text();
-    assert!(body.contains("name=\"channels\"\r\n\r\nC1"), "body was {body}");
-    assert!(body.contains("name=\"filename\"\r\n\r\napp.log"), "body was {body}");
-    assert!(body.contains("name=\"filetype\"\r\n\r\ntext"), "body was {body}");
-    assert!(body.contains("name=\"title\"\r\n\r\nBuild log"), "body was {body}");
+    assert!(
+        body.contains("name=\"channels\"\r\n\r\nC1"),
+        "body was {body}"
+    );
+    assert!(
+        body.contains("name=\"filename\"\r\n\r\napp.log"),
+        "body was {body}"
+    );
+    assert!(
+        body.contains("name=\"filetype\"\r\n\r\ntext"),
+        "body was {body}"
+    );
+    assert!(
+        body.contains("name=\"title\"\r\n\r\nBuild log"),
+        "body was {body}"
+    );
     assert!(
         body.contains("Content-Disposition: form-data; name=\"file\"; filename=\"app.log\""),
         "the file part is present: {body}"
@@ -486,7 +508,11 @@ async fn ac_073_files_are_uploaded_as_multipart_within_the_limits() {
     // The 1 GiB size guard (MAX_FILE_BYTES) is documented above and asserted
     // against the constant; materialising a 1 GiB payload is not a reasonable
     // unit test, so only the cheap validations run here.
-    assert_eq!(recorder.hits(), 1, "rejected uploads never leave the process");
+    assert_eq!(
+        recorder.hits(),
+        1,
+        "rejected uploads never leave the process"
+    );
 }
 
 #[tokio::test]

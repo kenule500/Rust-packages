@@ -6,9 +6,7 @@ use std::time::{Duration, Instant};
 use serde_json::json;
 use wirekit::pipeline::RequestSpec;
 use wirekit::sendgrid::ContactList;
-use wirekit::{
-    BasicAuth, BearerAuth, JitterBounds, RateLimitConfig, RetryPolicy, WirekitError,
-};
+use wirekit::{BasicAuth, BearerAuth, JitterBounds, RateLimitConfig, RetryPolicy, WirekitError};
 
 use crate::common;
 
@@ -119,7 +117,10 @@ async fn ac_034_a_body_level_error_is_not_mistaken_for_success() {
         &server,
         "POST",
         "/v1/graphql",
-        common::Recorder::json(200, json!({ "errors": [{ "message": "field is required" }] })),
+        common::Recorder::json(
+            200,
+            json!({ "errors": [{ "message": "field is required" }] }),
+        ),
     )
     .await;
     common::mount(
@@ -142,9 +143,7 @@ async fn ac_034_a_body_level_error_is_not_mistaken_for_success() {
         .expect_err("HTTP 200 with errors[] must fail");
     match error {
         WirekitError::Api {
-            status,
-            ref code,
-            ..
+            status, ref code, ..
         } => {
             assert_eq!(status, 200, "the status is the HTTP one");
             assert_eq!(code, "graphql_error");

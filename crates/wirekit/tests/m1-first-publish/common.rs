@@ -73,8 +73,9 @@ impl Recorded {
     /// The body decoded as JSON.
     #[must_use]
     pub fn json(&self) -> Value {
-        serde_json::from_slice(&self.body)
-            .unwrap_or_else(|error| panic!("the request body was not JSON ({error}): {}", self.text()))
+        serde_json::from_slice(&self.body).unwrap_or_else(|error| {
+            panic!("the request body was not JSON ({error}): {}", self.text())
+        })
     }
 
     /// The query value for `name`, if the URL carries one.
@@ -154,7 +155,10 @@ impl Recorder {
     /// Every request this responder saw, in order.
     #[must_use]
     pub fn calls(&self) -> Vec<Recorded> {
-        self.seen.lock().expect("the request log is not poisoned").clone()
+        self.seen
+            .lock()
+            .expect("the request log is not poisoned")
+            .clone()
     }
 
     /// The most recent request.
@@ -270,13 +274,19 @@ impl Capture {
     /// Every event seen so far.
     #[must_use]
     pub fn events(&self) -> Vec<Captured> {
-        self.events.lock().expect("the event log is not poisoned").clone()
+        self.events
+            .lock()
+            .expect("the event log is not poisoned")
+            .clone()
     }
 
     /// Every message seen so far.
     #[must_use]
     pub fn messages(&self) -> Vec<String> {
-        self.events().into_iter().map(|event| event.message).collect()
+        self.events()
+            .into_iter()
+            .map(|event| event.message)
+            .collect()
     }
 
     /// The first event whose message equals `message`.
@@ -345,7 +355,8 @@ impl tracing::field::Visit for FieldVisitor {
         if field.name() == "message" {
             self.message = value.to_string();
         } else {
-            self.fields.push((field.name().to_string(), value.to_string()));
+            self.fields
+                .push((field.name().to_string(), value.to_string()));
         }
     }
 }
@@ -498,8 +509,7 @@ pub const SENDGRID_EVENT_KEY: &str = "MFkwEwYHKoZIzj0CAQYIKoZIzj0DAQcDQgAEY9duIf
 /// The timestamp the SendGrid fixture signature covers.
 pub const SENDGRID_EVENT_TIMESTAMP: &str = "1700000000";
 /// The raw Event Webhook payload the fixture signature covers.
-pub const SENDGRID_EVENT_PAYLOAD: &str =
-    r#"[{"email":"example@test.com","timestamp":1700000000,"sg_event_id":"abc123","event":"delivered"}]"#;
+pub const SENDGRID_EVENT_PAYLOAD: &str = r#"[{"email":"example@test.com","timestamp":1700000000,"sg_event_id":"abc123","event":"delivered"}]"#;
 /// ECDSA P-256 / SHA-256 DER signature (base64) over
 /// `timestamp || payload`, produced outside this crate.
 pub const SENDGRID_EVENT_SIGNATURE: &str = "MEUCIQDx8cpVj6wM5PQPKdPElwOBfi+Nd3kiM3Cf7QpqJnqVEgIgeQsP3nLKMBpLisNKCJgP2S2cxzuCGLZSzv+m5wk2q88=";

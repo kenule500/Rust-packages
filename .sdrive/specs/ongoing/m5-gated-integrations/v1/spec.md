@@ -420,3 +420,23 @@ actually exist.
 - EC-019: HTTP 403 from localservices → `LOCALSERVICES_ACCOUNT_NOT_APPROVED`; the shared policy does not retry it.
 - EC-020: A search response body that does not match the typed page → `WirekitError::Decode` naming the resource, never a partial page.
 - EC-021: A caller-supplied sandbox base URL → used verbatim, and a non-HTTPS override is rejected at construction (CON-520).
+
+### AC Withdrawals (2026-10-29)
+
+Ten acceptance criteria describe provider behaviour that does not exist and cannot
+be tested. They are **withdrawn**, not satisfied:
+
+| Withdrawn | Reason | Source |
+|---|---|---|
+| AC-005, AC-006, AC-007, AC-008 | Describe list/get lead, update lead status, and report booking. The published `localservices:v1` discovery document defines only `accountReports:search` and `detailedLeadReports:search`. Superseded by AC-026 and AC-027. | `https://localservices.googleapis.com/$discovery/rest?version=v1` |
+| AC-016, AC-017, AC-018, AC-019, AC-020, AC-021 | Describe the ADP client. `developers.adp.com` serves a JavaScript shell, so no token endpoint or resource path could be verified. ADP returns to `needs discovery`. | `catalogue/16_adp.md`; roadmap G2 |
+
+Under the ID-preservation rule the original text stays in this document and in
+`spec.json`; withdrawal is recorded here and in the feature history. **A reviewer
+must therefore treat those ten criteria as out of scope when computing coverage.**
+
+This is a known gap in the governance model: a withdrawn criterion still counts
+toward `totalACs`, so a feature containing one can never reach 100% coverage until
+the framework supports a `withdrawn` status on an AC. Recording it here rather than
+deleting the criteria keeps the audit trail honest, and recording it rather than
+writing tests against non-existent endpoints keeps the crate honest.

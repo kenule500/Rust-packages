@@ -1,0 +1,95 @@
+[package]
+name = "wirekit"
+version = "0.1.0"
+edition.workspace = true
+rust-version.workspace = true
+license.workspace = true
+repository.workspace = true
+readme = "README.md"
+description = "One HTTP client for many providers: a shared error type, retry policy, rate limiter, auth layer, and request pipeline."
+keywords = ["http", "api-client", "retry", "rate-limit", "webhook"]
+categories = ["api-bindings", "web-programming::http-client"]
+include = [
+    "Cargo.toml",
+    "README.md",
+    "CHANGELOG.md",
+    "LICENSE-MIT",
+    "LICENSE-APACHE",
+    "src/**",
+    "examples/**",
+]
+
+[package.metadata.docs.rs]
+all-features = true
+
+[features]
+default = []
+
+# TLS backend alternative. rustls is compiled in unconditionally and is the
+# default; enabling this feature adds the platform-native backend as well.
+native-tls = ["reqwest/native-tls"]
+
+# Provider modules. Each is independent: enabling one MUST NOT enable another.
+noaa = []
+twilio = ["dep:sha1", "dep:serde_urlencoded"]
+sendgrid = ["dep:hex", "dep:p256", "dep:ecdsa"]
+slack = ["dep:hex"]
+
+[dependencies]
+reqwest = { version = "0.12.23", default-features = false, features = [
+    "rustls-tls",
+    "json",
+    "charset",
+] }
+tokio = { version = "1.44.2", features = ["rt", "time", "macros", "sync"] }
+tracing = "0.1.41"
+thiserror = "2.0.12"
+serde = { version = "1.0.229", features = ["derive"] }
+serde_json = "1.0.140"
+http = "1.3.1"
+rand = "0.8.5"
+async-trait = "0.1.88"
+url = "2.5.4"
+base64 = "0.22.1"
+hmac = "0.12.1"
+sha2 = "0.10.9"
+percent-encoding = "2.3.1"
+
+sha1 = { version = "0.10.6", optional = true }
+serde_urlencoded = { version = "0.7.1", optional = true }
+hex = { version = "0.4.3", optional = true }
+p256 = { version = "0.13.2", optional = true, default-features = false, features = [
+    "ecdsa",
+    "pkcs8",
+    "std",
+] }
+ecdsa = { version = "0.16.9", optional = true, default-features = false, features = [
+    "std",
+    "der",
+] }
+
+[dev-dependencies]
+serde_json = "1.0.140"
+# Pinned exactly: 0.6.4+ use `let` chains in conditions and need Rust 1.88,
+# which would break the MSRV 1.85 test job (Cargo.lock is not committed).
+wiremock = "=0.6.3"
+# Integration tests are separate crates: they cannot borrow the library's own
+# `tokio` or `tracing` dependencies, so the test harness declares them itself.
+tokio = { version = "1.44.2", features = ["macros", "rt", "time"] }
+tracing = "0.1.41"
+
+[[example]]
+name = "noaa"
+required-features = ["noaa"]
+
+[[example]]
+name = "twilio"
+required-features = ["twilio"]
+
+[[example]]
+name = "sendgrid"
+required-features = ["sendgrid"]
+
+[[example]]
+name = "slack"
+required-features = ["slack"]

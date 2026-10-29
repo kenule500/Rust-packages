@@ -64,10 +64,97 @@
       ]
     },
     {
+      "name": "m1-first-publish",
+      "branch": "feature/m1-first-publish",
+      "base": "main",
+      "currentVersion": "v1",
+      "versions": [
+        {
+          "id": "v1",
+          "phase": "completed",
+          "currentStep": "implementation",
+          "gates": {
+            "specification": "approved",
+            "planning": "approved",
+            "implementation": "approved",
+            "review": "approved"
+          },
+          "history": [
+            {
+              "event": "Feature branch feature/wirekit-core created from main",
+              "by": "SpecDrive",
+              "timestamp": "2026-10-20T18:05:00Z"
+            },
+            {
+              "event": "Gate 1 approved: specification and traceability",
+              "by": "kenule500",
+              "timestamp": "2026-10-20T18:12:00Z"
+            },
+            {
+              "event": "Gate 2 approved: technical plan and tasks",
+              "by": "kenule500",
+              "timestamp": "2026-10-20T18:20:00Z"
+            },
+            {
+              "event": "Scope expanded from BP-005 to the whole M1 milestone (BP-005 to BP-010); branch and feature renamed to m1-first-publish; specification and planning gates reset for re-approval",
+              "by": "kenule500",
+              "timestamp": "2026-10-20T18:40:00Z"
+            },
+            {
+              "event": "Gate 1 re-approved: expanded M1 specification and traceability",
+              "by": "kenule500",
+              "timestamp": "2026-10-20T19:05:00Z"
+            },
+            {
+              "event": "Gate 2 re-approved: expanded M1 technical plan and tasks",
+              "by": "kenule500",
+              "timestamp": "2026-10-20T19:05:00Z"
+            },
+            {
+              "event": "Lifecycle transition: moved from specs/backlog to specs/ongoing; phase set to ongoing; currentStep set to implementation",
+              "by": "SpecDrive",
+              "timestamp": "2026-10-20T19:20:00Z"
+            },
+            {
+              "event": "Merge target confirmed: main",
+              "by": "kenule500",
+              "timestamp": "2026-10-21T09:13:10Z"
+            },
+            {
+              "event": "implementation_approved",
+              "by": "kenule500",
+              "actor": "kenule500",
+              "previousValue": "pending",
+              "timestamp": "2026-10-29T06:58:07.412Z"
+            },
+            {
+              "event": "review_approved",
+              "by": "kenule500",
+              "actor": "kenule500",
+              "previousValue": "pending",
+              "timestamp": "2026-10-29T06:58:10.025Z"
+            },
+            {
+              "event": "feature_archived",
+              "by": "kenule500",
+              "from": "ongoing",
+              "version": "v1",
+              "mergeCommit": "634b929916afb1ce7d8cd6e564faae75cab3412b",
+              "timestamp": "2026-10-29T07:01:50.687Z"
+            }
+          ]
+        }
+      ]
+    },
+    {
       "name": "m5-gated-integrations",
       "branch": "feature/m5-gated-integrations",
       "base": "main",
-      "productItems": ["BP-033", "BP-034", "BP-035"],
+      "productItems": [
+        "BP-033",
+        "BP-034",
+        "BP-035"
+      ],
       "currentVersion": "v1",
       "versions": [
         {

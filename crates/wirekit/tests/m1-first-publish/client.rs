@@ -92,7 +92,11 @@ async fn ac_017_an_injected_client_is_used_verbatim() {
         &server,
         "GET",
         "/v1/slow",
-        common::Recorder::json(200, json!({})).delay(120),
+        // The responder must hold the answer far longer than the injected
+        // timeout, but the request itself must still reach the recorder.
+        // A 10 ms timeout raced the TCP send and could give up before the
+        // request arrived, which made `recorder.last()` panic under load.
+        common::Recorder::json(200, json!({})).delay(3000),
     )
     .await;
 
@@ -103,7 +107,7 @@ async fn ac_017_an_injected_client_is_used_verbatim() {
         .expect("a loopback base URL")
         .allow_insecure_localhost(true)
         .default_header(name, value)
-        .timeout(Duration::from_millis(10))
+        .timeout(Duration::from_millis(300))
         .build()
         .expect("the source client builds");
 
@@ -116,7 +120,7 @@ async fn ac_017_an_injected_client_is_used_verbatim() {
     let error = client
         .get_json::<serde_json::Value>("v1/slow")
         .await
-        .expect_err("the injected 10 ms timeout must apply");
+        .expect_err("the injected 300 ms timeout must apply");
 
     assert_eq!(
         error.code(),
@@ -137,7 +141,9 @@ async fn ac_018_builder_settings_apply_to_requests() {
         &server,
         "GET",
         "/v1/config",
-        common::Recorder::json(200, json!({ "ok": true })).delay(120),
+        // Same margin as ac_017: the responder must outlast the client
+        // timeout without the client aborting before the request is recorded.
+        common::Recorder::json(200, json!({ "ok": true })).delay(3000),
     )
     .await;
 
@@ -145,7 +151,7 @@ async fn ac_018_builder_settings_apply_to_requests() {
     let (name, value) = marker_headers!(&scratch);
 
     let client = common::builder(&server)
-        .timeout(Duration::from_millis(50))
+        .timeout(Duration::from_millis(300))
         .connect_timeout(Duration::from_millis(50))
         .pool_max_idle_per_host(2)
         .default_header(name, value)
@@ -155,7 +161,7 @@ async fn ac_018_builder_settings_apply_to_requests() {
     let error = client
         .get_json::<serde_json::Value>("v1/config")
         .await
-        .expect_err("the 50 ms timeout must apply");
+        .expect_err("the 300 ms timeout must apply");
     assert_eq!(error.code(), "W2004");
     assert_eq!(
         recorder.last().header("x-wirekit-test"),

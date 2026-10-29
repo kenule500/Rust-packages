@@ -76,8 +76,8 @@
           "gates": {
             "specification": "approved",
             "planning": "approved",
-            "implementation": "pending",
-            "review": "pending"
+            "implementation": "approved",
+            "review": "approved"
           },
           "history": [
             {
@@ -119,6 +119,20 @@
               "event": "Merge target confirmed: main",
               "by": "kenule500",
               "timestamp": "2026-10-21T09:13:10Z"
+            },
+            {
+              "event": "implementation_approved",
+              "by": "kenule500",
+              "actor": "kenule500",
+              "previousValue": "pending",
+              "timestamp": "2026-10-29T06:58:07.412Z"
+            },
+            {
+              "event": "review_approved",
+              "by": "kenule500",
+              "actor": "kenule500",
+              "previousValue": "pending",
+              "timestamp": "2026-10-29T06:58:10.025Z"
             }
           ]
         }

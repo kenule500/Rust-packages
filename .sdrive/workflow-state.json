@@ -73,9 +73,9 @@
         {
           "id": "v1",
           "phase": "backlog",
-          "currentStep": "specification",
+          "currentStep": "planning",
           "gates": {
-            "specification": "pending",
+            "specification": "approved",
             "planning": "pending",
             "implementation": "pending",
             "review": "pending"
@@ -100,6 +100,16 @@
               "event": "Specification and traceability drafted; Gate 1 awaiting human approval",
               "by": "SpecDrive",
               "timestamp": "2026-10-29T01:21:10Z"
+            },
+            {
+              "event": "Gate 1 approved: specification and traceability",
+              "by": "kenule500",
+              "timestamp": "2026-10-29T01:28:18Z"
+            },
+            {
+              "event": "Plan, tasks, and traceability synced; security baseline expanded into NFR-001 to NFR-008 with CON-516 recorded NOT APPLICABLE; Gate 2 awaiting human approval",
+              "by": "SpecDrive",
+              "timestamp": "2026-10-29T01:28:18Z"
             }
           ]
         }

@@ -140,7 +140,7 @@ Verified at this point: `cargo fmt --all --check`, `cargo clippy -p wirekit
 `cargo check --no-default-features` for the baseline and for each of the four
 features.
 
-Still open: T1.2 (two of four module files), T1.3, P6, and P7.
+Still open: T1.2 (the `adp` module), T1.3, P6, and P7.
 
 ### Update after T3 and T4
 

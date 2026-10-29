@@ -463,8 +463,23 @@ pub fn test_sources() -> Vec<(String, String)> {
 
 /// The acceptance-criterion ids declared by the specification, without the
 /// `AC-` prefix, in ascending order.
+///
+/// The spec moves from `ongoing/` to `completed/` when the feature is archived,
+/// so both locations are tried. Reading only `ongoing/` made this helper panic
+/// after m1 shipped (common.rs:412).
 pub fn spec_ac_ids() -> Vec<u32> {
-    let spec = repo_file("../../.sdrive/specs/ongoing/m1-first-publish/v1/spec.md");
+    let spec = [
+        "../../.sdrive/specs/ongoing/m1-first-publish/v1/spec.md",
+        "../../.sdrive/specs/completed/m1-first-publish/v1/spec.md",
+    ]
+    .into_iter()
+    .find(|relative| {
+        std::path::Path::new(env!("CARGO_MANIFEST_DIR"))
+            .join(relative)
+            .is_file()
+    })
+    .map(repo_file)
+    .expect("the m1-first-publish spec is under specs/ongoing or specs/completed");
     let mut ids: Vec<u32> = spec
         .lines()
         .filter_map(|line| line.strip_prefix("- AC-"))

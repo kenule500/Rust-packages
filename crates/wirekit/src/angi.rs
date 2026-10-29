@@ -533,7 +533,7 @@ impl AngiWebhook {
         let Some(secret) = self.secret.as_ref() else {
             return Err(WirekitError::InvalidConfig {
                 message: String::from(
-                    "no angi partner feed is provisioned for this tenant; there is nothing to verify",
+                    "no angi partner feed is provisioned for this account; there is nothing to verify",
                 ),
             });
         };

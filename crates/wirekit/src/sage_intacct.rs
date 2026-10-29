@@ -199,13 +199,13 @@ impl SageIntacctClient {
         unique_id: Option<&str>,
     ) -> Result<IntacctOutcome, WirekitError> {
         let control_id = self.control.fetch_add(1, Ordering::Relaxed);
-        let envelope = self.envelope(function_body, unique_id, control_id);
+        let body = self.build_request(function_body, unique_id, control_id);
 
         let url = self.client.base_url().clone();
         let spec = RequestSpec::post(url)
             .try_header("content-type", "application/xml")?
             .try_header("accept", "application/xml")?
-            .bytes_body(envelope.into_bytes())
+            .bytes_body(body.into_bytes())
             .rate_limit_key(format!("sage-intacct:{}", self.config.company_id))
             .max_response_bytes(self.max_response_bytes);
 
@@ -244,8 +244,13 @@ impl SageIntacctClient {
         }
     }
 
-    /// The request envelope documented by Sage Intacct Web Services.
-    fn envelope(&self, function_body: &str, unique_id: Option<&str>, control_id: u64) -> String {
+    /// The request document documented by Sage Intacct Web Services.
+    fn build_request(
+        &self,
+        function_body: &str,
+        unique_id: Option<&str>,
+        control_id: u64,
+    ) -> String {
         let sender = escape_xml(&self.config.sender_id);
         let password = escape_xml(self.config.sender_password.expose());
         let company = escape_xml(&self.config.company_id);

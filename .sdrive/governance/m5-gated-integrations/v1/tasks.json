@@ -437,7 +437,7 @@
           "linkedAcceptanceCriteria": [
             "AC-021"
           ],
-          "completed": false
+          "completed": true
         },
         {
           "id": "T6.2",
@@ -464,7 +464,7 @@
             "AC-012",
             "AC-025"
           ],
-          "completed": false
+          "completed": true
         },
         {
           "id": "T6.4",
@@ -477,7 +477,7 @@
           "linkedAcceptanceCriteria": [
             "AC-025"
           ],
-          "completed": false
+          "completed": true
         },
         {
           "id": "T6.5",

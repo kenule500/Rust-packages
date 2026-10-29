@@ -73,6 +73,10 @@
                 "text": {
                   "type": "string",
                   "minLength": 10
+                },
+                "withdrawn": {
+                  "type": "boolean",
+                  "description": "True when the criterion describes provider behaviour that does not exist, so it is out of scope for coverage. The text is kept for the audit trail."
                 }
               },
               "required": ["id", "text"]

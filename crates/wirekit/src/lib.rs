@@ -71,6 +71,9 @@ pub mod trace;
 #[cfg(feature = "angi")]
 pub mod angi;
 
+#[cfg(feature = "google-lsa")]
+pub mod google_lsa;
+
 #[cfg(feature = "noaa")]
 pub mod noaa;
 

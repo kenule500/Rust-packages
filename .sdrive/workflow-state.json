@@ -73,10 +73,10 @@
         {
           "id": "v1",
           "phase": "backlog",
-          "currentStep": "planning",
+          "currentStep": "implementation",
           "gates": {
             "specification": "approved",
-            "planning": "pending",
+            "planning": "approved",
             "implementation": "pending",
             "review": "pending"
           },
@@ -110,6 +110,16 @@
               "event": "Plan, tasks, and traceability synced; security baseline expanded into NFR-001 to NFR-008 with CON-516 recorded NOT APPLICABLE; Gate 2 awaiting human approval",
               "by": "SpecDrive",
               "timestamp": "2026-10-29T01:28:18Z"
+            },
+            {
+              "event": "Gate 2 approved: technical plan and execution tasks",
+              "by": "kenule500",
+              "timestamp": "2026-10-29T01:36:42Z"
+            },
+            {
+              "event": "Proposal complete. Implementation held: /sdrive:apply starts only after feature/m1-first-publish is archived and wirekit core (BP-005) is on main (T0.1)",
+              "by": "SpecDrive",
+              "timestamp": "2026-10-29T01:36:42Z"
             }
           ]
         }

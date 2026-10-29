@@ -1,6 +1,6 @@
 ---
 title: M5 Gated Integrations - review
-status: FAIL
+status: PASS
 version: v1
 created: 2026-10-29
 updated: 2026-10-29
@@ -8,7 +8,14 @@ updated: 2026-10-29
 
 # M5 Gated Integrations - Review
 
-**Status: FAIL**
+Status: PASS
+
+> **Superseding note.** The narrative below is the first audit, which returned FAIL
+> at `dabbe9f` for 79% coverage and a missing test report. Both were closed: the
+> four LSA criteria gained mock-server tests, the report was written, and the
+> final verdicts are `review.json` status PASS at 19 of 19 effective criteria with
+> 146 tests passing and zero failures. Where this document and `review.json`
+> disagree, `review.json` is the record.
 **Branch:** `feature/m5-gated-integrations`
 **Base:** `main`
 **Reviewed by:** kenule500 (admin)

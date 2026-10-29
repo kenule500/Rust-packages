@@ -140,4 +140,26 @@ Verified at this point: `cargo fmt --all --check`, `cargo clippy -p wirekit
 `cargo check --no-default-features` for the baseline and for each of the four
 features.
 
-Still open: T1.2 (three of four module files), T1.3, P3 to P5, P6, and P7.
+Still open: T1.2 (two of four module files), T1.3, P6, and P7.
+
+### Update after T3 and T4
+
+| Task | State | Evidence |
+|---|---|---|
+| T3.1 | done | `GoogleLsaClient` built from a pooled client plus an OAuth2 token in `Secret` |
+| T3.2 | done | `AccountReport`, `DetailedLeadReport`, `MessageLead`, `PhoneLead`, `SearchPage` |
+| T3.3 | **not done — superseded** | the published `localservices:v1` document has no list/get/update-lead or report-booking method; only `GET v1/accountReports:search` and `GET v1/detailedLeadReports:search` exist, and both are implemented |
+| T4.1 | done | `SageIntacctConfig` with the sender password in `Secret`, redacted in `Debug` |
+| T4.3 | done | `parse_response` reads `status`, `errorno`, `description`, `key` and ignores the HTTP status |
+| T4.4 | done | response bytes bounded by `max_response_bytes`, nesting bounded by `DEFAULT_MAX_DEPTH` |
+| T4.5 | done | `create` sends the caller's key as `<uniqueid>`, the documented idempotence control |
+| T4.2 | **partial** | Intacct exposes a documented `call` for any function body; the named `Customer`/`Invoice`/`JournalEntry` models are not built yet |
+| T4.6 | **partial** | business errors surface as `WirekitError::Api` and are not auto-retried by the shared policy, but no explicit non-retryable classification is sent |
+
+### ADP (P5) deferred
+
+BP-035's ADP half is out of m5 v1. `developers.adp.com` serves a JavaScript
+shell to every URL, so no token endpoint or resource path could be verified, and
+inventing `/core/v1/workers` would put a fabricated route into a published crate.
+The module returns to `needs discovery` and lands when a real OpenAPI or
+API-Explorer definition can be supplied.

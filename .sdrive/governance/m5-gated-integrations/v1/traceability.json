@@ -526,6 +526,56 @@
       "taskIds": [],
       "testIds": [],
       "status": "not_started"
+    },
+    {
+      "requirementId": "FR-031",
+      "acceptanceCriteriaIds": [
+        "AC-026",
+        "AC-027"
+      ],
+      "planSection": "Module map - google_lsa",
+      "taskIds": [
+        "T3.1",
+        "T3.2"
+      ],
+      "testIds": [],
+      "status": "complete"
+    },
+    {
+      "requirementId": "FR-032",
+      "acceptanceCriteriaIds": [
+        "AC-028"
+      ],
+      "planSection": "Module map - google_lsa",
+      "taskIds": [
+        "T3.1"
+      ],
+      "testIds": [],
+      "status": "complete"
+    },
+    {
+      "requirementId": "FR-033",
+      "acceptanceCriteriaIds": [
+        "AC-029"
+      ],
+      "planSection": "Module map - google_lsa",
+      "taskIds": [
+        "T3.1"
+      ],
+      "testIds": [],
+      "status": "complete"
+    },
+    {
+      "requirementId": "NFR-012",
+      "acceptanceCriteriaIds": [
+        "AC-028"
+      ],
+      "planSection": "Secret handling - google_lsa",
+      "taskIds": [
+        "T3.1"
+      ],
+      "testIds": [],
+      "status": "complete"
     }
   ]
 }

@@ -378,3 +378,45 @@ Repository only - no external research was available in this session.
 - `.sdrive/product/backlog.md` - BP-033, BP-034, BP-035 entries and the deferred notes.
 - `.sdrive/product/roadmap.md` - M5 goal, G2 decision gate, remaining-provider batch.
 - `crates/dado/README.md` and `crates/dado/Cargo.toml` - in-house precedent for feature flags, MSRV, lints, and package metadata.
+
+## Spec Update 2026-10-29 - Local Services Ads surface corrected
+
+The published `localservices:v1` discovery document
+(`https://localservices.googleapis.com/$discovery/rest?version=v1`) defines exactly
+two resources - `accountReports` and `detailedLeadReports` - each with a single
+`:search` method, and exactly one OAuth scope,
+`https://www.googleapis.com/auth/adwords`. It defines **no** method to list or get a
+lead by id, to update a lead's status, or to report a booking.
+
+`FR-007`, `FR-008`, and `FR-011` described that non-existent surface. Under the
+ID-preservation rule they are left in place and superseded by `FR-031` to `FR-033`
+below. `US-002` is superseded by `US-006`.
+
+### US-006: Read Local Services Ads performance without pretending to mutate it
+
+As a developer integrating Local Services Ads, I want typed account and lead reports
+over the documented search methods, so that I can build reporting on contracts that
+actually exist.
+
+**Acceptance Criteria:**
+
+- AC-026: Given a manager customer id and an inclusive date range, when `account_reports` runs, then it issues `GET v1/accountReports:search` with `query=manager_customer_id:<id>` and the documented date parameters, and returns a typed `AccountReportsPage` carrying any next-page token.
+- AC-027: Given the same inputs, when `detailed_lead_reports` runs, then it issues `GET v1/detailedLeadReports:search` and returns typed `DetailedLeadReport` rows with their message or phone detail intact.
+- AC-028: Given the API answers HTTP 403, when either search is called, then the error carries the stable code `LOCALSERVICES_ACCOUNT_NOT_APPROVED` rather than a generic authentication failure.
+- AC-029: Given neither a manager customer id nor an explicit query, when a search is attempted, then it fails with a typed configuration error before any request is sent.
+
+### Functional Requirements
+
+- FR-031: `google_lsa` MUST implement `accountReports:search` and `detailedLeadReports:search` with the documented query and date parameters, and MUST expose pagination through the response's next-page token.
+- FR-032: `google_lsa` MUST NOT expose a lead-status update, a booking report, or a notification-ingestion surface, because the published API defines none; adding one MUST wait for Google to publish it.
+- FR-033: `google_lsa` MUST send the OAuth2 bearer token from a caller-supplied `Secret` and MUST use the single documented scope `https://www.googleapis.com/auth/adwords`.
+
+### Non-Functional Requirements
+
+- NFR-012: `google_lsa` MUST never render the bearer token in `Debug`, tracing, or an error payload, and MUST NOT implement `Serialize` for it (CON-214).
+
+### Edge Cases & Error States
+
+- EC-019: HTTP 403 from localservices → `LOCALSERVICES_ACCOUNT_NOT_APPROVED`; the shared policy does not retry it.
+- EC-020: A search response body that does not match the typed page → `WirekitError::Decode` naming the resource, never a partial page.
+- EC-021: A caller-supplied sandbox base URL → used verbatim, and a non-HTTPS override is rejected at construction (CON-520).

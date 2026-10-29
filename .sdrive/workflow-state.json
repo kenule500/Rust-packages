@@ -162,7 +162,7 @@
           "phase": "ongoing",
           "currentStep": "implementation",
           "gates": {
-            "specification": "approved",
+            "specification": "pending",
             "planning": "approved",
             "implementation": "pending",
             "review": "pending"
@@ -212,6 +212,11 @@
               "event": "Implementation started: T0.1 precondition satisfied (crates/wirekit present after main merge dda3cd8); spec moved from backlog to ongoing",
               "by": "SpecDrive",
               "timestamp": "2026-10-29T07:03:13Z"
+            },
+            {
+              "event": "spec_updated: LSA surface corrected against the published localservices:v1 discovery document; FR-007/008/011 and US-002 superseded by FR-031/032/033 and US-006 (IDs preserved)",
+              "by": "SpecDrive",
+              "timestamp": "2026-10-29T08:40:14Z"
             }
           ]
         }

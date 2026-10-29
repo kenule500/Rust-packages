@@ -176,215 +176,374 @@
           "text": "Given a provider whose access is unconfirmed, when the client is constructed with a sandbox base-URL override, then every documented call path is reachable and returns typed values or typed errors without any live credential."
         }
       ]
+    },
+    {
+      "id": "US-006",
+      "title": "Read Local Services Ads performance without pretending to mutate it",
+      "role": "developer integrating Local Services Ads",
+      "want": "typed account and lead reports over the documented search methods",
+      "benefit": "I can build reporting on contracts that actually exist",
+      "acceptanceCriteria": [
+        {
+          "id": "AC-026",
+          "text": "Given a manager customer id and an inclusive date range, when account_reports runs, then it issues GET v1/accountReports:search with query=manager_customer_id:<id> and the documented date parameters, and returns a typed AccountReportsPage carrying any next-page token."
+        },
+        {
+          "id": "AC-027",
+          "text": "Given the same inputs, when detailed_lead_reports runs, then it issues GET v1/detailedLeadReports:search and returns typed DetailedLeadReport rows with their message or phone detail intact."
+        },
+        {
+          "id": "AC-028",
+          "text": "Given the API answers HTTP 403, when either search is called, then the error carries the stable code LOCALSERVICES_ACCOUNT_NOT_APPROVED rather than a generic authentication failure."
+        },
+        {
+          "id": "AC-029",
+          "text": "Given neither a manager customer id nor an explicit query, when a search is attempted, then it fails with a typed configuration error before any request is sent."
+        }
+      ]
     }
   ],
   "functionalRequirements": [
     {
       "id": "FR-001",
       "text": "wirekit MUST provide angi::{AngiLead, AngiLeadParser, AngiImport} behind an additive angi feature, and MUST NOT add an HTTP client for Angi because no public API exists.",
-      "linkedAcceptanceCriteria": ["AC-001", "AC-022", "AC-023"]
+      "linkedAcceptanceCriteria": [
+        "AC-001",
+        "AC-022",
+        "AC-023"
+      ]
     },
     {
       "id": "FR-002",
       "text": "AngiLeadParser MUST parse the documented Angi lead email templates into AngiLead and MUST NOT drop a lead silently; an unrecognised template or a missing required field MUST return a structured ParseError naming the offending field (CON-206).",
-      "linkedAcceptanceCriteria": ["AC-001", "AC-002"]
+      "linkedAcceptanceCriteria": [
+        "AC-001",
+        "AC-002"
+      ]
     },
     {
       "id": "FR-003",
       "text": "AngiImport MUST import a CSV export through an explicit header mapping and MUST report one outcome per row - imported, skipped, or failed - with the 1-based row number, completing the import even when individual rows fail.",
-      "linkedAcceptanceCriteria": ["AC-003"]
+      "linkedAcceptanceCriteria": [
+        "AC-003"
+      ]
     },
     {
       "id": "FR-004",
       "text": "The module MUST compute a deterministic dedupe key: the Angi lead ID when present, otherwise the normalized phone, address, and received date, stable across whitespace and formatting differences.",
-      "linkedAcceptanceCriteria": ["AC-004"]
+      "linkedAcceptanceCriteria": [
+        "AC-004"
+      ]
     },
     {
       "id": "FR-005",
       "text": "Partner webhook verification MUST verify a shared-secret signature over the raw request bytes (CON-215) and MUST be exposed only as an optional capability; when no partner feed is provisioned the module MUST return an explicit not-supported error rather than pretend to poll.",
-      "linkedAcceptanceCriteria": ["AC-009"]
+      "linkedAcceptanceCriteria": [
+        "AC-009"
+      ]
     },
     {
       "id": "FR-006",
       "text": "wirekit MUST provide google_lsa::GoogleLsaClient behind an additive google-lsa feature, constructed from an account ID, a base URL, and an injected OAuth2 token source, reusing wirekit::google_oauth for refresh (CON-212).",
-      "linkedAcceptanceCriteria": ["AC-005", "AC-023"]
+      "linkedAcceptanceCriteria": [
+        "AC-005",
+        "AC-023"
+      ]
     },
     {
       "id": "FR-007",
       "text": "The module MUST provide typed Lead, Booking, and LeadStatus models covering the catalogue's lead type, contact, job details, booking status, and attribution.",
-      "linkedAcceptanceCriteria": ["AC-005"]
+      "linkedAcceptanceCriteria": [
+        "AC-005"
+      ]
     },
     {
       "id": "FR-008",
       "text": "The client MUST expose list leads, get lead, update lead status, and report booking, and MUST NOT expose untyped JSON to the caller.",
-      "linkedAcceptanceCriteria": ["AC-005"]
+      "linkedAcceptanceCriteria": [
+        "AC-005"
+      ]
     },
     {
       "id": "FR-009",
       "text": "The module MUST map the Google error envelope into WirekitError::Api and MUST surface HTTP 403 as an explicit account-not-linked-or-unapproved variant, because that is the expected failure when access is unresolved.",
-      "linkedAcceptanceCriteria": ["AC-006"]
+      "linkedAcceptanceCriteria": [
+        "AC-006"
+      ]
     },
     {
       "id": "FR-010",
       "text": "The module MUST apply the shared retry and rate-limit contract: exponential backoff with jitter, three attempts by default, retry on 429 and 5xx only, honour Retry-After, and a per-provider token bucket (CON-208, CON-209).",
-      "linkedAcceptanceCriteria": ["AC-007"]
+      "linkedAcceptanceCriteria": [
+        "AC-007"
+      ]
     },
     {
       "id": "FR-011",
       "text": "The module MUST dedupe by lead ID and MUST make lead-status updates idempotent by lead, and MUST NOT assume a webhook: Pub/Sub or polling ingestion MUST be an explicit, account-specific configuration that returns a not-configured error when absent.",
-      "linkedAcceptanceCriteria": ["AC-008", "AC-009"]
+      "linkedAcceptanceCriteria": [
+        "AC-008",
+        "AC-009"
+      ]
     },
     {
       "id": "FR-012",
       "text": "wirekit MUST provide sage_intacct::SageIntacctClient behind an additive sage-intacct feature, constructed from a sender ID, a password, a company ID, and an endpoint.",
-      "linkedAcceptanceCriteria": ["AC-010", "AC-023"]
+      "linkedAcceptanceCriteria": [
+        "AC-010",
+        "AC-023"
+      ]
     },
     {
       "id": "FR-013",
       "text": "The module MUST provide typed Customer, Invoice, JournalEntry, and ReportRequest models and MUST scope v1 to create or update customer, create invoice, create journal entry, read by key, and standard report invocation - it MUST NOT attempt the full XML schema.",
-      "linkedAcceptanceCriteria": ["AC-010"]
+      "linkedAcceptanceCriteria": [
+        "AC-010"
+      ]
     },
     {
       "id": "FR-014",
       "text": "The module MUST parse the XML gateway result and MUST derive success from its status and errno, never from the HTTP status alone (CON-213).",
-      "linkedAcceptanceCriteria": ["AC-011"]
+      "linkedAcceptanceCriteria": [
+        "AC-011"
+      ]
     },
     {
       "id": "FR-015",
       "text": "The sender password MUST be held in the wirekit secret type, MUST be redacted in Debug, Display, tracing, and error payloads, and its type MUST NOT implement Serialize (CON-214).",
-      "linkedAcceptanceCriteria": ["AC-012"]
+      "linkedAcceptanceCriteria": [
+        "AC-012"
+      ]
     },
     {
       "id": "FR-016",
       "text": "The module MUST bound XML response size and nesting depth by configuration and MUST reject documents exceeding either bound with a typed error (CON-515).",
-      "linkedAcceptanceCriteria": ["AC-013"]
+      "linkedAcceptanceCriteria": [
+        "AC-013"
+      ]
     },
     {
       "id": "FR-017",
       "text": "Create operations MUST be idempotent by caller-supplied external key: the module queries before creating and returns the existing record when the key is already present.",
-      "linkedAcceptanceCriteria": ["AC-014"]
+      "linkedAcceptanceCriteria": [
+        "AC-014"
+      ]
     },
     {
       "id": "FR-018",
       "text": "The module MUST NOT retry business-rule errors, and because the classic gateway has no webhooks it MUST document polling or reconciliation as the caller's responsibility instead of inventing an event stream.",
-      "linkedAcceptanceCriteria": ["AC-015"]
+      "linkedAcceptanceCriteria": [
+        "AC-015"
+      ]
     },
     {
       "id": "FR-019",
       "text": "wirekit MUST provide adp::AdpClient behind an additive adp feature, authenticating with OAuth2 client credentials, caching the token until expiry, and refreshing it exactly once after a 401.",
-      "linkedAcceptanceCriteria": ["AC-016", "AC-023"]
+      "linkedAcceptanceCriteria": [
+        "AC-016",
+        "AC-023"
+      ]
     },
     {
       "id": "FR-020",
       "text": "The module MUST provide typed Employee, TimeCard, PayrollRun, and PayrollReport models, and MUST scope v1 to list workers, create or update time cards, list payroll runs, and export a payroll report.",
-      "linkedAcceptanceCriteria": ["AC-020"]
+      "linkedAcceptanceCriteria": [
+        "AC-020"
+      ]
     },
     {
       "id": "FR-021",
       "text": "The module MUST map ADP's structured error array into WirekitError::Api and MUST preserve the correlation ID plus every returned code and message (CON-213).",
-      "linkedAcceptanceCriteria": ["AC-017"]
+      "linkedAcceptanceCriteria": [
+        "AC-017"
+      ]
     },
     {
       "id": "FR-022",
       "text": "The module MUST NOT blindly retry a payroll submission: after a timeout it MUST return an unknown-outcome state that requires reconciliation, and it MUST support a caller-supplied client reference so a resubmission is identifiable (CON-208).",
-      "linkedAcceptanceCriteria": ["AC-018"]
+      "linkedAcceptanceCriteria": [
+        "AC-018"
+      ]
     },
     {
       "id": "FR-023",
       "text": "The module MUST redact SSNs and pay rates in Debug, Display, tracing, and error payloads, and their types MUST NOT implement Serialize (CON-214).",
-      "linkedAcceptanceCriteria": ["AC-019"]
+      "linkedAcceptanceCriteria": [
+        "AC-019"
+      ]
     },
     {
       "id": "FR-024",
       "text": "Batch export MUST report a per-record outcome so that a partial failure lists the failed records by identifier and never drops hours silently.",
-      "linkedAcceptanceCriteria": ["AC-020"]
+      "linkedAcceptanceCriteria": [
+        "AC-020"
+      ]
     },
     {
       "id": "FR-025",
       "text": "Every module MUST be an additive, default-off Cargo feature named angi, google-lsa, sage-intacct, and adp, MUST NOT disable another feature when enabled, and MUST be documented in the crate README (CON-204).",
-      "linkedAcceptanceCriteria": ["AC-022", "AC-023"]
+      "linkedAcceptanceCriteria": [
+        "AC-022",
+        "AC-023"
+      ]
     },
     {
       "id": "FR-026",
       "text": "Every failure MUST map into WirekitError; the Angi ParseError MUST convert into it through From, preserving the offending field, and no module may introduce a second top-level error type (CON-207).",
-      "linkedAcceptanceCriteria": ["AC-002", "AC-006", "AC-011", "AC-017"]
+      "linkedAcceptanceCriteria": [
+        "AC-002",
+        "AC-006",
+        "AC-011",
+        "AC-017"
+      ]
     },
     {
       "id": "FR-027",
       "text": "No module may add an application domain type, product noun, billing rule, or global mutable singleton; clients MUST be constructed and injected (CON-106, CON-109).",
-      "linkedAcceptanceCriteria": ["AC-021"]
+      "linkedAcceptanceCriteria": [
+        "AC-021"
+      ]
     },
     {
       "id": "FR-028",
       "text": "The four modules MUST live inside wirekit; no new crate may be added to the workspace for any of them (CON-103, CON-104).",
-      "linkedAcceptanceCriteria": ["AC-022"]
+      "linkedAcceptanceCriteria": [
+        "AC-022"
+      ]
     },
     {
       "id": "FR-029",
       "text": "Each module file MUST open with a //! comment stating its scope and non-goals, and every new public item MUST carry rustdoc (CON-202, CON-203).",
-      "linkedAcceptanceCriteria": ["AC-024"]
+      "linkedAcceptanceCriteria": [
+        "AC-024"
+      ]
     },
     {
       "id": "FR-030",
       "text": "Every module that talks to a live endpoint MUST accept a configurable base URL so it can be pointed at a sandbox; the default MUST be the documented production endpoint, and a non-HTTPS override MUST be rejected (CON-520).",
-      "linkedAcceptanceCriteria": ["AC-025"]
+      "linkedAcceptanceCriteria": [
+        "AC-025"
+      ]
+    },
+    {
+      "id": "FR-031",
+      "text": "google_lsa MUST implement accountReports:search and detailedLeadReports:search with the documented query and date parameters, and MUST expose pagination through the response's next-page token.",
+      "linkedAcceptanceCriteria": [
+        "AC-026",
+        "AC-027"
+      ]
+    },
+    {
+      "id": "FR-032",
+      "text": "google_lsa MUST NOT expose a lead-status update, a booking report, or a notification-ingestion surface, because the published API defines none; adding one MUST wait for Google to publish it.",
+      "linkedAcceptanceCriteria": [
+        "AC-028"
+      ]
+    },
+    {
+      "id": "FR-033",
+      "text": "google_lsa MUST send the OAuth2 bearer token from a caller-supplied Secret and MUST use the single documented scope https://www.googleapis.com/auth/adwords.",
+      "linkedAcceptanceCriteria": [
+        "AC-029"
+      ]
     }
   ],
   "nonFunctionalRequirements": [
     {
       "id": "NFR-001",
       "text": "Credentials MUST be supplied by the caller at construction time; no key, token, password, or company ID may be embedded, defaulted, or logged (CON-511, CON-519).",
-      "linkedAcceptanceCriteria": ["AC-012", "AC-016", "AC-025"]
+      "linkedAcceptanceCriteria": [
+        "AC-012",
+        "AC-016",
+        "AC-025"
+      ]
     },
     {
       "id": "NFR-002",
       "text": "Tenant isolation MUST be structural: a client instance holds one tenant's credentials and MUST NOT share cached tokens, cached responses, or connection state across tenants (CON-512).",
-      "linkedAcceptanceCriteria": ["AC-021"]
+      "linkedAcceptanceCriteria": [
+        "AC-021"
+      ]
     },
     {
       "id": "NFR-003",
       "text": "Each module MUST use a per-provider token bucket with caller override and MUST emit a tracing metric on a rate-limit hit (CON-209, CON-514).",
-      "linkedAcceptanceCriteria": ["AC-007"]
+      "linkedAcceptanceCriteria": [
+        "AC-007"
+      ]
     },
     {
       "id": "NFR-004",
       "text": "Every untrusted input - email body, CSV row, JSON lead, XML result, ADP error array - MUST be validated and MUST produce a typed error rather than a panic, an unwrap, or a silent default (CON-515).",
-      "linkedAcceptanceCriteria": ["AC-002", "AC-003", "AC-013", "AC-017"]
+      "linkedAcceptanceCriteria": [
+        "AC-002",
+        "AC-003",
+        "AC-013",
+        "AC-017"
+      ]
     },
     {
       "id": "NFR-005",
       "text": "Every outbound request MUST emit tracing events for start, finish with duration, retry, rate-limit hit, and error, and MUST NOT record secret or personal fields (CON-211, CON-214).",
-      "linkedAcceptanceCriteria": ["AC-007", "AC-012", "AC-019"]
+      "linkedAcceptanceCriteria": [
+        "AC-007",
+        "AC-012",
+        "AC-019"
+      ]
     },
     {
       "id": "NFR-006",
       "text": "Retries MUST be exponential with jitter and bounded to three attempts by default, retrying only 5xx, 429, and network errors, and honouring Retry-After (CON-208).",
-      "linkedAcceptanceCriteria": ["AC-007", "AC-015", "AC-018"]
+      "linkedAcceptanceCriteria": [
+        "AC-007",
+        "AC-015",
+        "AC-018"
+      ]
     },
     {
       "id": "NFR-007",
       "text": "Memory per call MUST stay bounded by configuration: the Intacct XML body ceiling, the Angi CSV row and file ceiling, and the LSA and ADP response ceiling MUST each be enforced before allocation grows without limit.",
-      "linkedAcceptanceCriteria": ["AC-013"]
+      "linkedAcceptanceCriteria": [
+        "AC-013"
+      ]
     },
     {
       "id": "NFR-008",
       "text": "The crate MUST keep forbid(unsafe_code) and deny(missing_docs), and no module may request an unsafe exception (CON-201, CON-202).",
-      "linkedAcceptanceCriteria": ["AC-024"]
+      "linkedAcceptanceCriteria": [
+        "AC-024"
+      ]
     },
     {
       "id": "NFR-009",
       "text": "The feature MUST build on Rust 1.85 with edition 2021, and each feature MUST compile independently under --no-default-features (CON-102, CON-204).",
-      "linkedAcceptanceCriteria": ["AC-022", "AC-023", "AC-024"]
+      "linkedAcceptanceCriteria": [
+        "AC-022",
+        "AC-023",
+        "AC-024"
+      ]
     },
     {
       "id": "NFR-010",
       "text": "The feature MUST add no runtime, no async runtime choice, and no new global state; blocking versus async MUST follow whatever wirekit core already exposes from BP-005.",
-      "linkedAcceptanceCriteria": ["AC-022"]
+      "linkedAcceptanceCriteria": [
+        "AC-022"
+      ]
     },
     {
       "id": "NFR-011",
       "text": "Security Baseline CON-516 (NoSQL and injection protection) is NOT APPLICABLE because none of these four modules owns a database, cache, or query surface; every other REQUIRED control (CON-511, CON-512, CON-514, CON-515, CON-519, CON-520) is expanded as NFR-001 through NFR-008.",
-      "linkedAcceptanceCriteria": ["AC-021", "AC-025"]
+      "linkedAcceptanceCriteria": [
+        "AC-021",
+        "AC-025"
+      ]
+    },
+    {
+      "id": "NFR-012",
+      "text": "google_lsa MUST never render the bearer token in Debug, tracing, or an error payload, and MUST NOT implement Serialize for it (CON-214).",
+      "linkedAcceptanceCriteria": [
+        "AC-028"
+      ]
     }
   ],
   "edgeCases": [
@@ -477,6 +636,21 @@
       "id": "EC-018",
       "description": "Feature is enabled twice through the dependency graph",
       "expectedBehavior": "Additive features compose; no compile error and no behaviour change."
+    },
+    {
+      "id": "EC-019",
+      "description": "localservices answers HTTP 403",
+      "expectedBehavior": "LOCALSERVICES_ACCOUNT_NOT_APPROVED; the shared policy does not retry it."
+    },
+    {
+      "id": "EC-020",
+      "description": "A search response body does not match the typed page",
+      "expectedBehavior": "WirekitError::Decode naming the resource; never a partial page."
+    },
+    {
+      "id": "EC-021",
+      "description": "A caller supplies a non-HTTPS sandbox base URL",
+      "expectedBehavior": "Rejected at construction (CON-520)."
     }
   ],
   "dependencies": [

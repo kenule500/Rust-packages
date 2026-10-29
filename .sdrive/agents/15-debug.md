@@ -5,7 +5,7 @@ argument-hint: Describe the symptom (e.g., "cards overlap on the services page",
 target: vscode
 user-invocable: true
 disable-model-invocation: false
-tools: ['read', 'search', 'create', 'edit', 'execute', 'web', 'todo', 'vscode/askQuestions', 'exa:search', 'exa:fetch', 'context7']
+tools: ['read', 'search', 'create', 'edit', 'execute', 'web', 'todo', 'vscode/askQuestions', 'exa:search', 'exa:fetch', 'stackwise', 'context7']
 agents: []
 ---
 
@@ -42,6 +42,7 @@ You operate within the current version folder only.
 - **Approval Rule:** Before applying ANY fix, present the reproduced defect, the established root cause, and the proposed fix to the user via your tool's native approval mechanism (e.g., `vscode/askQuestions`). Ask: "Approve this fix?" Only modify code after explicit user approval.
 - **Honest Reporting Rule:** Only claim a check passed if it was actually run via a deterministic tool. If a check was not run, do NOT claim it. Report it as "Not automatically verified."
 - NEVER guess API parameters or library behaviour; use the **Context7 MCP** for official library/tool documentation. Use `exa:fetch` for broader debugging patterns and known-issue research.
+- **Knowledge MCP Rule:** For backend, data, or distributed-system failures, query **Stackwise** (`library_guide`, then `route_task`) before changing infrastructure behavior. Knowledge guidance explains the mechanism; the reproduction and before/after evidence still decide whether the fix works.
 - Never overwrite an existing debug report. Use versioned filenames: `.sdrive/reports/debug/debug-report-{feature-name}-{version}-{date}.md`.
 - Run validators during the process:
   - `node .sdrive/scripts/validate-governance.js`

@@ -5,7 +5,7 @@ argument-hint: Run to initialize or update the project constitution. You may opt
 target: vscode
 user-invocable: true
 disable-model-invocation: false
-tools: ['read', 'search', 'create', 'edit', 'execute', 'web', 'vscode/askQuestions', 'todo', 'exa:search', 'exa:fetch', 'context7']
+tools: ['read', 'search', 'create', 'edit', 'execute', 'web', 'vscode/askQuestions', 'todo', 'exa:search', 'exa:fetch', 'ux-ui-library', 'stackwise', 'context7']
 agents: []
 ---
 
@@ -26,6 +26,7 @@ You extract prescriptive rules, standards, and constraints from the discovered c
   - `src/` or `app/` structure (architecture patterns)
   - Any existing context files under `.sdrive/context/`
 - If the **Context7 MCP** or web search tools are available, use them to fetch official best practices, security standards, and architectural patterns for the detected technologies. Always cite the source.
+- **Knowledge MCP Rule:** Use **ux-ui-library** for UI/UX standards (`library_guide`, then `route_task`), **Stackwise** for backend/data/AI architecture (`library_guide`, then `route_task`), and **Context7** for version-specific library docs (`resolve-library-id`, then `query-docs`). If a server is unavailable, continue with the repository's actual conventions and say which source was missing. Never invent standards or citations.
 - NEVER invent project facts. If you cannot determine something, mark it as `[to be confirmed]` or ask the user.
 - Create context files only if they do not exist. If a context file already exists, read it and merge discovered facts with user approval. Never overwrite silently.
 - Extract ONLY explicit prescriptive rules (MUST, SHALL, MUST NOT).
@@ -206,7 +207,7 @@ Every feature that touches authentication, user input, or an HTTP surface MUST a
 - **CON-609:** A feature branch MUST be created from an approved base branch, and the working tree MUST be clean (`git status --porcelain` empty) before any branch switch or creation. A dirty tree MUST block the operation. Creation happens in `/sdrive:propose`, before any spec file is written; `/sdrive:apply` only resumes the recorded branch and MUST NOT create one. <!-- source: SpecDrive Enterprise Branching Policy -->
 - **CON-610:** The feature branch MUST be deleted after its merge is confirmed — locally (`git branch -d`) and on the remote (`git push origin --delete`) — unless the user explicitly declines. The merge target branch MUST NEVER be deleted. <!-- source: SpecDrive Enterprise Branching Policy -->
 - **CON-611:** A branch MUST be merged as a single review unit. `/sdrive:archive` MUST refuse to merge a branch that contains commits belonging to other in-flight features. <!-- source: SpecDrive Enterprise Branching Policy -->
-- **CON-612:** A feature branch MUST be based on the branch it will eventually merge into, so that `git log <target-branch>..<base-branch>` is empty at creation. The base is chosen from the list of available branches and recorded in `/sdrive:propose`, before the spec exists, so the choice is never made blind. Basing a feature branch on another in-flight feature's branch stacks the two and makes this feature unarchivable until the other one is merged; that must be reported with its consequences and explicitly confirmed, never done silently. Dependent work MUST become a new version of the same feature (`sdrive version:new`), not a stacked feature. <!-- source: SpecDrive Enterprise Branching Policy -->
+- **CON-612:** A feature branch MUST be based on the branch it will eventually merge into, so that `git log <target-branch>..<base-branch>` is empty at creation. The base is chosen from the list of available branches and recorded in `/sdrive:propose`, before the spec exists, so the choice is never made blind. `/sdrive:apply` and `/sdrive:review` MUST read that recorded base and MUST NOT ask for it again; `/sdrive:archive` merges into it. Basing a feature branch on another in-flight feature's branch stacks the two and makes this feature unarchivable until the other one is merged; that must be reported with its consequences and explicitly confirmed, never done silently. Dependent work MUST become a new version of the same feature (`sdrive version:new`), not a stacked feature. <!-- source: SpecDrive Enterprise Branching Policy -->
 
 ## 7. AI Agent Rules (CON-7xx)
 - **CON-701:** [Rule text] <!-- source: .sdrive/context/ai-workflow-rules.md -->

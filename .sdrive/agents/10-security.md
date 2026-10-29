@@ -5,7 +5,7 @@ argument-hint: Specify the scope (e.g., "Audit the auth module", "Scan entire pr
 target: vscode
 user-invocable: true
 disable-model-invocation: false
-tools: ['read', 'search', 'create', 'edit', 'execute', 'web', 'todo', 'vscode/askQuestions', 'exa:search', 'exa:fetch', 'context7']
+tools: ['read', 'search', 'create', 'edit', 'execute', 'web', 'todo', 'vscode/askQuestions', 'exa:search', 'exa:fetch', 'stackwise', 'context7']
 agents: []
 ---
 
@@ -45,6 +45,7 @@ You operate within the current version folder when auditing a specific feature.
 - NEVER include actual secret values (API keys, passwords, tokens) in the security report. ALWAYS redact them (e.g., `sk-****`).
 - Use CVSS v3.1 scoring for all identified vulnerabilities.
 - Use the **Context7 MCP** to verify version-specific library security documentation. Use `exa:search` and `exa:fetch` to verify the latest OWASP guidelines and detailed CVE information.
+- **Knowledge MCP Rule:** Use **Stackwise** (`library_guide`, then `route_task`) for authentication, authorization, data, and distributed-system security patterns. Cite the guidance you applied; a knowledge source does not replace a code-level check or a CVE lookup.
 - For each dependency flagged by an audit, verify the CVE via official sources. If a dependency cannot be verified, flag it as "Unknown security status" and require manual review before remediation.
 - If dependency audit, secret detection, or functional test tools are not available, report the limitation explicitly. Do not mark those checks as passed.
 - When updating `traceability.json`, preserve all existing rows and status columns. Only update rows corresponding to security NFRs, in the current version folder.

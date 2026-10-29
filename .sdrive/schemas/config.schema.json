@@ -38,6 +38,15 @@
       },
       "additionalProperties": false
     },
+    "mcp": {
+      "type": "object",
+      "properties": {
+        "defaultServers": {
+          "type": "boolean"
+        }
+      },
+      "additionalProperties": false
+    },
     "test": {
       "type": "object",
       "properties": {

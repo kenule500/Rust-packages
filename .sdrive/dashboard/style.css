@@ -84,53 +84,56 @@
 }
 
 [data-theme="dark"] {
-  --bg: #0b0f17;
-  --bg-elev: #111827;
-  --surface: #121826;
-  --surface-2: #161d2e;
-  --surface-3: #1b2334;
-  --border: #232c3f;
-  --border-strong: #2f3a51;
-  --text: #e8edf7;
-  --text-2: #a3b0c7;
-  --text-3: #7b889f;
-  --overlay: rgba(255, 255, 255, 0.05);
-  --overlay-strong: rgba(255, 255, 255, 0.10);
+  /* Near-black base. Surfaces step up a few percent at a time so cards,
+     tables, and drawers stay distinguishable without lifting the page back
+     into the old navy-grey range. */
+  --bg: #06080d;
+  --bg-elev: #0b0f17;
+  --surface: #0d1119;
+  --surface-2: #111723;
+  --surface-3: #161e2d;
+  --border: #1e2636;
+  --border-strong: #2a3446;
+  --text: #eef2fa;
+  --text-2: #aab7cd;
+  --text-3: #8491a8;
+  --overlay: rgba(255, 255, 255, 0.055);
+  --overlay-strong: rgba(255, 255, 255, 0.11);
 
-  --sidebar: #0d1220;
-  --sidebar-2: #111827;
-  --sidebar-border: #1c2436;
-  --sidebar-text: #e8edf7;
-  --sidebar-text-2: #9aa7bf;
-  --sidebar-text-3: #6b7891;
-  --sidebar-hover: rgba(255, 255, 255, 0.06);
-  --sidebar-active-bg: rgba(99, 102, 241, 0.18);
+  --sidebar: #080b12;
+  --sidebar-2: #0c1018;
+  --sidebar-border: #182030;
+  --sidebar-text: #eef2fa;
+  --sidebar-text-2: #9fadc4;
+  --sidebar-text-3: #75829a;
+  --sidebar-hover: rgba(255, 255, 255, 0.065);
+  --sidebar-active-bg: rgba(99, 102, 241, 0.20);
   --sidebar-active-text: #c7d2fe;
 
   --accent: #6366f1;
   --accent-2: #818cf8;
-  --accent-soft: rgba(99, 102, 241, 0.16);
+  --accent-soft: rgba(99, 102, 241, 0.18);
   --accent-contrast: #ffffff;
 
   --green: #4ade80;
-  --green-soft: rgba(34, 197, 94, 0.14);
+  --green-soft: rgba(34, 197, 94, 0.16);
   --amber: #fbbf24;
-  --amber-soft: rgba(245, 158, 11, 0.14);
+  --amber-soft: rgba(245, 158, 11, 0.16);
   --red: #f87171;
-  --red-soft: rgba(239, 68, 68, 0.14);
+  --red-soft: rgba(239, 68, 68, 0.16);
   --blue: #60a5fa;
-  --blue-soft: rgba(59, 130, 246, 0.14);
-  --slate-soft: rgba(148, 163, 184, 0.12);
+  --blue-soft: rgba(59, 130, 246, 0.16);
+  --slate-soft: rgba(148, 163, 184, 0.14);
 
-  --accent-border: rgba(99, 102, 241, 0.35);
-  --skeleton-1: #1b2334;
-  --skeleton-2: #232c3f;
-  --scrim: rgba(0, 0, 0, 0.62);
+  --accent-border: rgba(99, 102, 241, 0.38);
+  --skeleton-1: #161e2d;
+  --skeleton-2: #1e2636;
+  --scrim: rgba(0, 0, 0, 0.72);
   --shadow-rgb: 0, 0, 0;
 
-  --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.40);
-  --shadow: 0 4px 16px rgba(0, 0, 0, 0.45);
-  --shadow-lg: 0 12px 32px rgba(0, 0, 0, 0.55);
+  --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.45);
+  --shadow: 0 4px 16px rgba(0, 0, 0, 0.50);
+  --shadow-lg: 0 12px 32px rgba(0, 0, 0, 0.60);
 
   --tint-violet: #a78bfa;
   --tint-indigo: #818cf8;
@@ -1237,6 +1240,83 @@ body {
   min-width: 560px;
 }
 
+.table-scroll > .backlog-table {
+  min-width: 1350px;
+  table-layout: fixed;
+}
+
+.backlog-table th:nth-child(1) {
+  width: 74px;
+}
+
+.backlog-table th:nth-child(3) {
+  width: 190px;
+}
+
+.backlog-table th:nth-child(4) {
+  width: 78px;
+}
+
+.backlog-table th:nth-child(5) {
+  width: 205px;
+}
+
+.backlog-table th:nth-child(6) {
+  width: 240px;
+}
+
+.backlog-table th:nth-child(7) {
+  width: 74px;
+}
+
+.backlog-table th:nth-child(8) {
+  width: 90px;
+}
+
+.backlog-table th:nth-child(9) {
+  width: 118px;
+}
+
+.backlog-actions-col {
+  text-align: right !important;
+}
+
+.backlog-action-cell {
+  text-align: right;
+  white-space: nowrap;
+}
+
+.backlog-view {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  padding: 6px 10px;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  background: var(--surface-2);
+  color: var(--text-2);
+  font-size: 11.5px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 0.15s ease, border-color 0.15s ease, color 0.15s ease;
+}
+
+.backlog-view:hover {
+  background: var(--accent-soft);
+  border-color: var(--accent-border);
+  color: var(--accent);
+}
+
+.backlog-view:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
+}
+
+.backlog-view span {
+  font-size: 12px;
+  line-height: 1;
+}
+
 .backlog-table {
   width: 100%;
   border-collapse: collapse;
@@ -1252,6 +1332,7 @@ body {
   font-size: 11px;
   text-transform: uppercase;
   letter-spacing: 0.6px;
+  white-space: nowrap;
 }
 
 .backlog-table td {
@@ -1272,6 +1353,421 @@ body {
   font-family: var(--mono);
   color: var(--text-3);
   font-size: 12px;
+  white-space: nowrap;
+}
+
+.backlog-feature {
+  font-weight: 600;
+  line-height: 1.35;
+}
+
+.backlog-value {
+  margin-top: 4px;
+  max-width: 46ch;
+  color: var(--text-3);
+  font-size: 11.5px;
+  line-height: 1.4;
+}
+
+.backlog-plan-note {
+  margin-top: 4px;
+  color: var(--text-3);
+  font-size: 10.5px;
+  line-height: 1.3;
+  white-space: nowrap;
+}
+
+.backlog-filters {
+  margin-top: 16px;
+}
+
+.filter-clear {
+  padding: 8px 12px;
+  font-size: 12.5px;
+  font-weight: 600;
+  color: var(--text-2);
+  background: var(--surface-2);
+  border: 1px solid var(--border-strong);
+  border-radius: var(--radius-sm);
+  cursor: pointer;
+  transition: border-color 0.15s, color 0.15s, background 0.15s;
+}
+
+.filter-clear:hover {
+  color: var(--text);
+  background: var(--surface);
+  border-color: var(--accent-2);
+}
+
+.backlog-result-count {
+  margin-left: auto;
+  color: var(--text-3);
+  font-size: 12px;
+  white-space: nowrap;
+}
+
+.dep-list {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 4px;
+}
+
+.dep-chip {
+  display: inline-flex;
+  align-items: center;
+  padding: 2px 6px;
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  background: var(--surface-2);
+  color: var(--text-2);
+  font-family: var(--mono);
+  font-size: 10.5px;
+  white-space: nowrap;
+}
+
+.dep-chip.base {
+  border-color: var(--accent-border);
+  background: var(--accent-soft);
+  color: var(--accent);
+}
+
+.dep-external {
+  padding: 2px 0;
+  color: var(--text-3);
+  font-size: 11px;
+  font-style: italic;
+}
+
+.wave-chip {
+  display: inline-flex;
+  align-items: center;
+  padding: 3px 9px;
+  border: 1px solid var(--border);
+  border-radius: 999px;
+  background: var(--surface-2);
+  color: var(--text-2);
+  font-size: 11px;
+  font-weight: 700;
+  white-space: nowrap;
+}
+
+.wave-chip.now {
+  border-color: transparent;
+  background: var(--green-soft);
+  color: var(--green);
+}
+
+.backlog-guide {
+  margin-top: 20px;
+  padding: 18px 20px;
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  background: var(--surface-2);
+}
+
+.backlog-guide-head {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 8px 18px;
+  margin-bottom: 14px;
+}
+
+.backlog-guide-head h3 {
+  margin: 0;
+  color: var(--text);
+  font-size: 13px;
+  font-weight: 700;
+}
+
+.backlog-guide-head span {
+  max-width: 72ch;
+  color: var(--text-3);
+  font-size: 12px;
+  text-align: right;
+}
+
+.backlog-guide-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 18px;
+}
+
+.backlog-guide-term {
+  margin-bottom: 5px;
+  color: var(--text-3);
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.6px;
+  text-transform: uppercase;
+}
+
+.backlog-guide-card:nth-child(2) .backlog-guide-term {
+  color: var(--accent);
+}
+
+.backlog-guide-card:nth-child(3) .backlog-guide-term {
+  color: var(--green);
+}
+
+.backlog-guide-card p {
+  margin: 0;
+  color: var(--text-2);
+  font-size: 12.5px;
+  line-height: 1.55;
+}
+
+.backlog-guide code {
+  padding: 2px 6px;
+  border-radius: 5px;
+  background: var(--slate-soft);
+  color: var(--accent);
+  font-family: var(--mono);
+  font-size: 11.5px;
+}
+
+.backlog-guide-more {
+  margin-top: 16px;
+  padding-top: 16px;
+  border-top: 1px solid var(--border);
+}
+
+.backlog-guide-more > summary {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  cursor: pointer;
+  color: var(--accent);
+  font-size: 12px;
+  font-weight: 700;
+  list-style: none;
+}
+
+.backlog-guide-more > summary::-webkit-details-marker {
+  display: none;
+}
+
+.backlog-guide-more > summary::before {
+  content: "▸";
+  color: var(--text-3);
+  font-size: 10px;
+  transition: transform 0.15s ease;
+}
+
+.backlog-guide-more[open] > summary::before {
+  transform: rotate(90deg);
+}
+
+.backlog-guide-deep {
+  margin-top: 14px;
+}
+
+.backlog-guide-analogy {
+  margin: 0 0 18px;
+  padding: 12px 14px;
+  border: 1px solid var(--border);
+  border-left: 3px solid var(--accent);
+  border-radius: 8px;
+  background: var(--surface);
+  color: var(--text-2);
+  font-size: 12.5px;
+  line-height: 1.55;
+}
+
+.backlog-guide-deep-grid {
+  display: grid;
+  grid-template-columns: minmax(0, 1.15fr) minmax(0, 1fr);
+  gap: 24px;
+}
+
+.backlog-guide-side {
+  display: grid;
+  gap: 18px;
+  align-content: start;
+}
+
+.backlog-guide-section {
+  margin: 0;
+}
+
+.backlog-guide-section h4 {
+  margin: 0 0 10px;
+  color: var(--text-3);
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.6px;
+  text-transform: uppercase;
+}
+
+.backlog-guide-timeline {
+  display: grid;
+  gap: 12px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.backlog-guide-timeline li {
+  position: relative;
+  padding-left: 28px;
+}
+
+.backlog-guide-timeline li::before {
+  content: "";
+  position: absolute;
+  left: 7px;
+  top: 7px;
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: var(--accent);
+  box-shadow: 0 0 0 3px var(--accent-soft);
+}
+
+.backlog-guide-timeline li:not(:last-child)::after {
+  content: "";
+  position: absolute;
+  left: 10px;
+  top: 21px;
+  bottom: -12px;
+  width: 2px;
+  background: var(--border);
+}
+
+.backlog-guide-step-head {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 6px;
+}
+
+.backlog-guide-step-head strong {
+  color: var(--text);
+  font-size: 12.5px;
+  font-weight: 600;
+}
+
+.backlog-guide-timeline p {
+  margin: 4px 0 0;
+  color: var(--text-3);
+  font-size: 12.25px;
+  line-height: 1.5;
+}
+
+.backlog-guide-takeaway {
+  margin: 12px 0 0;
+  padding: 10px 12px;
+  border-radius: 7px;
+  background: var(--slate-soft);
+  color: var(--text-2);
+  font-size: 12px;
+  line-height: 1.5;
+}
+
+.backlog-guide-steps {
+  margin: 0;
+  padding-left: 19px;
+  color: var(--text-2);
+  font-size: 12.5px;
+  line-height: 1.55;
+}
+
+.backlog-guide-steps li {
+  margin-bottom: 7px;
+  padding-left: 2px;
+}
+
+.backlog-guide-steps li:last-child {
+  margin-bottom: 0;
+}
+
+.backlog-guide-mistakes {
+  display: grid;
+  gap: 8px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.backlog-guide-mistakes li {
+  position: relative;
+  padding-left: 17px;
+  color: var(--text-3);
+  font-size: 12.25px;
+  line-height: 1.5;
+}
+
+.backlog-guide-mistakes li::before {
+  content: "×";
+  position: absolute;
+  left: 0;
+  top: -1px;
+  color: var(--red);
+  font-weight: 700;
+}
+
+.backlog-guide-glossary-wrap {
+  margin-top: 18px;
+  padding-top: 18px;
+  border-top: 1px solid var(--border);
+}
+
+.backlog-guide-glossary {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 12px 24px;
+  margin: 0;
+}
+
+.backlog-guide-glossary > div {
+  padding-left: 10px;
+  border-left: 2px solid var(--border);
+}
+
+.backlog-guide-glossary dt {
+  margin: 0 0 2px;
+  color: var(--text);
+  font-size: 12px;
+  font-weight: 700;
+}
+
+.backlog-guide-glossary dd {
+  margin: 0;
+  color: var(--text-3);
+  font-size: 12px;
+  line-height: 1.5;
+}
+
+.backlog-guide-footer {
+  margin: 12px 0 0;
+  padding-top: 12px;
+  border-top: 1px solid var(--border);
+  color: var(--text-3);
+  font-size: 12px;
+}
+
+@media (max-width: 1100px) {
+  .backlog-guide-deep-grid {
+    grid-template-columns: 1fr;
+    gap: 18px;
+  }
+}
+
+@media (max-width: 900px) {
+  .backlog-guide-head span {
+    text-align: left;
+  }
+
+  .backlog-guide-grid,
+  .backlog-guide-glossary {
+    grid-template-columns: 1fr;
+  }
+
+  .backlog-guide-grid {
+    gap: 12px;
+  }
 }
 
 .product-note {
@@ -2532,6 +3028,59 @@ body.drawer-open {
 .command-drawer.open {
   transform: translateX(0);
   visibility: visible;
+}
+
+/* Product backlog drawer: same motion, a little wider for prose, and the
+   visibility flip is delayed so closing also animates off-screen. */
+.backlog-drawer {
+  width: min(560px, 94vw);
+  transition: transform 0.32s cubic-bezier(0.22, 1, 0.36, 1),
+    visibility 0s linear 0.32s;
+}
+
+.backlog-drawer.open {
+  transition: transform 0.32s cubic-bezier(0.22, 1, 0.36, 1),
+    visibility 0s linear 0s;
+}
+
+.backlog-drawer .drawer-fact dd {
+  word-break: break-word;
+}
+
+.backlog-drawer-deps {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.backlog-drawer-dep-row {
+  display: grid;
+  grid-template-columns: 112px minmax(0, 1fr);
+  gap: 12px;
+  align-items: start;
+}
+
+.backlog-drawer-dep-label {
+  padding-top: 2px;
+  color: var(--text-3);
+  font-size: 10.5px;
+  font-weight: 700;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+}
+
+.backlog-drawer-empty {
+  color: var(--text-3);
+  font-size: 12.5px;
+  font-style: italic;
+  line-height: 1.5;
+}
+
+@media (max-width: 720px) {
+  .backlog-drawer-dep-row {
+    grid-template-columns: 1fr;
+    gap: 4px;
+  }
 }
 
 .command-drawer-head {
@@ -4629,4 +5178,190 @@ body.drawer-open {
   letter-spacing: 0.03em;
   text-transform: uppercase;
   color: var(--text-3);
+}
+
+/* ============================================================
+   PROJECT PORTFOLIO
+   One card per project on /projects. This is the landing view:
+   the dashboard is read before it is switched.
+   ============================================================ */
+
+.portfolio-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+  gap: 18px;
+}
+
+.portfolio-card {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  padding: 18px;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  box-shadow: var(--shadow-sm);
+  cursor: pointer;
+  transition: transform 0.18s, box-shadow 0.18s, border-color 0.18s;
+}
+
+.portfolio-card:hover {
+  transform: translateY(-2px);
+  box-shadow: var(--shadow);
+  border-color: var(--border-strong);
+}
+
+.portfolio-card:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
+}
+
+.portfolio-card.is-active {
+  border-color: var(--accent-border);
+  box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.08);
+}
+
+.portfolio-card.is-busy {
+  opacity: 0.6;
+  cursor: progress;
+}
+
+.portfolio-card-head {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.portfolio-card-identity {
+  min-width: 0;
+}
+
+.portfolio-card-name {
+  margin: 0;
+  font-size: 16px;
+  font-weight: 700;
+  letter-spacing: -0.2px;
+  color: var(--text);
+}
+
+.portfolio-card-path {
+  margin: 4px 0 0;
+  font-family: var(--mono);
+  font-size: 11.5px;
+  color: var(--text-3);
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}
+
+.portfolio-status {
+  flex: none;
+  padding: 4px 9px;
+  border: 1px solid transparent;
+  border-radius: 999px;
+  font-size: 10.5px;
+  font-weight: 700;
+  letter-spacing: 0.6px;
+  text-transform: uppercase;
+  background: var(--slate-soft);
+  color: var(--text-3);
+}
+
+.portfolio-status.blocked {
+  background: var(--amber-soft);
+  color: var(--amber);
+}
+
+.portfolio-status.active {
+  background: var(--blue-soft);
+  color: var(--blue);
+}
+
+.portfolio-stats {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 10px;
+  margin: 0;
+}
+
+.portfolio-stats dt {
+  font-size: 10.5px;
+  font-weight: 700;
+  letter-spacing: 0.7px;
+  text-transform: uppercase;
+  color: var(--text-3);
+}
+
+.portfolio-stats dd {
+  margin: 3px 0 0;
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--text);
+}
+
+.portfolio-focus {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+  margin: 0;
+  padding-top: 12px;
+  border-top: 1px solid var(--border);
+  font-size: 12.5px;
+  color: var(--text-2);
+}
+
+.portfolio-focus.is-empty {
+  color: var(--text-3);
+}
+
+.portfolio-focus-label {
+  font-size: 10.5px;
+  font-weight: 700;
+  letter-spacing: 0.7px;
+  text-transform: uppercase;
+  color: var(--text-3);
+}
+
+.portfolio-focus-name {
+  font-weight: 600;
+  color: var(--text);
+}
+
+.portfolio-focus-meta {
+  font-family: var(--mono);
+  font-size: 11.5px;
+  color: var(--text-3);
+}
+
+.portfolio-blockers {
+  margin: 0;
+  padding: 8px 10px;
+  border-radius: var(--radius-sm);
+  background: var(--amber-soft);
+  color: var(--amber);
+  font-size: 12px;
+}
+
+.portfolio-card-foot {
+  margin-top: auto;
+  font-size: 12.5px;
+  font-weight: 600;
+  color: var(--accent);
+}
+
+@media (max-width: 560px) {
+  .portfolio-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+.portfolio-next {
+  margin: 0;
+  padding: 8px 10px;
+  border-radius: var(--radius-sm);
+  background: var(--surface-2);
+  border: 1px solid var(--border);
+  color: var(--text-3);
+  font-size: 12px;
 }

@@ -27,7 +27,10 @@
       </div>
 
       <nav class="sidebar-nav">
-        <a class="nav-item active" href="/overview" data-nav="overview">
+        <a class="nav-item active" href="/projects" data-nav="projects">
+          <span class="nav-icon">▦</span><span>Projects</span>
+        </a>
+        <a class="nav-item" href="/overview" data-nav="overview">
           <span class="nav-icon">◈</span><span>Overview</span>
         </a>
         <a class="nav-item" href="/product-plan" data-nav="product-plan">
@@ -85,6 +88,18 @@
       </header>
 
       <main class="main">
+        <!-- ===== PROJECTS ===== -->
+        <section id="projects" class="section">
+          <div class="section-head">
+            <h2>Projects</h2>
+            <span class="section-hint">Every project this dashboard can open</span>
+          </div>
+          <div id="projects-grid" class="portfolio-grid">
+            <div class="skeleton-card"></div>
+            <div class="skeleton-card"></div>
+          </div>
+        </section>
+
         <!-- ===== OVERVIEW ===== -->
         <section id="overview" class="section">
           <div class="section-head">
@@ -487,6 +502,28 @@
       </button>
     </div>
     <div id="command-drawer-body" class="command-drawer-body"></div>
+  </aside>
+
+  <!-- ===== PRODUCT BACKLOG DETAIL DRAWER ===== -->
+  <div id="backlog-drawer-backdrop" class="command-drawer-backdrop"></div>
+  <aside
+    id="backlog-drawer"
+    class="command-drawer backlog-drawer"
+    role="dialog"
+    aria-modal="true"
+    aria-labelledby="backlog-drawer-title"
+    aria-hidden="true"
+  >
+    <div class="command-drawer-head">
+      <div class="command-drawer-head-text">
+        <span id="backlog-drawer-eyebrow" class="command-drawer-eyebrow">Product backlog item</span>
+        <h2 id="backlog-drawer-title" class="command-drawer-title">—</h2>
+      </div>
+      <button id="backlog-drawer-close" class="command-drawer-close" type="button" aria-label="Close details">
+        ✕
+      </button>
+    </div>
+    <div id="backlog-drawer-body" class="command-drawer-body"></div>
   </aside>
 
   <script src="/app.js"></script>

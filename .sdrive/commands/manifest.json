@@ -9,7 +9,9 @@
       "description": "Initialize or update the project constitution",
       "acceptsFeature": false,
       "gates": [],
-      "validators": ["governance"]
+      "validators": [
+        "governance"
+      ]
     },
     {
       "command": "/sdrive:product-plan",
@@ -27,7 +29,9 @@
       "description": "Choose the base branch, create the feature branch, then write the specification, traceability, plan, and tasks",
       "acceptsFeature": true,
       "gates": [],
-      "validators": ["governance"]
+      "validators": [
+        "governance"
+      ]
     },
     {
       "command": "/sdrive:update-propose",
@@ -36,7 +40,9 @@
       "description": "Extend an existing feature specification with new requirements, stories, and acceptance criteria",
       "acceptsFeature": true,
       "gates": [],
-      "validators": ["governance"]
+      "validators": [
+        "governance"
+      ]
     },
     {
       "command": "/sdrive:design",
@@ -45,7 +51,9 @@
       "description": "Build UI/UX prototype and design system",
       "acceptsFeature": true,
       "gates": [],
-      "validators": ["governance"]
+      "validators": [
+        "governance"
+      ]
     },
     {
       "command": "/sdrive:sync",
@@ -54,7 +62,9 @@
       "description": "Sync spec, plan, tasks, and traceability",
       "acceptsFeature": true,
       "gates": [],
-      "validators": ["governance"]
+      "validators": [
+        "governance"
+      ]
     },
     {
       "command": "/sdrive:skills",
@@ -73,7 +83,9 @@
       "acceptsFeature": true,
       "acceptsAll": true,
       "gates": [],
-      "validators": ["governance"]
+      "validators": [
+        "governance"
+      ]
     },
     {
       "command": "/sdrive:apply",
@@ -82,8 +94,13 @@
       "description": "Write production code from approved tasks, on the branch /sdrive:propose created",
       "acceptsFeature": true,
       "acceptsAll": true,
-      "gates": ["specification", "planning"],
-      "validators": ["governance"]
+      "gates": [
+        "specification",
+        "planning"
+      ],
+      "validators": [
+        "governance"
+      ]
     },
     {
       "command": "/sdrive:performance",
@@ -93,7 +110,9 @@
       "acceptsFeature": true,
       "acceptsAll": true,
       "gates": [],
-      "validators": ["governance"]
+      "validators": [
+        "governance"
+      ]
     },
     {
       "command": "/sdrive:debug",
@@ -103,7 +122,9 @@
       "acceptsFeature": true,
       "acceptsAll": true,
       "gates": [],
-      "validators": ["governance"]
+      "validators": [
+        "governance"
+      ]
     },
     {
       "command": "/sdrive:review",
@@ -112,8 +133,12 @@
       "description": "Final audit — pass/fail verdict, no merge",
       "acceptsFeature": true,
       "acceptsAll": true,
-      "gates": ["implementation"],
-      "validators": ["governance"]
+      "gates": [
+        "implementation"
+      ],
+      "validators": [
+        "governance"
+      ]
     },
     {
       "command": "/sdrive:archive",
@@ -122,8 +147,12 @@
       "description": "Merge an approved feature to the confirmed target branch and complete its lifecycle",
       "acceptsFeature": true,
       "acceptsAll": true,
-      "gates": ["review"],
-      "validators": ["governance"]
+      "gates": [
+        "review"
+      ],
+      "validators": [
+        "governance"
+      ]
     },
     {
       "command": "/sdrive:secure",
@@ -133,7 +162,9 @@
       "acceptsFeature": true,
       "acceptsAll": true,
       "gates": [],
-      "validators": ["governance"]
+      "validators": [
+        "governance"
+      ]
     },
     {
       "command": "/sdrive:test",
@@ -143,7 +174,9 @@
       "acceptsFeature": true,
       "acceptsAll": true,
       "gates": [],
-      "validators": ["governance"]
+      "validators": [
+        "governance"
+      ]
     },
     {
       "command": "/sdrive:onboard",
@@ -152,7 +185,18 @@
       "description": "Onboard an existing project into SpecDrive",
       "acceptsFeature": false,
       "gates": [],
-      "validators": ["governance"]
+      "validators": [
+        "governance"
+      ]
+    },
+    {
+      "command": "/sdrive:worktree",
+      "agent": "worktree",
+      "agentFile": ".sdrive/agents/16-worktree.md",
+      "description": "Prepare branches and isolated worktrees for the next ready Product Plan wave",
+      "acceptsFeature": false,
+      "gates": [],
+      "validators": []
     }
   ]
 }

@@ -282,31 +282,156 @@ async function renderProjectSwitcher() {
   select.dataset.bound = "true";
 }
 
+// Switch the server's active project, then land somewhere that exists in the
+// new project. A feature detail route (/features/x) belongs to the old project,
+// so it falls back to the overview; every other page is project-independent.
+async function switchActiveProject(target, destination) {
+  const response = await fetch("/api/switch-project", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ path: target })
+  });
+
+  if (!response.ok) {
+    const data = await response.json().catch(() => ({}));
+    throw new Error(data.error || "Could not switch project");
+  }
+
+  const { route } = parseLocation();
+  const next =
+    destination || (route === "feature-detail" ? "/overview" : window.location.pathname);
+  window.location.assign(next);
+}
+
 function setupProjectSwitcher() {
   const select = document.getElementById("project-switcher");
   if (!select) return;
 
   select.addEventListener("change", async () => {
-    const target = select.value;
     select.disabled = true;
 
     try {
-      const response = await fetch("/api/switch-project", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ path: target })
-      });
-
-      if (!response.ok) {
-        const data = await response.json().catch(() => ({}));
-        throw new Error(data.error || "Could not switch project");
-      }
-
-      window.location.reload();
+      await switchActiveProject(select.value);
     } catch (error) {
       select.disabled = false;
       alert(error.message);
     }
+  });
+}
+
+/* ============================================================
+   PROJECT PORTFOLIO
+   One page for every project the server knows, so the common
+   question ("where does each project stand?") does not require
+   switching projects at all.
+   ============================================================ */
+const PORTFOLIO_STATUS = {
+  blocked: "Needs attention",
+  active: "In progress",
+  idle: "Idle"
+};
+
+function gateLabel(gate) {
+  return gate.charAt(0).toUpperCase() + gate.slice(1);
+}
+
+function relativeActivity(iso) {
+  if (!iso) return "No activity yet";
+  const then = Date.parse(iso);
+  if (!Number.isFinite(then)) return "No activity yet";
+
+  const days = Math.floor((Date.now() - then) / 86400000);
+  if (days <= 0) return "Today";
+  if (days === 1) return "Yesterday";
+  if (days < 30) return `${days} days ago`;
+  return formatDate(iso);
+}
+
+function renderProjectCard(project) {
+  const focus = project.focus;
+  const status = PORTFOLIO_STATUS[project.status] ? project.status : "idle";
+  const rejected = project.rejectedGates || [];
+  const nextGates = project.outstandingGates || [];
+
+  return `
+    <article class="portfolio-card${project.active ? " is-active" : ""}" data-project-path="${escapeHtml(project.path)}" role="button" tabindex="0" aria-label="Open ${escapeHtml(project.name)}">
+      <header class="portfolio-card-head">
+        <div class="portfolio-card-identity">
+          <h3 class="portfolio-card-name">${escapeHtml(project.name)}</h3>
+          <p class="portfolio-card-path">${escapeHtml(project.path)}</p>
+        </div>
+        <span class="portfolio-status ${status}">${PORTFOLIO_STATUS[status]}</span>
+      </header>
+
+      <dl class="portfolio-stats">
+        <div><dt>Features</dt><dd>${project.features}</dd></div>
+        <div><dt>Live</dt><dd>${project.live}</dd></div>
+        <div><dt>Last activity</dt><dd>${escapeHtml(relativeActivity(project.lastActivity))}</dd></div>
+      </dl>
+
+      ${
+        focus
+          ? `<p class="portfolio-focus">
+               <span class="portfolio-focus-label">${project.live ? "Working on" : "Last touched"}</span>
+               <span class="portfolio-focus-name">${escapeHtml(focus.feature)}</span>
+               <span class="portfolio-focus-meta">${escapeHtml(focus.version)} · ${escapeHtml(focus.step || focus.phase)} · ${focus.approvedGates}/${focus.totalGates} gates</span>
+             </p>`
+          : `<p class="portfolio-focus is-empty">No features yet.</p>`
+      }
+
+      ${
+        rejected.length
+          ? `<p class="portfolio-blockers">Rejected: ${rejected.map((gate) => escapeHtml(gateLabel(gate))).join(", ")}</p>`
+          : nextGates.length
+            ? `<p class="portfolio-next">Next: ${nextGates.map((gate) => escapeHtml(gateLabel(gate))).join(", ")}</p>`
+            : ""
+      }
+
+      <footer class="portfolio-card-foot">
+        ${project.active ? "Current project" : `Open ${escapeHtml(project.name)} →`}
+      </footer>
+    </article>
+  `;
+}
+
+async function renderProjects() {
+  const grid = document.getElementById("projects-grid");
+  if (!grid) return;
+
+  const data = await fetchJson("/api/portfolio");
+  const projects = (data && data.projects) || [];
+
+  if (projects.length === 0) {
+    grid.className = "panel-loading";
+    grid.textContent = "No projects yet. Start a dashboard in a project to register it.";
+    return;
+  }
+
+  grid.className = "portfolio-grid";
+  grid.innerHTML = projects.map(renderProjectCard).join("");
+
+  grid.querySelectorAll("[data-project-path]").forEach((card) => {
+    const open = async () => {
+      if (card.dataset.busy === "true") return;
+      card.dataset.busy = "true";
+      card.classList.add("is-busy");
+
+      try {
+        await switchActiveProject(card.dataset.projectPath, "/overview");
+      } catch (error) {
+        card.dataset.busy = "false";
+        card.classList.remove("is-busy");
+        alert(error.message);
+      }
+    };
+
+    card.addEventListener("click", open);
+    card.addEventListener("keydown", (event) => {
+      if (event.key === "Enter" || event.key === " ") {
+        event.preventDefault();
+        open();
+      }
+    });
   });
 }
 
@@ -882,52 +1007,138 @@ function renderProduct(product, productType) {
     return div;
   }
 
-  const backlog = product.backlog || [];
-  const pending = backlog.filter((item) => /pending|backlog/i.test(item.status)).length;
-  const deferred = backlog.filter((item) => /deferred/i.test(item.status)).length;
+  const BACKLOG_PER_PAGE = 20;
+  const backlog = (product.backlog || []).slice().sort(compareBacklogItems);
+  const counts = { backlog: 0, ongoing: 0, completed: 0 };
+  for (const item of backlog) {
+    const status = item.lifecycleStatus || "backlog";
+    if (counts[status] != null) counts[status] += 1;
+  }
 
-  const BACKLOG_PER_PAGE = 10;
+  function backlogMilestoneRank(value) {
+    const match = String(value || "").match(/\bM(\d+)\b/i);
+    return match ? Number(match[1]) : 999;
+  }
+
+  function backlogPriorityRank(value) {
+    const match = String(value || "").match(/\bP(\d+)\b/i);
+    return match ? Number(match[1]) : 99;
+  }
+
+  function compareBacklogItems(a, b) {
+    return (
+      (a.wave || 0) - (b.wave || 0) ||
+      backlogMilestoneRank(a.milestone) - backlogMilestoneRank(b.milestone) ||
+      backlogPriorityRank(a.priority) - backlogPriorityRank(b.priority) ||
+      String(a.id).localeCompare(String(b.id), undefined, { numeric: true })
+    );
+  }
+
+  function backlogWaveLabel(wave) {
+    return Number(wave) === 0 ? "start" : `W${Number(wave) || 0}`;
+  }
+
+  const waveOptions = [...new Set(backlog.map((item) => item.wave))].sort((a, b) => a - b);
+  const milestoneOptions = [...new Set(backlog.map((item) => item.milestone).filter(Boolean))].sort(
+    (a, b) => backlogMilestoneRank(a) - backlogMilestoneRank(b) || a.localeCompare(b)
+  );
+  const priorityOptions = [...new Set(backlog.map((item) => item.priority).filter(Boolean))].sort(
+    (a, b) => backlogPriorityRank(a) - backlogPriorityRank(b) || a.localeCompare(b)
+  );
 
   const backlogRow = (item) => {
-    const tone = /deferred/i.test(item.status)
-      ? "slate"
-      : /pending|backlog/i.test(item.status)
-      ? "amber"
-      : "green";
+    const lifecycle = item.lifecycleStatus || "backlog";
+    const tone = lifecycle === "completed" ? "green" : lifecycle === "ongoing" ? "blue" : "";
+    const statusDetail = item.featureName
+      ? `Feature: ${item.featureName}${item.branch ? ` · ${item.branch}` : ""}`
+      : item.worktreePath
+      ? `Worktree prepared: ${item.worktreePath}`
+      : "Not promoted yet";
+    const planNote =
+      item.planStatus && item.planStatus !== "backlog"
+        ? `<div class="backlog-plan-note">plan: ${escapeHtml(item.planStatus)}</div>`
+        : "";
+
+    const dependsOn = item.dependsOn || [];
+    const external = item.externalDependencies || [];
+    const baseFor = item.baseFor || [];
+    const parallelWith = item.parallelWith || [];
+    const wave = Number.isFinite(item.wave) ? item.wave : 0;
+    const waveLabel = backlogWaveLabel(wave);
+    const waveTitle = parallelWith.length
+      ? `Can be developed in parallel with ${parallelWith.join(", ")}`
+      : "No other item is at this stage";
+
     return `
         <tr>
           <td class="backlog-id">${escapeHtml(item.id)}</td>
-          <td>${escapeHtml(item.feature)}</td>
-          <td>${item.milestone ? `<span class="chip slate">${escapeHtml(item.milestone)}</span>` : "—"}</td>
+          <td>
+            <div class="backlog-feature">${escapeHtml(item.feature)}</div>
+            ${item.userValue ? `<div class="backlog-value">${escapeHtml(item.userValue)}</div>` : ""}
+          </td>
+          <td>${item.milestone ? `<span class="chip">${escapeHtml(item.milestone)}</span>` : "—"}</td>
           <td>${item.priority ? escapeHtml(item.priority) : "—"}</td>
-          <td><span class="chip ${tone}">${escapeHtml(item.status)}</span></td>
+          <td>
+            <div class="dep-list">
+              ${dependsOn
+                .map((id) => `<span class="dep-chip">${escapeHtml(id)}</span>`)
+                .join("")}
+              ${external
+                .map((text) => `<span class="dep-external">${escapeHtml(text)}</span>`)
+                .join("")}
+              ${dependsOn.length === 0 && external.length === 0 ? "—" : ""}
+            </div>
+          </td>
+          <td>
+            <div class="dep-list">
+              ${
+                baseFor.length
+                  ? baseFor
+                      .map((id) => `<span class="dep-chip base">${escapeHtml(id)}</span>`)
+                      .join("")
+                  : "—"
+              }
+            </div>
+          </td>
+          <td>
+            <span class="wave-chip${wave === 0 ? " now" : ""}" title="${escapeHtml(waveTitle)}">${waveLabel}</span>
+          </td>
+          <td>
+            <span class="chip ${tone}" title="${escapeHtml(statusDetail)}">${escapeHtml(lifecycle)}</span>
+            ${planNote}
+          </td>
+          <td class="backlog-action-cell">
+            <button
+              class="backlog-view"
+              type="button"
+              data-backlog-detail="${escapeHtml(item.id)}"
+              aria-label="View details for ${escapeHtml(item.feature)}"
+            >
+              View more <span aria-hidden="true">→</span>
+            </button>
+          </td>
         </tr>`;
   };
-
-  const backlogSlice = paginate(backlog, "product-backlog", BACKLOG_PER_PAGE);
-  const backlogRows = backlog.length
-    ? backlogSlice.items.map(backlogRow).join("")
-    : `<tr><td colspan="5" class="product-empty">No backlog items yet.</td></tr>`;
 
   div.innerHTML = `
     <div class="product-plan-wrap">
       <div class="stat-card tone-accent">
         <span class="stat-icon">▤</span>
-        <span class="stat-label">Backlog Items</span>
-        <span class="stat-value">${backlog.length}</span>
-        <span class="stat-sub">product-level candidates</span>
+        <span class="stat-label">Backlog</span>
+        <span class="stat-value">${counts.backlog}</span>
+        <span class="stat-sub">not started</span>
       </div>
       <div class="stat-card tone-amber">
-        <span class="stat-icon">⏳</span>
-        <span class="stat-label">Pending</span>
-        <span class="stat-value">${pending}</span>
-        <span class="stat-sub">awaiting promotion</span>
+        <span class="stat-icon">◐</span>
+        <span class="stat-label">Ongoing</span>
+        <span class="stat-value">${counts.ongoing}</span>
+        <span class="stat-sub">in progress or prepared</span>
       </div>
-      <div class="stat-card tone-slate">
-        <span class="stat-icon">💤</span>
-        <span class="stat-label">Deferred</span>
-        <span class="stat-value">${deferred}</span>
-        <span class="stat-sub">parked for later</span>
+      <div class="stat-card tone-green">
+        <span class="stat-icon">✓</span>
+        <span class="stat-label">Completed</span>
+        <span class="stat-value">${counts.completed}</span>
+        <span class="stat-sub">archived, immutable</span>
       </div>
     </div>
 
@@ -935,25 +1146,281 @@ function renderProduct(product, productType) {
       <div class="detail-block-label">Artifacts</div>
       <div class="product-plan-artifacts">
         ${product.overview ? `<span class="artifact-chip">📄 overview.md</span>` : ""}
-        ${product.mockup ? `<span class="artifact-chip">🗺️ mockup.md</span>` : ""}
+        ${product.mockup ? `<span class="artifact-chip">🗺️ mockup.md</span>` : ""}
         ${product.designSystem ? `<span class="artifact-chip">🎨 design-system.md</span>` : ""}
-        ${product.roadmap ? `<span class="artifact-chip">🛣️ roadmap.md</span>` : ""}
+        ${product.roadmap ? `<span class="artifact-chip">🛣️ roadmap.md</span>` : ""}
+      </div>
+
+      <div class="filters backlog-filters">
+        <div class="filter-search">
+          <span class="filter-search-icon">⌕</span>
+          <input id="backlog-search" type="search" placeholder="Search by ID or feature name…" autocomplete="off" />
+        </div>
+        <select id="backlog-status" class="filter-select" aria-label="Filter by lifecycle status">
+          <option value="">All statuses</option>
+          <option value="backlog">Backlog</option>
+          <option value="ongoing">Ongoing</option>
+          <option value="completed">Completed</option>
+        </select>
+        <select id="backlog-wave" class="filter-select" aria-label="Filter by wave">
+          <option value="">All waves</option>
+          ${waveOptions
+            .map(
+              (wave) =>
+                `<option value="${escapeHtml(String(wave))}">${escapeHtml(backlogWaveLabel(wave))}</option>`
+            )
+            .join("")}
+        </select>
+        <select id="backlog-milestone" class="filter-select" aria-label="Filter by milestone">
+          <option value="">All milestones</option>
+          ${milestoneOptions
+            .map((milestone) => `<option value="${escapeHtml(milestone)}">${escapeHtml(milestone)}</option>`)
+            .join("")}
+        </select>
+        <select id="backlog-priority" class="filter-select" aria-label="Filter by priority">
+          <option value="">All priorities</option>
+          ${priorityOptions
+            .map((priority) => `<option value="${escapeHtml(priority)}">${escapeHtml(priority)}</option>`)
+            .join("")}
+        </select>
+        <button id="backlog-clear" class="filter-clear" type="button">Clear</button>
+        <span id="backlog-result-count" class="backlog-result-count">${backlog.length} items</span>
       </div>
 
       <div class="table-scroll">
         <table class="backlog-table">
           <thead>
-            <tr><th>ID</th><th>Feature</th><th>Milestone</th><th>Priority</th><th>Status</th></tr>
+            <tr>
+              <th>ID</th>
+              <th>Feature</th>
+              <th>Milestone</th>
+              <th>Priority</th>
+              <th>Depends on</th>
+              <th>Base for</th>
+              <th>Wave</th>
+              <th>Status</th>
+              <th class="backlog-actions-col">Details</th>
+            </tr>
           </thead>
-          <tbody id="backlog-body">${backlogRows}</tbody>
+          <tbody id="backlog-body"></tbody>
         </table>
       </div>
 
       <div id="backlog-pager"></div>
 
-      <div class="product-note">
-        Backlog items are product-level candidates. Promote one with <code>/sdrive:propose</code> to start detailed planning.
-      </div>
+      <section class="backlog-guide" aria-label="How to read the backlog table">
+        <div class="backlog-guide-head">
+          <h3>How to read this table</h3>
+          <span>
+            <strong>Depends on</strong> = what's first. <strong>Base for</strong> = what's next.
+            <strong>Wave</strong> = what can run together.
+          </span>
+        </div>
+
+        <div class="backlog-guide-grid">
+          <div class="backlog-guide-card">
+            <div class="backlog-guide-term">Depends on</div>
+            <p>
+              Finish these first. A dash (<strong>—</strong>) means nothing feature-related is
+              blocking this item. Italic text is an outside blocker, such as
+              <code>app review</code>, and still has to be cleared.
+            </p>
+          </div>
+          <div class="backlog-guide-card">
+            <div class="backlog-guide-term">Base for</div>
+            <p>
+              These items need this feature first. If the list is long, build this feature early —
+              it unlocks a lot of other work.
+            </p>
+          </div>
+          <div class="backlog-guide-card">
+            <div class="backlog-guide-term">Wave</div>
+            <p>
+              A simple build order: <code>start</code> = begin now, <code>W1</code> = wait for
+              start, <code>W2</code> = wait for W1. <strong>Same wave = work on them at the same
+              time.</strong> <code>/sdrive:worktree</code> prepares branches for one ready wave.
+            </p>
+          </div>
+        </div>
+
+        <details class="backlog-guide-more" open>
+          <summary>Go deeper: worked example, how to choose, common mistakes, and glossary</summary>
+
+          <div class="backlog-guide-deep">
+            <p class="backlog-guide-analogy">
+              <strong>Think of it like a recipe:</strong> you cannot ice a cake before baking it.
+              <strong>Depends on</strong> is what must be cooked first, <strong>Base for</strong> is
+              what this step unlocks, and <strong>Wave</strong> is the order of steps. Dishes in the
+              same wave can be cooked at the same time.
+            </p>
+
+            <div class="backlog-guide-deep-grid">
+              <section class="backlog-guide-section">
+                <h4>Worked example: one real chain</h4>
+                <ol class="backlog-guide-timeline">
+                  <li>
+                    <div class="backlog-guide-step-head">
+                      <span class="dep-chip">BP-001</span>
+                      <span class="wave-chip now">start</span>
+                      <strong>YAML parser</strong>
+                    </div>
+                    <p>No feature dependencies. This is safe to start now.</p>
+                  </li>
+                  <li>
+                    <div class="backlog-guide-step-head">
+                      <span class="dep-chip">BP-005</span>
+                      <span class="wave-chip">W1</span>
+                      <strong>wirekit core</strong>
+                    </div>
+                    <p>Waits for BP-001. Do not start it until BP-001 is done.</p>
+                  </li>
+                  <li>
+                    <div class="backlog-guide-step-head">
+                      <span class="dep-chip">BP-006–009</span>
+                      <span class="wave-chip">W2</span>
+                      <strong>provider modules</strong>
+                    </div>
+                    <p>
+                      All four wait for BP-005, but not for each other. That is why they share a
+                      wave and can be built at the same time.
+                    </p>
+                  </li>
+                  <li>
+                    <div class="backlog-guide-step-head">
+                      <span class="dep-chip">BP-010</span>
+                      <span class="wave-chip">W3</span>
+                      <strong>first publish</strong>
+                    </div>
+                    <p>Waits for all four provider modules. It is the last step in this chain.</p>
+                  </li>
+                </ol>
+                <p class="backlog-guide-takeaway">
+                  <strong>Why the wave goes up:</strong> each step waits for something in the wave
+                  before it. A wave is a layer, not a date or a priority.
+                </p>
+              </section>
+
+              <div class="backlog-guide-side">
+                <section class="backlog-guide-section">
+                  <h4>How to choose what to work on next</h4>
+                  <ol class="backlog-guide-steps">
+                    <li>
+                      Start with a <code>start</code> row. Its <strong>Depends on</strong> is
+                      <strong>—</strong>, so no feature is blocking it.
+                    </li>
+                    <li>
+                      When no <code>start</code> row is left, pick the lowest wave whose
+                      <strong>Depends on</strong> items are all done.
+                    </li>
+                    <li>
+                      Finish every item in <strong>Depends on</strong> and clear any italic outside
+                      blocker.
+                    </li>
+                    <li>
+                      If several rows in that wave are ready, work on them in parallel.
+                    </li>
+                    <li>
+                      After finishing, check <strong>Base for</strong> to see what you just
+                      unlocked, then repeat.
+                    </li>
+                  </ol>
+                </section>
+
+                <section class="backlog-guide-section">
+                  <h4>Common mistakes</h4>
+                  <ul class="backlog-guide-mistakes">
+                    <li>
+                      <strong>P0 does not mean start now.</strong> Priority says how important it
+                      is; wave says when it is safe.
+                    </li>
+                    <li>
+                      <strong>A long Base for list is not a blocker.</strong> It means this item
+                      unlocks a lot of work, so do it early when its own dependencies are clear.
+                    </li>
+                    <li>
+                      <strong>A later milestone is not a later wave.</strong> Check
+                      <strong>Depends on</strong>, not the milestone.
+                    </li>
+                    <li>
+                      <strong>Italic blockers still block.</strong> They do not change the wave, but
+                      you cannot finish without them.
+                    </li>
+                    <li>
+                      <strong>Same wave does not mean same work.</strong> It means the items do not
+                      depend on each other, so they can run at the same time.
+                    </li>
+                  </ul>
+                </section>
+              </div>
+            </div>
+
+            <section class="backlog-guide-section backlog-guide-glossary-wrap">
+              <h4>Words used in this table</h4>
+              <dl class="backlog-guide-glossary">
+                <div>
+                  <dt>Backlog item</dt>
+                  <dd>A feature idea, not started work. <code>BP-###</code> is its ID.</dd>
+                </div>
+                <div>
+                  <dt>Depends on</dt>
+                  <dd>
+                    Work that must be finished first. <code>—</code> means no feature blocker.
+                  </dd>
+                </div>
+                <div>
+                  <dt>Base for</dt>
+                  <dd>
+                    The opposite view: items that need this one first. It is what this item
+                    unlocks.
+                  </dd>
+                </div>
+                <div>
+                  <dt>Wave</dt>
+                  <dd>
+                    A layer in the build order. <code>start</code> has no feature dependencies;
+                    <code>W1</code> waits on <code>start</code>; <code>W2</code> waits on earlier
+                    waves. Same wave = can run at the same time.
+                  </dd>
+                </div>
+                <div>
+                  <dt>Milestone</dt>
+                  <dd>
+                    A product phase (M0, M1, ...), not a build order. A later milestone item can
+                    still be <code>start</code>.
+                  </dd>
+                </div>
+                <div>
+                  <dt>Outside blocker</dt>
+                  <dd>
+                    A non-feature dependency in italics, such as <code>app review</code>, a
+                    contract, or an approval. It still blocks, but it does not change the wave.
+                  </dd>
+                </div>
+                <div>
+                  <dt>Priority</dt>
+                  <dd>How important the item is (P0-P3). It is not the same as the wave.</dd>
+                </div>
+                <div>
+                  <dt>Status</dt>
+                  <dd>
+                    The live lifecycle: <code>backlog</code> (not started), <code>ongoing</code>
+                    (worktree or spec in progress), or <code>completed</code> (archived and
+                    immutable). A plan note such as <code>deferred</code> can sit underneath the
+                    lifecycle status.
+                  </dd>
+                </div>
+              </dl>
+            </section>
+          </div>
+        </details>
+
+        <p class="backlog-guide-footer">
+          Backlog items are ideas, not started work. Promote one with
+          <code>/sdrive:propose</code> when you are ready to plan it, or use
+          <code>/sdrive:worktree</code> to prepare branches and isolated worktrees for a whole
+          ready wave. Archived features are immutable.
+        </p>
+      </section>
     </div>
   `;
 
@@ -961,13 +1428,71 @@ function renderProduct(product, productType) {
   // stat cards and artifact chips are never rebuilt.
   const pagerHost = div.querySelector("#backlog-pager");
   const bodyHost = div.querySelector("#backlog-body");
-  const repaint = () => {
-    const slice = paginate(backlog, "product-backlog", BACKLOG_PER_PAGE);
-    bodyHost.innerHTML = slice.items.map(backlogRow).join("");
-    pagerHost.innerHTML = "";
-    const pager = renderPager(backlog.length, "product-backlog", BACKLOG_PER_PAGE, repaint);
-    if (pager) pagerHost.appendChild(pager);
+  const resultCount = div.querySelector("#backlog-result-count");
+
+  const readFilters = () => ({
+    search: (div.querySelector("#backlog-search").value || "").trim().toLowerCase(),
+    status: div.querySelector("#backlog-status").value,
+    wave: div.querySelector("#backlog-wave").value,
+    milestone: div.querySelector("#backlog-milestone").value,
+    priority: div.querySelector("#backlog-priority").value
+  });
+
+  const matchingBacklog = () => {
+    const filters = readFilters();
+    return backlog.filter((item) => {
+      if (filters.search) {
+        const haystack = `${item.id} ${item.feature}`.toLowerCase();
+        if (!haystack.includes(filters.search)) return false;
+      }
+      if (filters.status && item.lifecycleStatus !== filters.status) return false;
+      if (filters.wave && String(item.wave) !== filters.wave) return false;
+      if (filters.milestone && item.milestone !== filters.milestone) return false;
+      if (filters.priority && item.priority !== filters.priority) return false;
+      return true;
+    });
   };
+
+  const repaint = () => {
+    const visible = matchingBacklog();
+    const slice = paginate(visible, "product-backlog", BACKLOG_PER_PAGE);
+    bodyHost.innerHTML = visible.length
+      ? slice.items.map(backlogRow).join("")
+      : `<tr><td colspan="9" class="product-empty">No backlog items match these filters.</td></tr>`;
+    pagerHost.innerHTML = "";
+    const pager = renderPager(visible.length, "product-backlog", BACKLOG_PER_PAGE, repaint);
+    if (pager) pagerHost.appendChild(pager);
+    if (resultCount) {
+      resultCount.textContent = `${visible.length} of ${backlog.length} items`;
+    }
+  };
+
+  const resetAndRepaint = () => {
+    pagerState["product-backlog"] = 1;
+    repaint();
+  };
+
+  div.querySelector("#backlog-search").addEventListener("input", resetAndRepaint);
+  for (const id of ["backlog-status", "backlog-wave", "backlog-milestone", "backlog-priority"]) {
+    div.querySelector(`#${id}`).addEventListener("change", resetAndRepaint);
+  }
+  div.querySelector("#backlog-clear").addEventListener("click", () => {
+    div.querySelector("#backlog-search").value = "";
+    for (const id of ["backlog-status", "backlog-wave", "backlog-milestone", "backlog-priority"]) {
+      div.querySelector(`#${id}`).value = "";
+    }
+    resetAndRepaint();
+  });
+
+  // One delegated listener survives every page and filter repaint. The drawer
+  // itself is a static shell in index.html so its slide animation is not rebuilt.
+  bodyHost.addEventListener("click", (event) => {
+    const trigger = event.target.closest && event.target.closest("[data-backlog-detail]");
+    if (!trigger) return;
+    const item = backlog.find((entry) => entry.id === trigger.dataset.backlogDetail);
+    if (item) openBacklogDrawer(item, trigger);
+  });
+
   repaint();
 
   return div;
@@ -1138,8 +1663,8 @@ function featureMembersEl(members) {
 let featureRenderToken = 0;
 
 // Feature cards are tall (each carries its version blocks and metrics), so a
-// smaller page keeps the grid scannable and the KPI explainer within reach.
-const FEATURES_PER_PAGE = 20;
+// moderate page keeps the grid scannable while showing enough to compare.
+const FEATURES_PER_PAGE = 25;
 
 async function renderFeatures() {
   const token = ++featureRenderToken;
@@ -3129,6 +3654,201 @@ function setupCommandDrawer() {
   });
 }
 
+/* ============================================================
+   PRODUCT BACKLOG DETAIL DRAWER
+   One static shell, filled per item. Reuses the command drawer's
+   slide-in motion so a row's "View more" feels like the rest of
+   the dashboard instead of a modal dropped on top of it.
+   ============================================================ */
+let backlogDrawerReturnFocus = null;
+
+function backlogWaveText(item) {
+  const wave = Number(item.wave);
+  return Number.isFinite(wave) ? (wave === 0 ? "start" : `W${wave}`) : "—";
+}
+
+function backlogDepRow(label, content, emptyText) {
+  return `<div class="backlog-drawer-dep-row">
+    <span class="backlog-drawer-dep-label">${escapeHtml(label)}</span>
+    <div class="dep-list">${content || `<span class="backlog-drawer-empty">${escapeHtml(emptyText)}</span>`}</div>
+  </div>`;
+}
+
+function backlogDrawerBody(item) {
+  const sections = [];
+  const lifecycle = item.lifecycleStatus || "backlog";
+  const details = item.details || "";
+  const userValue = item.userValue || "";
+  const dependsOn = item.dependsOn || [];
+  const external = item.externalDependencies || [];
+  const blockedBy = item.blockedBy || [];
+  const baseFor = item.baseFor || [];
+  const parallelWith = item.parallelWith || [];
+
+  const prose = [];
+  if (details) prose.push(drawerProse("What this feature does", details));
+  if (userValue) {
+    prose.push(drawerProse(details ? "Why it matters" : "What this feature is for", userValue));
+  }
+  if (item.confidence) prose.push(drawerProse("Confidence / source", item.confidence));
+  if (prose.length) sections.push(`<div class="drawer-prose">${prose.join("")}</div>`);
+
+  const facts = [];
+  if (item.milestone) facts.push(drawerFact("Milestone", item.milestone));
+  if (item.priority) facts.push(drawerFact("Priority", item.priority));
+  facts.push(drawerFact("Wave", backlogWaveText(item)));
+  facts.push(drawerFact("Lifecycle", lifecycle));
+  if (item.planStatus && item.planStatus !== lifecycle) {
+    facts.push(drawerFact("Plan status", item.planStatus));
+  }
+  if (item.featureName) facts.push(drawerFact("Feature", item.featureName));
+  if (item.branch) facts.push(drawerFact("Branch", item.branch));
+  if (item.base) facts.push(drawerFact("Base", item.base));
+  if (facts.length) {
+    sections.push(`
+      <section class="drawer-section">
+        <h3 class="drawer-section-title">At a glance</h3>
+        <dl class="drawer-facts">${facts.join("")}</dl>
+      </section>
+    `);
+  }
+
+  const chipList = (ids, kind = "") =>
+    ids.map((id) => `<span class="dep-chip ${kind}">${escapeHtml(id)}</span>`).join("");
+  const externalList = external
+    .map((text) => `<span class="dep-external">${escapeHtml(text)}</span>`)
+    .join("");
+
+  sections.push(`
+    <section class="drawer-section">
+      <h3 class="drawer-section-title">Dependencies &amp; sequencing</h3>
+      <div class="backlog-drawer-deps">
+        ${backlogDepRow(
+          "Depends on",
+          chipList(dependsOn),
+          "Nothing feature-related — this can start now."
+        )}
+        ${backlogDepRow("Outside blockers", externalList, "None recorded.")}
+        ${baseFor.length ? backlogDepRow("Unlocks", chipList(baseFor, "base"), "") : ""}
+        ${parallelWith.length ? backlogDepRow("Can run with", chipList(parallelWith), "") : ""}
+      </div>
+    </section>
+  `);
+
+  if (item.worktreePath) {
+    sections.push(`
+      <section class="drawer-section">
+        <h3 class="drawer-section-title">Prepared worktree</h3>
+        <code class="drawer-path">${escapeHtml(item.worktreePath)}</code>
+      </section>
+    `);
+  }
+
+  let nextLabel = "Next step";
+  let nextText = "Review the plan, then promote this item when it is ready.";
+  if (lifecycle === "completed") {
+    nextLabel = "Archived";
+    nextText = "This version is complete and immutable. New scope requires sdrive version:new.";
+  } else if (item.featureName) {
+    nextText = `Feature ${item.featureName} already exists${
+      item.branch ? ` on ${item.branch}` : ""
+    }. Continue with /sdrive:propose, /sdrive:apply, or /sdrive:review.`;
+  } else if (item.worktreePath) {
+    nextLabel = "Worktree prepared";
+    nextText = `Run /sdrive:propose from ${item.worktreePath}; it will reuse the prepared branch.`;
+  } else if (item.eligible) {
+    nextLabel = "Ready now";
+    nextText = `Run /sdrive:worktree to prepare ${item.id}, or /sdrive:propose to plan it directly.`;
+  } else if (blockedBy.length) {
+    nextLabel = "Blocked";
+    nextText = `Finish ${blockedBy.join(", ")} before this item can start.`;
+  } else if (external.length) {
+    nextLabel = "Outside blocker";
+    nextText = `Waiting on ${external.join(", ")}. Clear it before starting this item.`;
+  } else if (item.planStatus && item.planStatus !== "backlog") {
+    nextLabel = `Plan: ${item.planStatus}`;
+    nextText = "This item is parked. Change its plan status before preparing work.";
+  }
+  sections.push(`
+    <aside class="drawer-note">
+      <span class="drawer-note-label">${escapeHtml(nextLabel)}</span>
+      <p>${escapeHtml(nextText)}</p>
+    </aside>
+  `);
+
+  return sections.join("");
+}
+
+function openBacklogDrawer(item, trigger) {
+  const drawer = document.getElementById("backlog-drawer");
+  const backdrop = document.getElementById("backlog-drawer-backdrop");
+  const title = document.getElementById("backlog-drawer-title");
+  const eyebrow = document.getElementById("backlog-drawer-eyebrow");
+  const body = document.getElementById("backlog-drawer-body");
+  if (!drawer || !body) return;
+
+  backlogDrawerReturnFocus = trigger || document.activeElement;
+
+  if (title) title.textContent = item.feature || item.id;
+  if (eyebrow) eyebrow.textContent = `${item.id} · ${item.lifecycleStatus || "backlog"}`;
+  body.innerHTML = backlogDrawerBody(item);
+
+  drawer.classList.add("open");
+  drawer.setAttribute("aria-hidden", "false");
+  if (backdrop) backdrop.classList.add("open");
+  document.body.classList.add("drawer-open");
+
+  const close = document.getElementById("backlog-drawer-close");
+  if (close) close.focus();
+}
+
+function closeBacklogDrawer() {
+  const drawer = document.getElementById("backlog-drawer");
+  const backdrop = document.getElementById("backlog-drawer-backdrop");
+  if (!drawer || !drawer.classList.contains("open")) return;
+
+  drawer.classList.remove("open");
+  drawer.setAttribute("aria-hidden", "true");
+  if (backdrop) backdrop.classList.remove("open");
+  document.body.classList.remove("drawer-open");
+
+  if (backlogDrawerReturnFocus && backlogDrawerReturnFocus.focus) {
+    backlogDrawerReturnFocus.focus();
+  }
+  backlogDrawerReturnFocus = null;
+}
+
+function setupBacklogDrawer() {
+  const drawer = document.getElementById("backlog-drawer");
+  const close = document.getElementById("backlog-drawer-close");
+  const backdrop = document.getElementById("backlog-drawer-backdrop");
+  if (!drawer) return;
+
+  if (close) close.addEventListener("click", closeBacklogDrawer);
+  if (backdrop) backdrop.addEventListener("click", closeBacklogDrawer);
+
+  document.addEventListener("keydown", (event) => {
+    if (event.key === "Escape") closeBacklogDrawer();
+  });
+
+  drawer.addEventListener("keydown", (event) => {
+    if (event.key !== "Tab") return;
+    const focusables = [...drawer.querySelectorAll(
+      'button, [href], input, select, textarea, [tabindex]:not([tabindex="-1"])'
+    )].filter((element) => !element.disabled && element.offsetParent !== null);
+    if (!focusables.length) return;
+    const first = focusables[0];
+    const last = focusables[focusables.length - 1];
+    if (event.shiftKey && document.activeElement === first) {
+      event.preventDefault();
+      last.focus();
+    } else if (!event.shiftKey && document.activeElement === last) {
+      event.preventDefault();
+      first.focus();
+    }
+  });
+}
+
 function renderWorkflowCards() {
   const container = document.getElementById("workflow-cards");
   if (!container) return;
@@ -3269,6 +3989,7 @@ async function renderCommands() {
    detail page (task breakdown + filters) for a single feature.
    ============================================================ */
 const ROUTES = [
+  "projects",
   "overview",
   "product-plan",
   "features",
@@ -3279,7 +4000,7 @@ const ROUTES = [
   "activity",
   "commands"
 ];
-const DEFAULT_ROUTE = "overview";
+const DEFAULT_ROUTE = "projects";
 
 // Returns { route, feature } for the current URL. A path like
 // /features/about-page resolves to { route: "feature-detail", feature: "about-page" }.
@@ -3317,6 +4038,7 @@ function showRoute(route) {
   window.scrollTo({ top: 0, behavior: "auto" });
 
   if (target === "quality") renderQuality();
+  if (target === "projects") renderProjects();
 }
 
 function setupNav() {
@@ -3606,6 +4328,7 @@ async function main() {
   setupNav();
   setupSidebarDrawer();
   setupFeatureDetail();
+  setupBacklogDrawer();
   syncTopbarHeight();
 
   await renderFeatures();

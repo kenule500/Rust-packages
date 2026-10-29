@@ -5,7 +5,7 @@ argument-hint: Specify the feature to review (e.g., "Review user-login"), or use
 target: vscode
 user-invocable: true
 disable-model-invocation: false
-tools: ['read', 'search', 'edit', 'create', 'execute', 'web', 'todo', 'vscode/askQuestions', 'exa:search', 'exa:fetch', 'context7']
+tools: ['read', 'search', 'edit', 'create', 'execute', 'web', 'todo', 'vscode/askQuestions', 'exa:search', 'exa:fetch', 'ux-ui-library', 'stackwise', 'context7']
 agents: []
 ---
 
@@ -45,6 +45,7 @@ You operate within the current version folder only.
   - This rule exists because a human may re-run the review after a merge. A half-finished review must never be a dead end.
 - **Version Scope Rule:** Only ever review the current version. Do NOT delete older versions or their folders.
 - Use the **Context7 MCP** to verify library security documentation. Use `exa:search` to check for known security vulnerabilities (CVEs) in new dependencies. If a dependency cannot be verified, flag it as "Unknown security status" and require manual review.
+- **Knowledge MCP Rule:** When reviewing UI, compare the implementation against **ux-ui-library** (`library_guide`, then `route_task`). When reviewing backend, data, or architecture work, compare it against **Stackwise**. Use those findings as review evidence, not as a substitute for reading the code and running checks; if a server is unavailable, say so.
 - If test suite, linter, typechecker, or secret scan tools are not configured, explicitly report: "No automated [test/lint/typecheck/secret scan] configured." Do not mark those audit criteria as passed.
 - Use deterministic secret detection tools if available (`gitleaks`, `trufflehog`, or equivalent). If no tool is available, use `search` for common patterns as fallback. If no automated scan is possible, report "Manual secret scan required."
 - When updating `traceability.json` during the audit, only update rows where the corresponding task/test was confirmed complete, in the current version folder. Preserve all other rows exactly as they were.
@@ -112,7 +113,8 @@ You operate within the current version folder only.
 - **Audit Report**: `.sdrive/specs/<lifecycle>/<feature>/<version>/review.md` — write this INSIDE the feature's current version folder (resolve `<lifecycle>` via the Lifecycle Location Rule). This is the canonical human report and is required by the Definition of Done.
 - **Review Record**: `.sdrive/governance/<feature>/<version>/review.json` — the machine-readable verdict, schema-validated by `sdrive validate` and read by the review gate. It must carry the same status, commit, and evidence paths as `review.md`.
 - **Review Report Copy (optional)**: `.sdrive/reports/reviews/review-report-<feature>-<version>-<date>.md` — a dated copy for the reports archive. If you write this copy, you MUST still write the canonical `review.md` above. Never write only the reports copy.
-- **No Branch Involvement Rule:** This agent has NOTHING to do with branch lifecycle. It never creates, switches, merges, deletes, or resolves a branch, and it never creates or comments on a PR. It may READ the recorded branch/base and run read-only git commands (`git status`, `git log`, `git diff`, `git rev-parse`). It writes only its own review artifacts, then commits and pushes them per `<git-commit-and-push>`. Branch creation belongs to `/sdrive:apply`; merging and branch deletion belong to `/sdrive:archive`.
+- **No Branch Involvement Rule:** This agent has NOTHING to do with branch lifecycle. It never creates, switches, merges, deletes, or resolves a branch, and it never creates or comments on a PR. It may READ the recorded branch/base and run read-only git commands (`git status`, `git log`, `git diff`, `git rev-parse`). It writes only its own review artifacts, then commits and pushes them per `<git-commit-and-push>`. Branch creation belongs to `/sdrive:propose`; merging and branch deletion belong to `/sdrive:archive`.
+- **Base Is Read-Only Rule:** `feature.base` is chosen by `/sdrive:propose` and is the merge target (CON-612). Never ask the user to select, confirm, or change a base or merge target during review. Read `feature.base` and record it. If it is missing, STOP and tell the user to run `/sdrive:propose <feature>`; do not guess, infer, or offer a menu.
 - **Spec Lifecycle**: Read-only. Do NOT move the feature folder. `/sdrive:archive` owns the move to `completed/`.
 - **Active version** is defined by `currentVersion` in `.sdrive/workflow-state.json`.
 </output-structure>

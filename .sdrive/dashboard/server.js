@@ -5,6 +5,7 @@ const fs = require("fs");
 const os = require("os");
 const path = require("path");
 const { execFile } = require("child_process");
+const productPlan = require("../scripts/lib/product-plan");
 
 let projectRoot = process.cwd();
 let sdriveRoot = path.join(projectRoot, ".sdrive");
@@ -395,7 +396,7 @@ function loadJson(filePath, fallback = null) {
 // obvious which project a dashboard belongs to when several are running.
 function apiProjectInfo() {
   const name = path.basename(projectRoot) || "project";
-  return { name, root: projectRoot };
+  return { service: "specdrive-dashboard", name, root: projectRoot };
 }
 
 // Classify the project so the dashboard can tell the user which workflow they
@@ -1164,6 +1165,148 @@ function isSdriveProject(root) {
   return fs.existsSync(path.join(root, ".sdrive", "config.json"));
 }
 
+function registryPath() {
+  return path.join(os.homedir(), ".sdrive", "projects.json");
+}
+
+// The registry keeps its own shape: an array of paths or `{ "projects": [...] }`.
+// Rewriting it as the other shape would be a silent format change to a file the
+// user may also maintain by hand.
+function readProjectRegistry() {
+  const file = registryPath();
+
+  if (!fs.existsSync(file)) {
+    return { asArray: false, entries: [], paths: [] };
+  }
+
+  try {
+    const registry = JSON.parse(fs.readFileSync(file, "utf8"));
+    const entries = Array.isArray(registry) ? registry : registry.projects || [];
+
+    return {
+      asArray: Array.isArray(registry),
+      // Keep the raw entries so a registration write does not drop fields a
+      // hand-edited `{ "path": ..., "name": ... }` entry carries.
+      entries,
+      paths: entries
+        .map((entry) => (typeof entry === "string" ? entry : entry && entry.path))
+        .filter((entry) => typeof entry === "string" && entry.trim())
+    };
+  } catch (error) {
+    // A malformed registry must not break the dashboard or block a project.
+    return { asArray: false, entries: [], paths: [] };
+  }
+}
+
+function samePath(a, b) {
+  // Windows paths are case-insensitive; two spellings are one project.
+  return process.platform === "win32"
+    ? a.toLowerCase() === b.toLowerCase()
+    : a === b;
+}
+
+// Discovery can only see the current folder and its siblings, so projects that
+// live in different trees (one repo per client, the usual layout) never meet and
+// each needed its own dashboard tab. Recording a project the first time its
+// dashboard starts makes the registry a shared list: open each project once,
+// then switch between all of them from a single tab.
+//
+// A dashboard can start at the same time as another (one per project, opened
+// together). Read-merge-write is not atomic across processes: A reads {}, B
+// reads {}, A writes [a], B writes [b] and the last writer erases the other.
+// Re-reading only rescues the writer that notices; if A already returned, a is
+// gone. Serialize the whole read/write with an exclusive lock file instead.
+//
+// The wait is bounded and a stale lock (a process that died while holding it) is
+// broken after ten seconds, so a locked registry can never stop a dashboard from
+// starting. If the lock still cannot be taken, fall back to a best-effort write:
+// losing a registry entry is worse than not starting at all.
+const REGISTRY_LOCK_TIMEOUT_MS = 2000;
+const REGISTRY_LOCK_STALE_MS = 10000;
+
+// There is no synchronous sleep; Atomics.wait on a throwaway buffer gives one
+// without spinning the CPU.
+function sleepSync(ms) {
+  Atomics.wait(new Int32Array(new SharedArrayBuffer(4)), 0, 0, ms);
+}
+
+function withRegistryLock(callback) {
+  const file = registryPath();
+  const lockPath = `${file}.lock`;
+
+  try {
+    fs.mkdirSync(path.dirname(file), { recursive: true });
+  } catch (error) {
+    return callback();
+  }
+
+  const startedAt = Date.now();
+  let handle = null;
+
+  while (Date.now() - startedAt < REGISTRY_LOCK_TIMEOUT_MS) {
+    try {
+      handle = fs.openSync(lockPath, "wx");
+      break;
+    } catch (error) {
+      if (error.code !== "EEXIST") return callback();
+
+      try {
+        if (Date.now() - fs.statSync(lockPath).mtimeMs > REGISTRY_LOCK_STALE_MS) {
+          fs.unlinkSync(lockPath);
+        }
+      } catch (ignored) {
+        // The holder released it between the open and the stat.
+      }
+
+      sleepSync(25);
+    }
+  }
+
+  if (handle === null) return callback();
+
+  try {
+    return callback();
+  } finally {
+    try {
+      fs.closeSync(handle);
+    } catch (ignored) {
+      // Already closed.
+    }
+
+    try {
+      fs.unlinkSync(lockPath);
+    } catch (ignored) {
+      // Another process broke a stale lock and took over.
+    }
+  }
+}
+
+function registerProject(root) {
+  if (process.env.SDRIVE_NO_REGISTRY === "1") return;
+  if (!isSdriveProject(root)) return;
+
+  const resolved = path.resolve(root);
+  const file = registryPath();
+  const known = (paths) => paths.some((entry) => samePath(path.resolve(entry), resolved));
+
+  withRegistryLock(() => {
+    const { asArray, entries, paths } = readProjectRegistry();
+    if (known(paths)) return;
+
+    const next = [...entries, resolved];
+
+    try {
+      fs.mkdirSync(path.dirname(file), { recursive: true });
+      fs.writeFileSync(
+        file,
+        `${JSON.stringify(asArray ? next : { projects: next }, null, 2)}\n`
+      );
+    } catch (error) {
+      // A read-only home directory must not stop the dashboard.
+    }
+  });
+}
+
 // A dashboard can move between projects without restarting. Discovery is
 // deliberately local and explicit: the current project, SDRIVE_PROJECTS, an
 // optional ~/.sdrive/projects.json, and immediately sibling projects. The
@@ -1186,16 +1329,7 @@ function discoverProjectRoots() {
   const configured = process.env.SDRIVE_PROJECTS || "";
   for (const candidate of configured.split(path.delimiter)) add(candidate);
 
-  const registryPath = path.join(os.homedir(), ".sdrive", "projects.json");
-  if (fs.existsSync(registryPath)) {
-    try {
-      const registry = JSON.parse(fs.readFileSync(registryPath, "utf8"));
-      const entries = Array.isArray(registry) ? registry : registry.projects || [];
-      for (const entry of entries) add(typeof entry === "string" ? entry : entry.path);
-    } catch (error) {
-      // A malformed registry must not break the dashboard.
-    }
-  }
+  for (const entry of readProjectRegistry().paths) add(entry);
 
   const parent = path.dirname(projectRoot);
   try {
@@ -1237,6 +1371,107 @@ function apiProjects() {
   };
 }
 
+// The portfolio is what makes the switcher optional: one page showing every
+// project's state, so you look instead of switching. It reads only JSON files
+// (workflow state and audit log) - no git spawns - because a landing page that
+// takes two seconds per project would be worse than the tabs it replaces.
+const PORTFOLIO_CACHE_MS = 3000;
+let portfolioMemo = { at: 0, value: null };
+
+function timestampOf(value) {
+  const parsed = Date.parse(value || "");
+  return Number.isFinite(parsed) ? parsed : 0;
+}
+
+function summarizeProject(root) {
+  const projectSdrive = path.join(root, ".sdrive");
+  const state = loadJson(path.join(projectSdrive, "workflow-state.json"), { features: [] });
+  const features = Array.isArray(state.features) ? state.features : [];
+  const gates = gateAccessors();
+  const live = liveVersions(state);
+
+  let lastActivity = 0;
+
+  for (const feature of features) {
+    for (const version of feature.versions || []) {
+      for (const entry of version.history || []) {
+        lastActivity = Math.max(lastActivity, timestampOf(entry.timestamp));
+      }
+    }
+  }
+
+  const audit = loadJson(path.join(projectSdrive, "audit-log.json"), { events: [] });
+  for (const event of audit.events || []) {
+    lastActivity = Math.max(lastActivity, timestampOf(event.timestamp));
+  }
+
+  // A live version is what the project is working on. When nothing is live,
+  // show the version touched most recently so the card still says something.
+  const all = features.flatMap((feature) =>
+    (feature.versions || []).map((version) => ({ feature, version }))
+  );
+  const newest = (entries) =>
+    entries
+      .slice()
+      .sort(
+        (a, b) =>
+          Math.max(...(b.version.history || []).map((h) => timestampOf(h.timestamp)), 0) -
+          Math.max(...(a.version.history || []).map((h) => timestampOf(h.timestamp)), 0)
+      )[0] || null;
+
+  const focus = newest(live) || newest(all);
+  const outstandingGates =
+    focus && gates && focus.version.phase !== "completed"
+      ? gates.GATE_ORDER.filter((gate) => !gates.isGateApprovedFor(focus.version, gate))
+      : [];
+  // A pending gate is the next step, not a problem. Only a rejected gate means
+  // someone has to act before the feature can move.
+  const rejectedGates =
+    focus && gates
+      ? gates.GATE_ORDER.filter(
+          (gate) => gates.gateStatusFor(focus.version, gate) === "rejected"
+        )
+      : [];
+
+  return {
+    name: path.basename(root) || "project",
+    path: root,
+    active: path.resolve(root) === path.resolve(projectRoot),
+    features: features.length,
+    live: live.length,
+    focus: focus
+      ? {
+          feature: focus.feature.name,
+          version: focus.version.id,
+          phase: focus.version.phase || "unknown",
+          step: focus.version.currentStep || null,
+          approvedGates: gates
+            ? gates.GATE_ORDER.filter((gate) => gates.isGateApprovedFor(focus.version, gate)).length
+            : 0,
+          totalGates: gates ? gates.GATE_ORDER.length : 0
+        }
+      : null,
+    outstandingGates,
+    rejectedGates,
+    lastActivity: lastActivity ? new Date(lastActivity).toISOString() : null,
+    status: rejectedGates.length ? "blocked" : live.length ? "active" : "idle"
+  };
+}
+
+function apiPortfolio() {
+  if (portfolioMemo.value && Date.now() - portfolioMemo.at < PORTFOLIO_CACHE_MS) {
+    return portfolioMemo.value;
+  }
+
+  const projects = discoverProjectRoots()
+    .map(summarizeProject)
+    .sort((a, b) => Number(b.active) - Number(a.active) || a.name.localeCompare(b.name));
+
+  const value = { active: path.resolve(projectRoot), projects };
+  portfolioMemo = { at: Date.now(), value };
+  return value;
+}
+
 function switchProject(target) {
   const resolved = path.resolve(String(target || ""));
 
@@ -1251,10 +1486,15 @@ function switchProject(target) {
   sdriveRoot = path.join(projectRoot, ".sdrive");
   projectsMemo = { at: 0, roots: [] };
 
+  // A project reached through SDRIVE_PROJECTS or a sibling scan joins the
+  // registry too, so it stays switchable after this server restarts.
+  registerProject(resolved);
+
   // Every cached answer was built from the previous project's files.
   gitCache.clear();
   healthMemo = { at: 0, value: null };
   stampMemo = { at: 0, value: null };
+  portfolioMemo = { at: 0, value: null };
 
   return { ok: true, project: path.basename(projectRoot) };
 }
@@ -1767,39 +2007,6 @@ function readProductFile(fileName) {
   }
 }
 
-function parseBacklog(markdown) {
-  if (!markdown) return [];
-
-  const rows = [];
-  for (const line of markdown.split(/\r?\n/)) {
-    const trimmed = line.trim();
-    if (!trimmed.startsWith("|")) continue;
-    if (/^\|[\s:|-]+\|$/.test(trimmed)) continue;
-
-    const cells = trimmed
-      .split("|")
-      .slice(1, -1)
-      .map((cell) => cell.trim());
-
-    if (cells.length < 3) continue;
-    if (/^id$/i.test(cells[0])) continue;
-
-    // Backlog table columns: ID | Feature | Milestone | Priority | Dependencies | Status
-    // Older/simpler tables may only have: ID | Feature | Status
-    const hasFullColumns = cells.length >= 6;
-    rows.push({
-      id: cells[0],
-      feature: cells[1],
-      milestone: hasFullColumns ? cells[2] : "",
-      priority: hasFullColumns ? cells[3] : "",
-      dependencies: hasFullColumns ? cells[4] : "",
-      status: hasFullColumns ? cells[5] : cells[2]
-    });
-  }
-
-  return rows;
-}
-
 function apiProduct() {
   const overview = readProductFile("overview.md");
   const mockup = readProductFile("mockup.md");
@@ -1808,6 +2015,11 @@ function apiProduct() {
   const backlogMarkdown = readProductFile("backlog.md");
 
   const exists = Boolean(overview || mockup || designSystem || roadmap || backlogMarkdown);
+  const state = loadJson(path.join(sdriveRoot, "workflow-state.json"), { features: [] });
+  const enriched = productPlan.enrichBacklog(
+    productPlan.annotateBacklog(productPlan.parseBacklog(backlogMarkdown)),
+    { sdriveRoot, state }
+  );
 
   return {
     exists,
@@ -1815,7 +2027,9 @@ function apiProduct() {
     mockup,
     designSystem,
     roadmap,
-    backlog: parseBacklog(backlogMarkdown),
+    backlog: productPlan.sortBacklog(enriched.items),
+    counts: enriched.counts,
+    waves: enriched.waves,
     summary: parseProductOverview(overview)
   };
 }
@@ -1928,7 +2142,7 @@ const CLI_COMMANDS = [
     example: "sdrive create user-login" },
   { command: "sdrive update-propose <feature>", description: "Validate an existing feature for extension (internal)", group: "Features",
     what: "Checks the feature exists, is not already completed, and has a spec folder to extend.",
-    why: "Extension has preconditions — a shipped feature must be reopened before new requirements can be added.",
+    why: "Extension has preconditions - a completed version is immutable, so new scope needs a new version instead.",
     when: "Usually run for you by /sdrive:update-propose.",
     example: "sdrive update-propose user-login" },
   { command: "sdrive assign <feature> <username>", description: "Assign a team member as the owner of a feature", group: "Features",
@@ -1946,11 +2160,6 @@ const CLI_COMMANDS = [
     why: "Lets you evolve a shipped feature without erasing its history.",
     when: "When adding significant new scope to a completed feature.",
     example: "sdrive version:new user-login" },
-  { command: "sdrive amend <feature> --reason \"...\"", description: "Reopen a wrongly-closed feature to correct its record (corrective action)", group: "Governance",
-    what: "Moves a closed version back into active work so missing evidence can be gathered, then asks which branch the work should happen on and which branch to base it on. The reason is required and recorded.",
-    why: "Some closures are simply wrong — a feature shipped without the tests its own acceptance criteria required. Amending that same version is what makes its record true; issuing a new version instead would attach v1's proofs to a version nobody shipped.",
-    when: "Only when a lifecycle was closed incorrectly. To change or extend a released feature, use sdrive version:new instead.",
-    example: "sdrive amend user-login --reason \"archived before tests were written\"" },
   { command: "sdrive diff:version <feature> <a> <b>", description: "Compare two versions of a feature", group: "Features",
     what: "Shows what changed between two versions of a feature.",
     why: "Makes it easy to review scope changes over time.",
@@ -2071,7 +2280,8 @@ const SLASH_DETAILS = {
       "Writes the feature specification with numbered requirements",
       "Derives acceptance criteria and a traceability matrix",
       "Produces a technical plan and an ordered task list",
-      "Opens a feature branch for the work"
+      "Offers a Product ID branch (feature/BP-003) or a readable branch name",
+      "Opens the feature branch, or reuses a worktree prepared by /sdrive:worktree"
     ],
     produces: [
       ".sdrive/specs/ongoing/<feature>/<version>/spec.md",
@@ -2082,6 +2292,28 @@ const SLASH_DETAILS = {
     ],
     reads: [".sdrive/constitution.md", ".sdrive/product/backlog.md"],
     handsOff: "/sdrive:apply"
+  },
+  "/sdrive:worktree": {
+    what: "Prepares branches and isolated worktrees for the next ready Product Plan wave.",
+    why: "Lets independent items in the same wave start in parallel without opening a later wave early.",
+    when: "After the product plan, when a wave's dependencies are completed and archived.",
+    does: [
+      "Reads the backlog's Depends on and Wave columns",
+      "Offers Product ID branches or readable names with suggestions",
+      "Creates one branch and worktree per selected item",
+      "Records prepared worktrees so /sdrive:propose reuses them"
+    ],
+    produces: [
+      "A feature branch per selected item",
+      "An isolated git worktree per selected item",
+      ".sdrive/workflow-state.json worktrees entries"
+    ],
+    reads: [
+      ".sdrive/product/backlog.md",
+      ".sdrive/workflow-state.json",
+      "git branches and existing worktrees"
+    ],
+    handsOff: "/sdrive:propose"
   },
   "/sdrive:update-propose": {
     what: "Extends an existing specification with new requirements.",
@@ -2316,13 +2548,14 @@ const PRODUCT_WORKFLOWS = [
     icon: "✦",
     summary:
       "You are beginning with a clean slate — either an empty folder or a freshly scaffolded repo that has no plan in place yet. SpecDrive walks you from that starting point all the way to governed, specified, and tested code.",
-    steps: ["/sdrive:constitution", "/sdrive:product-plan"],
-    // product-plan is the only optional setup step. It is for a project that has an
-    // idea but no written plan, or an empty repo. A project that already knows what
-    // it is building can go straight from the constitution to /sdrive:propose.
-    optional: ["/sdrive:product-plan"],
+    steps: ["/sdrive:constitution", "/sdrive:product-plan", "/sdrive:worktree"],
+    // product-plan and worktree are optional setup steps. The plan is for a project
+    // that has an idea but no written plan (or an empty repo); worktree is for a
+    // project that wants to prepare a whole dependency wave in parallel. A project
+    // that already knows what it is building can go straight to /sdrive:propose.
+    optional: ["/sdrive:product-plan", "/sdrive:worktree"],
     optionalNote:
-      "/sdrive:product-plan is optional: run it when you have an idea but no written plan, or an empty repo. You can go straight from the constitution to /sdrive:propose.",
+      "/sdrive:product-plan is optional: run it when you have an idea but no written plan, or an empty repo. /sdrive:worktree is optional too: after a plan, it prepares branches and isolated worktrees for one ready wave. /sdrive:propose can still create a branch by itself.",
     iteration: ["/sdrive:propose", "/sdrive:apply", "/sdrive:test", "/sdrive:review", "/sdrive:archive"]
   },
   {
@@ -2559,6 +2792,10 @@ async function routeRequest(req, res) {
       return res.end(JSON.stringify(apiProjects()));
     }
 
+    if (url === "/api/portfolio") {
+      return res.end(JSON.stringify(apiPortfolio()));
+    }
+
     if (url === "/api/switch-project") {
       if (req.method !== "POST") {
         res.writeHead(405);
@@ -2621,7 +2858,7 @@ async function routeRequest(req, res) {
   // Path-based page routes. Each dashboard view is its own URL (e.g.
   // /product-plan, /features, /team). They all serve the same single-page shell;
   // the client router in app.js decides which section to display.
-  const PAGE_ROUTES = ["/overview", "/product-plan", "/features", "/quality", "/team", "/activity", "/commands", "/skills"];
+  const PAGE_ROUTES = ["/projects", "/overview", "/product-plan", "/features", "/quality", "/team", "/activity", "/commands", "/skills"];
   if (PAGE_ROUTES.includes(url)) {
     return serveStatic(res, path.join(__dirname, "index.html"), "text/html");
   }
@@ -2697,6 +2934,10 @@ function listenOnFreePort(port, attemptsLeft, host = PREFERRED_HOST) {
 
   server.listen(port, host, () => {
     const shown = isLoopback(host) ? "localhost" : host;
+
+    // Only after the port is ours: a failed start should not leave a project
+    // in the shared list.
+    registerProject(projectRoot);
     console.log(`\n🚀 SpecDrive Dashboard running at http://${shown}:${port}\n`);
 
     if (!isLoopback(host)) {

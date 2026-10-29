@@ -345,8 +345,11 @@ function handleRequest(message) {
         name: SERVER_NAME,
         version: SERVER_VERSION
       },
-      instructions:
-        "SpecDrive governs features through gates. Use specdrive.status / specdrive.next_action to see what is blocking a feature, specdrive.get_spec and the specdrive:// resources to read its artifacts, and specdrive.validate to check governance."
+      instructions: [
+        "SpecDrive governs features through gates. Use specdrive.status / specdrive.next_action to see what is blocking a feature, specdrive.get_spec and the specdrive:// resources to read its artifacts, and specdrive.validate to check governance.",
+        "For outside knowledge, use the default MCP servers when they are available: ux-ui-library (call library_guide, then route_task) for UI/UX work, stackwise (call library_guide, then route_task) for backend, data, and AI architecture, and context7 (resolve-library-id, then query-docs) for current library APIs.",
+        "If context7 is unavailable, run `sdrive knowledge:fetch <library> --query \"<topic>\"` to save focused documentation under .sdrive/context/external/."
+      ].join(" ")
     };
   }
 

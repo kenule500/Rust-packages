@@ -33,7 +33,7 @@ You operate within the current version folder only.
   - `.sdrive/governance/<feature>/<version>/tasks.json`
   - `.sdrive/governance/<feature>/<version>/traceability.json`
 - If any of these files are missing, work out WHY before reporting. Check `.sdrive/specs/completed/<feature>/` and `.sdrive/specs/backlog/<feature>/`:
-  - **Found under `completed/`** → the feature is already archived and its code is already merged to the target branch. It CANNOT be tested in place, because the archived spec is history and its feature branch has been deleted. Tell the user which of the two it is: if the closure itself was wrong (tests were never written), run `sdrive amend <feature> --reason "..."` first, then `/sdrive:test` → `/sdrive:review` → `/sdrive:archive`. If instead they want to CHANGE the released feature, run `sdrive version:new <feature>` — amending would rewrite a shipped version's record. NEVER tell them to re-run the Specification agent — that remedy is wrong and implies the spec is missing when it is simply finished.
+  - **Found under `completed/`** → the feature is already archived and its code is already merged to the target branch. It CANNOT be tested in place, because the archived spec is history and its feature branch has been deleted. Archived versions are immutable: there is no amend or reopen path. If the user wants to change the released feature, run `sdrive version:new <feature>` — that creates a new version and leaves the released one untouched. NEVER tell them to re-run the Specification agent — that remedy is wrong and implies the spec is missing when it is simply finished.
   - **Found under `backlog/`** → the feature has not been started. Tell the user to run `/sdrive:apply <feature>` first.
   - **Found nowhere** → STOP and ask the user to run the Specification or Implementation agent first.
 - NEVER modify production code. If code is broken, report it — do not fix it.
@@ -95,7 +95,7 @@ When invoked as `/sdrive:test --all`, test every ongoing feature sequentially.
    - Read `.sdrive/workflow-state.json`.
    - Collect every feature whose current version has `phase: "ongoing"`.
    - Cross-check against the filesystem: a feature qualifies only if `.sdrive/specs/ongoing/<feature>/` exists.
-   - Archived features under `specs/completed/` are skipped BY DESIGN — they are already merged, so there is nothing left to gate. Do not silently include them. If the user asks about one, explain that a closed record is corrected with `sdrive amend <feature> --reason "..."`, while new scope on a released feature is `sdrive version:new <feature>`.
+   - Archived features under `specs/completed/` are skipped BY DESIGN — they are already merged, so there is nothing left to gate. Do not silently include them. If the user asks about one, explain that archived versions are immutable, and new scope on a released feature is `sdrive version:new <feature>`.
    - If no ongoing features exist, report "No ongoing features to test." and STOP.
    - Present the discovered list to the user via `vscode/askQuestions` and ask: "Test all N ongoing features in this order?" Only proceed after approval.
 

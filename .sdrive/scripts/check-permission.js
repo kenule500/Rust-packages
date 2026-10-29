@@ -26,7 +26,6 @@ const MUTATING = new Set([
   "team:update",
   "team:sync",
   "hooks:install",
-  "amend",
   "version:new",
   "adapters:add",
   "test",

@@ -9,7 +9,7 @@ updated: 2026-10-29
 # M1 First publish - Review
 
 **Status: PASS**
-**Commit:** `924ce720a5b4fa187b1999757cf60cdd169760bd`
+**Commit:** HEAD at release time, recorded in `review.json` (the audited code tree is `924ce72`; the only later change is this record)
 **Branch:** `feature/m1-first-publish`
 **Base:** `main`
 **Reviewed by:** kenule500 (admin)

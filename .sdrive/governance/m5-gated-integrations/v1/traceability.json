@@ -304,15 +304,18 @@
         "AC-022",
         "AC-023"
       ],
-      "planSection": "Feature flags",
+      "planSection": "Gate-proven: cargo check --no-default-features per feature",
       "taskIds": [
         "T0.2",
         "T1.1",
         "T1.3",
         "T7.5"
       ],
-      "testIds": [],
-      "status": "in_progress"
+      "testIds": [
+        "TEST-022",
+        "TEST-023"
+      ],
+      "status": "complete"
     },
     {
       "requirementId": "FR-026",
@@ -361,14 +364,16 @@
       "acceptanceCriteriaIds": [
         "AC-024"
       ],
-      "planSection": "Documentation and lints",
+      "planSection": "Gate-proven: cargo fmt, clippy -D warnings, cargo doc -D warnings",
       "taskIds": [
         "T1.2",
         "T7.1",
         "T7.4"
       ],
-      "testIds": [],
-      "status": "not_started"
+      "testIds": [
+        "TEST-024"
+      ],
+      "status": "complete"
     },
     {
       "requirementId": "FR-030",

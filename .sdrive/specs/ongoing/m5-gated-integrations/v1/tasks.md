@@ -119,3 +119,25 @@ Depends on: P6.
 - **No test tasks:** tests are authored and executed by `/sdrive:test`; the
   acceptance criteria are linked through `traceability.json` and the Test Agent
   fills the test IDs.
+
+## Progress
+
+| Task | State | Evidence |
+|---|---|---|
+| T0.1 | done | `crates/wirekit` present on the branch after `main` was merged in (`dda3cd8`) |
+| T0.2 | done | `quick-xml` 0.42.0 (MIT) and `csv` 1.4.0 (Unlicense/MIT) verified on crates.io and pinned |
+| T1.1 | done | `angi`, `google-lsa`, `sage-intacct`, `adp` features added, additive and default-off |
+| T2.1 | done | `AngiLead` plus `dedupe_key()`: lead ID wins, else normalized phone + address + date |
+| T2.2 | done | `ParseError` names the field and converts into `WirekitError` through `From` |
+| T2.3 | done | `parse_email` recognizes the documented labels and fails on an unknown template |
+| T2.4 | done | `import_csv` takes a `ColumnMap`, reports one outcome per row with its line number |
+| T2.5 | done | `AngiWebhook::verify` checks an HMAC-SHA256 over the raw bytes in constant time |
+| T2.6 | done | `cargo check -p wirekit --no-default-features --features angi` passes; no HTTP client is referenced |
+
+Verified at this point: `cargo fmt --all --check`, `cargo clippy -p wirekit
+--all-features -- -D warnings`, and `cargo doc -p wirekit --all-features
+--no-deps` with `RUSTDOCFLAGS="-D warnings"` all pass, as does
+`cargo check --no-default-features` for the baseline and for each of the four
+features.
+
+Still open: T1.2 (three of four module files), T1.3, P3 to P5, P6, and P7.

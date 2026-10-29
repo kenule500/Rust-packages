@@ -68,6 +68,9 @@ pub mod retry;
 pub mod secret;
 pub mod trace;
 
+#[cfg(feature = "angi")]
+pub mod angi;
+
 #[cfg(feature = "noaa")]
 pub mod noaa;
 

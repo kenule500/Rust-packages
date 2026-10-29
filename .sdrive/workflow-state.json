@@ -159,7 +159,7 @@
       "versions": [
         {
           "id": "v1",
-          "phase": "backlog",
+          "phase": "ongoing",
           "currentStep": "implementation",
           "gates": {
             "specification": "approved",
@@ -207,6 +207,11 @@
               "event": "Proposal complete. Implementation held: /sdrive:apply starts only after feature/m1-first-publish is archived and wirekit core (BP-005) is on main (T0.1)",
               "by": "SpecDrive",
               "timestamp": "2026-10-29T01:36:42Z"
+            },
+            {
+              "event": "Implementation started: T0.1 precondition satisfied (crates/wirekit present after main merge dda3cd8); spec moved from backlog to ongoing",
+              "by": "SpecDrive",
+              "timestamp": "2026-10-29T07:03:13Z"
             }
           ]
         }

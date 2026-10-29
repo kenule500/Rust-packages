@@ -200,7 +200,7 @@
           "id": "T3.3",
           "resolution": {
             "kind": "superseded",
-            "reason": "The lead, booking, and lead-status surface was removed when google_lsa was rebuilt to the two search methods localservices:v1 actually publishes.",
+            "reason": "The published localservices:v1 discovery document defines no lead-status or booking method",
             "at": "2026-10-29"
           },
           "title": "Implement list, get, update status, and report booking",
@@ -295,7 +295,12 @@
           "linkedAcceptanceCriteria": [
             "AC-010"
           ],
-          "completed": false
+          "completed": false,
+          "resolution": {
+            "kind": "superseded",
+            "reason": "Intacct shipped a documented generic call() instead of named Customer/Invoice/JournalEntry models",
+            "at": "2026-10-29"
+          }
         },
         {
           "id": "T4.3",
@@ -360,7 +365,7 @@
           "id": "T5.1",
           "resolution": {
             "kind": "deferred",
-            "reason": "ADP partner access was never granted and no machine-readable route reference is published, so the module was not built.",
+            "reason": "ADP partner access was never granted and developers.adp.com publishes no machine-readable API contract, so no route could be verified",
             "at": "2026-10-29"
           },
           "title": "Implement AdpClient with a cached client-credentials token",
@@ -377,7 +382,7 @@
           "id": "T5.2",
           "resolution": {
             "kind": "deferred",
-            "reason": "ADP partner access was never granted and no machine-readable route reference is published, so the module was not built.",
+            "reason": "ADP partner access was never granted and developers.adp.com publishes no machine-readable API contract, so no route could be verified",
             "at": "2026-10-29"
           },
           "title": "Define the ADP models",
@@ -394,7 +399,7 @@
           "id": "T5.3",
           "resolution": {
             "kind": "deferred",
-            "reason": "ADP partner access was never granted and no machine-readable route reference is published, so the module was not built.",
+            "reason": "ADP partner access was never granted and developers.adp.com publishes no machine-readable API contract, so no route could be verified",
             "at": "2026-10-29"
           },
           "title": "Map the ADP error array",
@@ -412,7 +417,7 @@
           "id": "T5.4",
           "resolution": {
             "kind": "deferred",
-            "reason": "ADP partner access was never granted and no machine-readable route reference is published, so the module was not built.",
+            "reason": "ADP partner access was never granted and developers.adp.com publishes no machine-readable API contract, so no route could be verified",
             "at": "2026-10-29"
           },
           "title": "Return an unknown outcome for a payroll timeout",
@@ -429,7 +434,7 @@
           "id": "T5.5",
           "resolution": {
             "kind": "deferred",
-            "reason": "ADP partner access was never granted and no machine-readable route reference is published, so the module was not built.",
+            "reason": "ADP partner access was never granted and developers.adp.com publishes no machine-readable API contract, so no route could be verified",
             "at": "2026-10-29"
           },
           "title": "Redact sensitive payroll fields",
@@ -446,7 +451,7 @@
           "id": "T5.6",
           "resolution": {
             "kind": "deferred",
-            "reason": "ADP partner access was never granted and no machine-readable route reference is published, so the module was not built.",
+            "reason": "ADP partner access was never granted and developers.adp.com publishes no machine-readable API contract, so no route could be verified",
             "at": "2026-10-29"
           },
           "title": "Report batch outcomes per record",
@@ -496,7 +501,12 @@
             "AC-012",
             "AC-019"
           ],
-          "completed": false
+          "completed": false,
+          "resolution": {
+            "kind": "deferred",
+            "reason": "Descoped to a follow-up release; behaviour and API surface are unaffected",
+            "at": "2026-10-29"
+          }
         },
         {
           "id": "T6.3",
@@ -558,7 +568,12 @@
           "linkedAcceptanceCriteria": [
             "AC-024"
           ],
-          "completed": false
+          "completed": false,
+          "resolution": {
+            "kind": "deferred",
+            "reason": "Descoped to a follow-up release; behaviour and API surface are unaffected",
+            "at": "2026-10-29"
+          }
         },
         {
           "id": "T7.2",

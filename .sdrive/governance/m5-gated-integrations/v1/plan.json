@@ -45,24 +45,108 @@
         "description": "Document each feature, what it adds, and whether it needs network access."
       },
       {
-        "name": "wirekit core client, retry, rate limiter, tracing, secret type, WirekitError",
+        "name": "crates/wirekit/src/client.rs",
         "action": "reuse",
-        "description": "Consumed from BP-005 on feature/m1-first-publish. Not re-implemented and not forked."
+        "description": "Consumed from BP-005 on feature/m1-first-publish. Not re-implemented and not forked. (reuse reference; the file is crates/wirekit/src/client.rs)"
       },
       {
-        "name": "wirekit::google_oauth",
+        "name": "crates/wirekit/src/auth.rs",
         "action": "reuse",
-        "description": "Token refresh for the LSA module (CON-212)."
+        "description": "Token refresh for the LSA module (CON-212). (reuse reference; the file is crates/wirekit/src/auth.rs)"
+      },
+      {
+        "name": "crates/wirekit/src/error.rs",
+        "action": "reuse",
+        "description": "Reused wirekit core source; not modified by this feature."
+      },
+      {
+        "name": "crates/wirekit/src/noaa.rs",
+        "action": "reuse",
+        "description": "Reused wirekit core source; not modified by this feature."
+      },
+      {
+        "name": "crates/wirekit/src/pipeline.rs",
+        "action": "reuse",
+        "description": "Reused wirekit core source; not modified by this feature."
+      },
+      {
+        "name": "crates/wirekit/src/rate_limit.rs",
+        "action": "reuse",
+        "description": "Reused wirekit core source; not modified by this feature."
+      },
+      {
+        "name": "crates/wirekit/src/retry.rs",
+        "action": "reuse",
+        "description": "Reused wirekit core source; not modified by this feature."
+      },
+      {
+        "name": "crates/wirekit/src/secret.rs",
+        "action": "reuse",
+        "description": "Reused wirekit core source; not modified by this feature."
+      },
+      {
+        "name": "crates/wirekit/src/sendgrid.rs",
+        "action": "reuse",
+        "description": "Reused wirekit core source; not modified by this feature."
+      },
+      {
+        "name": "crates/wirekit/src/slack.rs",
+        "action": "reuse",
+        "description": "Reused wirekit core source; not modified by this feature."
+      },
+      {
+        "name": "crates/wirekit/src/trace.rs",
+        "action": "reuse",
+        "description": "Reused wirekit core source; not modified by this feature."
+      },
+      {
+        "name": "crates/wirekit/src/twilio.rs",
+        "action": "reuse",
+        "description": "Reused wirekit core source; not modified by this feature."
       }
     ],
     "referencedRequirementIds": [
-      "FR-001", "FR-002", "FR-003", "FR-004", "FR-005", "FR-006", "FR-007",
-      "FR-008", "FR-009", "FR-010", "FR-011", "FR-012", "FR-013", "FR-014",
-      "FR-015", "FR-016", "FR-017", "FR-018", "FR-019", "FR-020", "FR-021",
-      "FR-022", "FR-023", "FR-024", "FR-025", "FR-026", "FR-027", "FR-028",
-      "FR-029", "FR-030",
-      "NFR-001", "NFR-002", "NFR-003", "NFR-004", "NFR-005", "NFR-006",
-      "NFR-007", "NFR-008", "NFR-009", "NFR-010", "NFR-011"
+      "FR-001",
+      "FR-002",
+      "FR-003",
+      "FR-004",
+      "FR-005",
+      "FR-006",
+      "FR-007",
+      "FR-008",
+      "FR-009",
+      "FR-010",
+      "FR-011",
+      "FR-012",
+      "FR-013",
+      "FR-014",
+      "FR-015",
+      "FR-016",
+      "FR-017",
+      "FR-018",
+      "FR-019",
+      "FR-020",
+      "FR-021",
+      "FR-022",
+      "FR-023",
+      "FR-024",
+      "FR-025",
+      "FR-026",
+      "FR-027",
+      "FR-028",
+      "FR-029",
+      "FR-030",
+      "NFR-001",
+      "NFR-002",
+      "NFR-003",
+      "NFR-004",
+      "NFR-005",
+      "NFR-006",
+      "NFR-007",
+      "NFR-008",
+      "NFR-009",
+      "NFR-010",
+      "NFR-011"
     ]
   },
   "dataModel": {
@@ -71,180 +155,413 @@
         "name": "AngiLead",
         "action": "create",
         "fields": [
-          { "name": "source", "type": "String", "action": "add" },
-          { "name": "lead_id", "type": "Option<String>", "nullable": true, "action": "add" },
-          { "name": "contact_name", "type": "Option<String>", "nullable": true, "action": "add" },
-          { "name": "phone", "type": "Option<String>", "nullable": true, "action": "add" },
-          { "name": "email", "type": "Option<String>", "nullable": true, "action": "add" },
-          { "name": "address", "type": "Option<Address>", "nullable": true, "action": "add" },
-          { "name": "service", "type": "Option<String>", "nullable": true, "action": "add" },
-          { "name": "received_at", "type": "Timestamp", "action": "add" }
+          {
+            "name": "source",
+            "type": "String",
+            "action": "add"
+          },
+          {
+            "name": "lead_id",
+            "type": "Option<String>",
+            "nullable": true,
+            "action": "add"
+          },
+          {
+            "name": "contact_name",
+            "type": "Option<String>",
+            "nullable": true,
+            "action": "add"
+          },
+          {
+            "name": "phone",
+            "type": "Option<String>",
+            "nullable": true,
+            "action": "add"
+          },
+          {
+            "name": "email",
+            "type": "Option<String>",
+            "nullable": true,
+            "action": "add"
+          },
+          {
+            "name": "address",
+            "type": "Option<Address>",
+            "nullable": true,
+            "action": "add"
+          },
+          {
+            "name": "service",
+            "type": "Option<String>",
+            "nullable": true,
+            "action": "add"
+          },
+          {
+            "name": "received_at",
+            "type": "Timestamp",
+            "action": "add"
+          }
         ]
       },
       {
         "name": "AngiImportOutcome",
         "action": "create",
         "fields": [
-          { "name": "row", "type": "usize", "action": "add" },
-          { "name": "outcome", "type": "ImportOutcome", "action": "add" },
-          { "name": "reason", "type": "Option<String>", "nullable": true, "action": "add" }
+          {
+            "name": "line",
+            "type": "usize",
+            "action": "add"
+          },
+          {
+            "name": "outcome",
+            "type": "ImportOutcome",
+            "action": "add"
+          },
+          {
+            "name": "reason",
+            "type": "Option<String>",
+            "nullable": true,
+            "action": "add"
+          }
         ]
       },
       {
         "name": "ParseError",
         "action": "create",
         "fields": [
-          { "name": "field", "type": "String", "action": "add" },
-          { "name": "reason", "type": "String", "action": "add" }
+          {
+            "name": "field",
+            "type": "String",
+            "action": "add"
+          },
+          {
+            "name": "reason",
+            "type": "String",
+            "action": "add"
+          }
         ]
       },
       {
         "name": "Lead",
         "resolution": {
-          "kind": "superseded",
-          "reason": "google_lsa was rebuilt to the two search methods localservices:v1 publishes; the typed lead model it used to expose is no longer part of the module.",
+          "kind": "deferred",
+          "reason": "The published localservices:v1 discovery document defines no lead-status or booking method",
           "at": "2026-10-29"
         },
         "action": "create",
         "fields": [
-          { "name": "lead_id", "type": "String", "action": "add" },
-          { "name": "lead_type", "type": "String", "action": "add" },
-          { "name": "contact", "type": "Contact", "action": "add" },
-          { "name": "job_details", "type": "Option<JobDetails>", "nullable": true, "action": "add" },
-          { "name": "attribution", "type": "Option<Attribution>", "nullable": true, "action": "add" }
+          {
+            "name": "lead_id",
+            "type": "String",
+            "action": "add"
+          },
+          {
+            "name": "lead_type",
+            "type": "String",
+            "action": "add"
+          },
+          {
+            "name": "contact",
+            "type": "Contact",
+            "action": "add"
+          },
+          {
+            "name": "job_details",
+            "type": "Option<JobDetails>",
+            "nullable": true,
+            "action": "add"
+          },
+          {
+            "name": "attribution",
+            "type": "Option<Attribution>",
+            "nullable": true,
+            "action": "add"
+          }
         ]
       },
       {
         "name": "Booking",
         "resolution": {
-          "kind": "superseded",
-          "reason": "localservices:v1 publishes no booking method, so this model was dropped when google_lsa was rebuilt to the two search methods.",
+          "kind": "deferred",
+          "reason": "The published localservices:v1 discovery document defines no lead-status or booking method",
           "at": "2026-10-29"
         },
         "action": "create",
         "fields": [
-          { "name": "booking_id", "type": "String", "action": "add" },
-          { "name": "lead_id", "type": "String", "action": "add" },
-          { "name": "status", "type": "BookingStatus", "action": "add" },
-          { "name": "attribution", "type": "Option<Attribution>", "nullable": true, "action": "add" }
+          {
+            "name": "booking_id",
+            "type": "String",
+            "action": "add"
+          },
+          {
+            "name": "lead_id",
+            "type": "String",
+            "action": "add"
+          },
+          {
+            "name": "status",
+            "type": "BookingStatus",
+            "action": "add"
+          },
+          {
+            "name": "attribution",
+            "type": "Option<Attribution>",
+            "nullable": true,
+            "action": "add"
+          }
         ]
       },
       {
         "name": "LeadStatus",
         "resolution": {
-          "kind": "superseded",
-          "reason": "localservices:v1 publishes no lead-status update method, so there is no status to model in the rebuilt google_lsa module.",
+          "kind": "deferred",
+          "reason": "The published localservices:v1 discovery document defines no lead-status or booking method",
           "at": "2026-10-29"
         },
         "action": "create",
         "fields": [
-          { "name": "value", "type": "LeadStatusKind", "action": "add" }
+          {
+            "name": "value",
+            "type": "LeadStatusKind",
+            "action": "add"
+          }
         ]
       },
       {
         "name": "Customer",
         "action": "create",
         "fields": [
-          { "name": "external_key", "type": "String", "action": "add" },
-          { "name": "name", "type": "String", "action": "add" },
-          { "name": "provider_id", "type": "Option<String>", "nullable": true, "action": "add" }
-        ]
+          {
+            "name": "external_key",
+            "type": "String",
+            "action": "add"
+          },
+          {
+            "name": "name",
+            "type": "String",
+            "action": "add"
+          },
+          {
+            "name": "provider_id",
+            "type": "Option<String>",
+            "nullable": true,
+            "action": "add"
+          }
+        ],
+        "resolution": {
+          "kind": "deferred",
+          "reason": "Intacct shipped a generic call() rather than named entity models",
+          "at": "2026-10-29"
+        }
       },
       {
         "name": "Invoice",
         "action": "create",
         "fields": [
-          { "name": "external_key", "type": "String", "action": "add" },
-          { "name": "customer_id", "type": "String", "action": "add" },
-          { "name": "line_items", "type": "Vec<InvoiceLine>", "action": "add" }
-        ]
+          {
+            "name": "external_key",
+            "type": "String",
+            "action": "add"
+          },
+          {
+            "name": "customer_id",
+            "type": "String",
+            "action": "add"
+          },
+          {
+            "name": "line_items",
+            "type": "Vec<InvoiceLine>",
+            "action": "add"
+          }
+        ],
+        "resolution": {
+          "kind": "deferred",
+          "reason": "Intacct shipped a generic call() rather than named entity models",
+          "at": "2026-10-29"
+        }
       },
       {
         "name": "JournalEntry",
         "action": "create",
         "fields": [
-          { "name": "external_key", "type": "String", "action": "add" },
-          { "name": "debits", "type": "Vec<JournalLine>", "action": "add" },
-          { "name": "credits", "type": "Vec<JournalLine>", "action": "add" }
-        ]
+          {
+            "name": "external_key",
+            "type": "String",
+            "action": "add"
+          },
+          {
+            "name": "debits",
+            "type": "Vec<JournalLine>",
+            "action": "add"
+          },
+          {
+            "name": "credits",
+            "type": "Vec<JournalLine>",
+            "action": "add"
+          }
+        ],
+        "resolution": {
+          "kind": "deferred",
+          "reason": "Intacct shipped a generic call() rather than named entity models",
+          "at": "2026-10-29"
+        }
       },
       {
         "name": "ReportRequest",
         "action": "create",
         "fields": [
-          { "name": "report_name", "type": "String", "action": "add" },
-          { "name": "parameters", "type": "BTreeMap<String, String>", "action": "add" }
-        ]
+          {
+            "name": "report_name",
+            "type": "String",
+            "action": "add"
+          },
+          {
+            "name": "parameters",
+            "type": "BTreeMap<String, String>",
+            "action": "add"
+          }
+        ],
+        "resolution": {
+          "kind": "deferred",
+          "reason": "Intacct shipped a generic call() rather than named entity models",
+          "at": "2026-10-29"
+        }
       },
       {
         "name": "Employee",
         "resolution": {
           "kind": "deferred",
-          "reason": "The ADP module was never built because partner access was never granted, so its payroll models do not exist.",
+          "reason": "ADP partner access was never granted and developers.adp.com publishes no machine-readable API contract, so no route could be verified",
           "at": "2026-10-29"
         },
         "action": "create",
         "fields": [
-          { "name": "worker_id", "type": "String", "action": "add" },
-          { "name": "name", "type": "String", "action": "add" },
-          { "name": "ssn", "type": "SecretRedacted", "action": "add" },
-          { "name": "pay_rate", "type": "SecretRedacted", "action": "add" }
+          {
+            "name": "worker_id",
+            "type": "String",
+            "action": "add"
+          },
+          {
+            "name": "name",
+            "type": "String",
+            "action": "add"
+          },
+          {
+            "name": "ssn",
+            "type": "SecretRedacted",
+            "action": "add"
+          },
+          {
+            "name": "pay_rate",
+            "type": "SecretRedacted",
+            "action": "add"
+          }
         ]
       },
       {
         "name": "TimeCard",
         "resolution": {
           "kind": "deferred",
-          "reason": "The ADP module was never built because partner access was never granted, so its payroll models do not exist.",
+          "reason": "ADP partner access was never granted and developers.adp.com publishes no machine-readable API contract, so no route could be verified",
           "at": "2026-10-29"
         },
         "action": "create",
         "fields": [
-          { "name": "worker_id", "type": "String", "action": "add" },
-          { "name": "hours", "type": "Decimal", "action": "add" },
-          { "name": "earnings", "type": "Option<Decimal>", "nullable": true, "action": "add" },
-          { "name": "approval_state", "type": "ApprovalState", "action": "add" }
+          {
+            "name": "worker_id",
+            "type": "String",
+            "action": "add"
+          },
+          {
+            "name": "hours",
+            "type": "Decimal",
+            "action": "add"
+          },
+          {
+            "name": "earnings",
+            "type": "Option<Decimal>",
+            "nullable": true,
+            "action": "add"
+          },
+          {
+            "name": "approval_state",
+            "type": "ApprovalState",
+            "action": "add"
+          }
         ]
       },
       {
         "name": "PayrollRun",
         "resolution": {
           "kind": "deferred",
-          "reason": "The ADP module was never built because partner access was never granted, so its payroll models do not exist.",
+          "reason": "ADP partner access was never granted and developers.adp.com publishes no machine-readable API contract, so no route could be verified",
           "at": "2026-10-29"
         },
         "action": "create",
         "fields": [
-          { "name": "run_id", "type": "String", "action": "add" },
-          { "name": "cycle", "type": "String", "action": "add" },
-          { "name": "status", "type": "PayrollStatus", "action": "add" }
+          {
+            "name": "run_id",
+            "type": "String",
+            "action": "add"
+          },
+          {
+            "name": "cycle",
+            "type": "String",
+            "action": "add"
+          },
+          {
+            "name": "status",
+            "type": "PayrollStatus",
+            "action": "add"
+          }
         ]
       },
       {
         "name": "PayrollReport",
         "resolution": {
           "kind": "deferred",
-          "reason": "The ADP module was never built because partner access was never granted, so its payroll models do not exist.",
+          "reason": "ADP partner access was never granted and developers.adp.com publishes no machine-readable API contract, so no route could be verified",
           "at": "2026-10-29"
         },
         "action": "create",
         "fields": [
-          { "name": "run_id", "type": "String", "action": "add" },
-          { "name": "records", "type": "Vec<RecordOutcome>", "action": "add" }
+          {
+            "name": "run_id",
+            "type": "String",
+            "action": "add"
+          },
+          {
+            "name": "records",
+            "type": "Vec<RecordOutcome>",
+            "action": "add"
+          }
         ]
       },
       {
         "name": "SubmissionOutcome",
         "resolution": {
           "kind": "deferred",
-          "reason": "The ADP module was never built because partner access was never granted, so its payroll models do not exist.",
+          "reason": "ADP partner access was never granted and developers.adp.com publishes no machine-readable API contract, so no route could be verified",
           "at": "2026-10-29"
         },
         "action": "create",
         "fields": [
-          { "name": "sent", "type": "Vec<String>", "action": "add" },
-          { "name": "failed", "type": "Vec<RecordOutcome>", "action": "add" },
-          { "name": "unknown", "type": "Option<ClientReference>", "nullable": true, "action": "add" }
+          {
+            "name": "sent",
+            "type": "Vec<String>",
+            "action": "add"
+          },
+          {
+            "name": "failed",
+            "type": "Vec<RecordOutcome>",
+            "action": "add"
+          },
+          {
+            "name": "unknown",
+            "type": "Option<ClientReference>",
+            "nullable": true,
+            "action": "add"
+          }
         ]
       }
     ],

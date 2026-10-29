@@ -126,7 +126,11 @@ const CODE_EXTENSIONS = [
   ".ts", ".tsx", ".js", ".jsx", ".mjs", ".cjs",
   ".py", ".go", ".rs", ".dart", ".java", ".kt",
   ".rb", ".php", ".cs", ".swift",
-  ".css", ".scss", ".json"
+  ".css", ".scss", ".json",
+  // Manifests and docs that a plan legitimately declares as `modify` components. They
+  // are not source, but "this feature changed Cargo.toml / README.md" is a real,
+  // checkable claim, and reporting it as missing because of its extension is wrong.
+  ".toml", ".md", ".yml", ".yaml"
 ];
 
 // Config files that are never feature components, even though they are JSON.
@@ -337,6 +341,20 @@ function detectEntities(files) {
       });
     }
 
+    // Rust structs and enums, with or without `pub` and with any visibility
+    // qualifier. A plan entity in a Rust crate is a type, so a declared entity was
+    // invisible to this scanner until these patterns existed - every Rust model and
+    // every one of its fields was reported as "missing" in a file that matched.
+    const rustTypeMatches = content.matchAll(
+      /\b(?:pub(?:\([^)]*\))?\s+)?(?:struct|enum)\s+([A-Z]\w*)/g
+    );
+    for (const match of rustTypeMatches) {
+      entities.push({
+        name: match[1],
+        file: relative
+      });
+    }
+
     // TypeORM entities
     const typeormMatches = content.matchAll(/@Entity\([^)]*\)\s*class\s+(\w+)/g);
     for (const match of typeormMatches) {
@@ -369,6 +387,42 @@ function detectFields(files) {
   files.forEach((file) => {
     const content = readFileContent(file);
     const relative = path.relative(projectRoot, file).replace(/\\/g, "/");
+
+    // Rust struct fields: `pub name: Type,` inside a `struct Name { ... }` body, which
+    // is how a plan's entity fields are written in Rust. Generics such as `Option<T>`
+    // and `Vec<T>` are captured as-is; only the field name is used for matching, so the
+    // type spelling (`usize`, `String`, `Option<String>`) never affects the result.
+    //
+    // This is parsed line by line rather than with one regular expression because a
+    // field is not required to end in a comma - the last field in a struct often does
+    // not - and a pattern that insists on one silently drops that field while its
+    // siblings match.
+    const rustStructs = content.matchAll(
+      /\b(?:pub(?:\([^)]*\))?\s+)?struct\s+([A-Z]\w*)[^;{]*\{([\s\S]*?)\n\s*\}/g
+    );
+
+    for (const block of rustStructs) {
+      const rustEntity = block[1];
+
+      for (const rawLine of block[2].split(/\r?\n/)) {
+        // Drop a trailing inline comment, then attributes and blank lines.
+        const line = rawLine.replace(/\/\/.*$/, "").trim();
+
+        if (!line || line.startsWith("#")) continue;
+
+        const field = line.match(
+          /^(?:pub(?:\([^)]*\))?\s+)?([a-z_]\w*)\s*:\s*(.+?),?\s*$/
+        );
+
+        if (!field) continue;
+
+        fields.push({
+          entity: rustEntity,
+          name: field[1],
+          file: relative
+        });
+      }
+    }
 
     // SQL fields inside CREATE TABLE
     const tableBlocks = content.matchAll(
@@ -532,6 +586,9 @@ function diffPlanAgainstCode(planItems, code) {
   const renamed = [];
   const extra = [];
   const withdrawn = [];
+  // Files already accounted for by a matched or renamed item. A rename must never
+  // claim a file that another plan item already owns.
+  const claimedFiles = new Set();
 
   const codeComponents = detectComponents(code.files);
   const codeEndpoints = detectEndpoints(code.files);
@@ -577,14 +634,34 @@ function diffPlanAgainstCode(planItems, code) {
 
       if (found) {
         matched.push({ ...item, file: found.file });
+        claimedFiles.add(found.file);
       } else {
-        // possible rename: same folder or similar name
-        const similar = codeComponents.find((c) =>
-          c.name.toLowerCase().includes(item.name.toLowerCase().slice(0, 5))
-        );
+        // A rename claims that a similar file IS this plan item under another name.
+        // The old test compared the first five characters of the whole path against
+        // every code path, so `crates/wirekit/Cargo.toml` "matched"
+        // `crates/dado/src/diag.rs` (both begin "crate"), and one file could be
+        // claimed by several items. A rename now needs a similar *basename* and a file
+        // no other item has claimed; otherwise the item is honestly missing.
+        const stem = path.basename(item.name, path.extname(item.name)).toLowerCase();
 
-        if (similar) {
+        const similar = codeComponents.find((c) => {
+          if (c.isPath !== true) return false;
+          if (claimedFiles.has(c.file)) return false;
+
+          const candidateStem = path.basename(c.name, path.extname(c.name)).toLowerCase();
+
+          if (!candidateStem || !stem) return false;
+
+          return (
+            candidateStem === stem ||
+            candidateStem.startsWith(stem) ||
+            stem.startsWith(candidateStem)
+          );
+        });
+
+        if (similar && similar.file !== item.name) {
           renamed.push({ ...item, to: similar.name, file: similar.file });
+          claimedFiles.add(similar.file);
         } else {
           missing.push(item);
         }
@@ -761,10 +838,15 @@ console.log(`➕ Extra:     ${result.extra.length}`);
 console.log(`\n🧾 Status:    ${status.toUpperCase()}`);
 console.log(`📁 Report:    ${path.relative(projectRoot, reportPath)}\n`);
 
+// A field is only meaningful with its entity: "row" says nothing on its own, while
+// "AngiImportOutcome.row" says which model is missing it - and makes a rename obvious.
+const labelItem = (item) =>
+  item.type === "field" ? `${item.entity}.${item.name}` : item.name || item.path || "";
+
 if (result.withdrawn.length > 0) {
   console.log("⏸️  Withdrawn (descoped, not missing):");
   result.withdrawn.forEach((i) => {
-    console.log(`  [${i.type}] ${i.name || i.path} - ${i.reason}`);
+    console.log(`  [${i.type}] ${labelItem(i)} - ${i.reason}`);
   });
   console.log("");
 }
@@ -772,7 +854,7 @@ if (result.withdrawn.length > 0) {
 if (result.missing.length > 0) {
   console.log("❌ Missing:");
   result.missing.forEach((i) => {
-    console.log(`  [${i.type}] ${i.name || i.path}`);
+    console.log(`  [${i.type}] ${labelItem(i)}`);
   });
 }
 

@@ -162,7 +162,7 @@
           "phase": "ongoing",
           "currentStep": "implementation",
           "gates": {
-            "specification": "pending",
+            "specification": "approved",
             "planning": "approved",
             "implementation": "pending",
             "review": "pending"
@@ -217,6 +217,13 @@
               "event": "spec_updated: LSA surface corrected against the published localservices:v1 discovery document; FR-007/008/011 and US-002 superseded by FR-031/032/033 and US-006 (IDs preserved)",
               "by": "SpecDrive",
               "timestamp": "2026-10-29T08:40:14Z"
+            },
+            {
+              "event": "specification_approved",
+              "by": "kenule500",
+              "actor": "kenule500",
+              "previousValue": "pending",
+              "timestamp": "2026-10-29T08:42:29.095Z"
             }
           ]
         }

@@ -146,6 +146,35 @@ and rejects a timestamp outside the allowed skew.
 - The crate never reads environment variables, `.env` files, or credential
   files. The caller supplies credentials.
 
+## Gated provider features
+
+These features are additive and off by default; enabling one never enables another.
+
+| Feature | Module | Network | What the caller supplies |
+|---|---|---|---|
+| `angi` | `wirekit::angi` | none | the email text or CSV bytes to parse |
+| `google-lsa` | `wirekit::google_lsa` | Local Services Ads API | an OAuth2 token carrying the `adwords` scope |
+| `sage-intacct` | `wirekit::sage_intacct` | Intacct XML gateway | sender ID, sender password, company ID, user ID |
+
+`angi` parses Angi lead emails and CSV exports into a normalized lead and a
+deterministic dedupe key. Angi publishes no API, so this module has no client and
+does no polling; a partner webhook is verified only when a tenant has one.
+
+`google-lsa` implements the two search methods the published `localservices:v1`
+API actually defines - `v1/accountReports:search` and
+`v1/detailedLeadReports:search`. That API is reporting-only, so this module
+deliberately offers no lead-status update, no booking report, and no notification
+ingestion.
+
+`sage-intacct` posts the documented XML envelope to the gateway, derives success
+from the gateway's own `status` and `errorno` rather than the HTTP status, bounds
+the response before parsing it, and sends the caller's key as `<uniqueid>` so a
+retried create is idempotent.
+
+ADP is not implemented. Its documentation could not be obtained, so no token
+endpoint or resource path could be verified, and a guessed route has no place in a
+published crate.
+
 ## Minimum supported Rust version
 
 Rust 1.85, edition 2021.

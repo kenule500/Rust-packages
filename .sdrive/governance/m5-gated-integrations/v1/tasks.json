@@ -77,7 +77,7 @@
           "linkedAcceptanceCriteria": [
             "AC-022"
           ],
-          "completed": false
+          "completed": true
         }
       ]
     },

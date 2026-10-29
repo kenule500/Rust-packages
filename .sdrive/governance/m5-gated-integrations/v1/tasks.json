@@ -330,7 +330,7 @@
           "linkedAcceptanceCriteria": [
             "AC-015"
           ],
-          "completed": false
+          "completed": true
         }
       ]
     },

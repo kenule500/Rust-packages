@@ -90,6 +90,23 @@ Do not require the user to answer every question. Offer to mark unknown items as
    - Explain that the workflow is optional and that any backlog item can be detailed later with `/sdrive:propose "<feature description>"`.
 </workflow>
 
+<skill-readiness>
+The plan is also where the project's stack becomes concrete, so it is the last cheap moment
+to install the skills that stack needs.
+
+1. Read `.sdrive/skills/` and list what is already installed.
+2. Derive the technologies the plan depends on from the stack you just recorded — framework,
+   language, test runner, database, cloud or provider SDK — not from a wish list.
+3. For each technology with no matching skill, run the Discover-skills procedure: audit the
+   existing skills, find a candidate, verify its repository, licence, and recency, and
+   security-scan its `SKILL.md` before proposing it.
+4. Install only what the user approves, as `.sdrive/skills/<skill-name>/SKILL.md`.
+5. Never overwrite a skill marked "Custom / no upstream", and never leave the plan silently
+   dependent on a skill that is neither installed nor recorded as an assumption.
+
+A missing skill is not a blocker. An invented one is.
+</skill-readiness>
+
 <backlog-entry-fields>
 Each approved product-level backlog item should capture, when known:
 - Stable short identifier (for example `BP-001`), title, and concise user value.

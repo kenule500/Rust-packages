@@ -198,6 +198,11 @@
         },
         {
           "id": "T3.3",
+          "resolution": {
+            "kind": "superseded",
+            "reason": "The lead, booking, and lead-status surface was removed when google_lsa was rebuilt to the two search methods localservices:v1 actually publishes.",
+            "at": "2026-10-29"
+          },
           "title": "Implement list, get, update status, and report booking",
           "description": "Confirm provider paths from documentation before implementing, and return typed values from all four calls.",
           "linkedRequirements": [
@@ -210,6 +215,11 @@
         },
         {
           "id": "T3.4",
+          "resolution": {
+            "kind": "superseded",
+            "reason": "The 403 account-not-approved branch belongs to the lead surface, which localservices:v1 does not publish.",
+            "at": "2026-10-29"
+          },
           "title": "Map the Google error envelope and the 403 case",
           "description": "Map into WirekitError::Api and surface HTTP 403 as the explicit account-not-linked-or-unapproved variant with a redacted body.",
           "linkedRequirements": [
@@ -223,6 +233,11 @@
         },
         {
           "id": "T3.5",
+          "resolution": {
+            "kind": "superseded",
+            "reason": "No LSA endpoint remains to exercise the per-provider rate-limit bucket; the wirekit core retry and rate-limit policy is already tested.",
+            "at": "2026-10-29"
+          },
           "title": "Wire retry and the per-provider rate-limit bucket",
           "description": "Use the core retry policy (three attempts, 5xx/429/network, Retry-After honoured) and a per-provider token bucket with tracing on a hit.",
           "linkedRequirements": [
@@ -343,6 +358,11 @@
       "tasks": [
         {
           "id": "T5.1",
+          "resolution": {
+            "kind": "deferred",
+            "reason": "ADP partner access was never granted and no machine-readable route reference is published, so the module was not built.",
+            "at": "2026-10-29"
+          },
           "title": "Implement AdpClient with a cached client-credentials token",
           "description": "Cache the token until expiry and refresh it exactly once after a 401 before failing the call.",
           "linkedRequirements": [
@@ -355,6 +375,11 @@
         },
         {
           "id": "T5.2",
+          "resolution": {
+            "kind": "deferred",
+            "reason": "ADP partner access was never granted and no machine-readable route reference is published, so the module was not built.",
+            "at": "2026-10-29"
+          },
           "title": "Define the ADP models",
           "description": "Employee, TimeCard, PayrollRun, and PayrollReport, limited to list workers, create or update time cards, list payroll runs, and export a payroll report.",
           "linkedRequirements": [
@@ -367,6 +392,11 @@
         },
         {
           "id": "T5.3",
+          "resolution": {
+            "kind": "deferred",
+            "reason": "ADP partner access was never granted and no machine-readable route reference is published, so the module was not built.",
+            "at": "2026-10-29"
+          },
           "title": "Map the ADP error array",
           "description": "Preserve the correlation ID plus every returned code and message when mapping into WirekitError::Api.",
           "linkedRequirements": [
@@ -380,6 +410,11 @@
         },
         {
           "id": "T5.4",
+          "resolution": {
+            "kind": "deferred",
+            "reason": "ADP partner access was never granted and no machine-readable route reference is published, so the module was not built.",
+            "at": "2026-10-29"
+          },
           "title": "Return an unknown outcome for a payroll timeout",
           "description": "A timed-out submission yields SubmissionOutcome::Unknown with the caller's client reference and is never resubmitted automatically.",
           "linkedRequirements": [
@@ -392,6 +427,11 @@
         },
         {
           "id": "T5.5",
+          "resolution": {
+            "kind": "deferred",
+            "reason": "ADP partner access was never granted and no machine-readable route reference is published, so the module was not built.",
+            "at": "2026-10-29"
+          },
           "title": "Redact sensitive payroll fields",
           "description": "SSN and pay rates are redacted in Debug, Display, tracing, and errors, and their types do not implement Serialize.",
           "linkedRequirements": [
@@ -404,6 +444,11 @@
         },
         {
           "id": "T5.6",
+          "resolution": {
+            "kind": "deferred",
+            "reason": "ADP partner access was never granted and no machine-readable route reference is published, so the module was not built.",
+            "at": "2026-10-29"
+          },
           "title": "Report batch outcomes per record",
           "description": "A partial export lists failed records by identifier and reports the successes, so no hour is dropped silently.",
           "linkedRequirements": [

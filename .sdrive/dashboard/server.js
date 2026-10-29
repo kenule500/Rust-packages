@@ -6,6 +6,7 @@ const os = require("os");
 const path = require("path");
 const { execFile } = require("child_process");
 const productPlan = require("../scripts/lib/product-plan");
+const { isResolved } = require("../scripts/lib/resolution");
 
 let projectRoot = process.cwd();
 let sdriveRoot = path.join(projectRoot, ".sdrive");
@@ -709,28 +710,40 @@ function apiTasks(feature, version) {
   const phases = Array.isArray(data.phases) ? data.phases : [];
   let total = 0;
   let completed = 0;
+  let descoped = 0;
 
   const shaped = phases.map((phase) => {
     const tasks = Array.isArray(phase.tasks) ? phase.tasks : [];
     const done = tasks.filter((t) => t.completed === true).length;
+    // A descoped task is not pending: it will not be done in this version. Counting it
+    // as pending makes a deliberately reduced feature look permanently unfinished.
+    const resolved = tasks.filter((t) => t.completed !== true && isResolved(t)).length;
     total += tasks.length;
     completed += done;
+    descoped += resolved;
     return {
       phaseId: phase.phaseId || "",
       name: phase.name || "",
       dependencies: phase.dependencies || [],
       total: tasks.length,
       completed: done,
+      descoped: resolved,
       tasks: tasks.map((t) => ({
         id: t.id || "",
         title: t.title || "",
         description: t.description || "",
         linkedRequirements: t.linkedRequirements || [],
         linkedAcceptanceCriteria: t.linkedAcceptanceCriteria || [],
-        completed: t.completed === true
+        completed: t.completed === true,
+        descoped: t.completed !== true && isResolved(t),
+        resolution: t.completed !== true && isResolved(t) ? t.resolution : null
       }))
     };
   });
+
+  // Progress is measured against the work that is still supposed to happen, so the
+  // percentage can actually reach 100 on a feature whose scope was reduced.
+  const actionable = total - descoped;
 
   return {
     feature: data.feature || feature,
@@ -738,8 +751,9 @@ function apiTasks(feature, version) {
     summary: {
       total,
       completed,
-      pending: total - completed,
-      percent: total === 0 ? 0 : Math.round((completed / total) * 100)
+      descoped,
+      pending: actionable - completed,
+      percent: actionable === 0 ? 0 : Math.round((completed / actionable) * 100)
     },
     phases: shaped
   };
@@ -1198,11 +1212,27 @@ function readProjectRegistry() {
   }
 }
 
+function canonicalPath(value) {
+  const resolved = path.resolve(value);
+
+  // macOS reports the temp directory both as /var/... and /private/var/...
+  // depending on who produced the path. Resolve symlinks so two spellings of
+  // the same project compare equal.
+  try {
+    return fs.realpathSync.native(resolved);
+  } catch (error) {
+    return resolved;
+  }
+}
+
 function samePath(a, b) {
+  const left = canonicalPath(a);
+  const right = canonicalPath(b);
+
   // Windows paths are case-insensitive; two spellings are one project.
   return process.platform === "win32"
-    ? a.toLowerCase() === b.toLowerCase()
-    : a === b;
+    ? left.toLowerCase() === right.toLowerCase()
+    : left === right;
 }
 
 // Discovery can only see the current folder and its siblings, so projects that
@@ -1285,9 +1315,9 @@ function registerProject(root) {
   if (process.env.SDRIVE_NO_REGISTRY === "1") return;
   if (!isSdriveProject(root)) return;
 
-  const resolved = path.resolve(root);
+  const resolved = canonicalPath(root);
   const file = registryPath();
-  const known = (paths) => paths.some((entry) => samePath(path.resolve(entry), resolved));
+  const known = (paths) => paths.some((entry) => samePath(entry, resolved));
 
   withRegistryLock(() => {
     const { asArray, entries, paths } = readProjectRegistry();
@@ -1320,7 +1350,7 @@ function discoverProjectRoots() {
 
   const add = (candidate) => {
     if (typeof candidate !== "string" || !candidate.trim()) return;
-    const resolved = path.resolve(candidate.trim());
+    const resolved = canonicalPath(candidate.trim());
     if (isSdriveProject(resolved)) roots.add(resolved);
   };
 
@@ -1364,7 +1394,7 @@ function apiProjects() {
           name,
           path: root,
           label: nameCounts.get(name) > 1 ? `${name} — ${path.dirname(root)}` : name,
-          active: path.resolve(root) === path.resolve(projectRoot)
+          active: samePath(root, projectRoot)
         };
       })
       .sort((a, b) => Number(b.active) - Number(a.active) || a.label.localeCompare(b.label))
@@ -1436,7 +1466,7 @@ function summarizeProject(root) {
   return {
     name: path.basename(root) || "project",
     path: root,
-    active: path.resolve(root) === path.resolve(projectRoot),
+    active: samePath(root, projectRoot),
     features: features.length,
     live: live.length,
     focus: focus
@@ -1473,9 +1503,10 @@ function apiPortfolio() {
 }
 
 function switchProject(target) {
-  const resolved = path.resolve(String(target || ""));
+  const requested = path.resolve(String(target || ""));
+  const resolved = discoverProjectRoots().find((root) => samePath(root, requested));
 
-  if (!discoverProjectRoots().includes(resolved)) {
+  if (!resolved) {
     return {
       ok: false,
       error: "That project is not in the dashboard's project list. Add it to SDRIVE_PROJECTS or ~/.sdrive/projects.json."

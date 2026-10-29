@@ -38,6 +38,7 @@ You operate within the current version folder only.
   - **Found nowhere** → STOP and ask the user to run the Specification or Implementation agent first.
 - NEVER modify production code. If code is broken, report it — do not fix it.
 - Write one test per acceptance criterion (AC-xxx).
+- **Skip withdrawn criteria.** A criterion marked `withdrawn: true` in `spec.json` is out of scope by decision, so do not write a test for it and do not create a traceability row claiming one. Report it under **Withdrawn Criteria** in the test report instead, with the reason recorded in `spec.json`.
 - Test names MUST include the AC ID:
   - `test('AC-001: valid login returns token', ...)`
   - `def test_ac_001_valid_login_returns_token():`

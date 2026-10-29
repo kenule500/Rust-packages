@@ -67,6 +67,27 @@
                 "completed": {
                   "type": "boolean",
                   "default": false
+                },
+                "resolution": {
+                  "type": "object",
+                  "description": "Set when this task was descoped rather than done, because the work cannot be performed in this version. A resolved task is neither complete nor outstanding: the implementation gate stops counting it and reports it, and `reason` is mandatory so a skip is always explained.",
+                  "properties": {
+                    "kind": {
+                      "enum": ["deferred", "superseded"],
+                      "description": "`deferred` - not done now, may return. `superseded` - no longer needed."
+                    },
+                    "reason": {
+                      "type": "string",
+                      "minLength": 20,
+                      "description": "Why the task will not be done, e.g. the provider publishes no API."
+                    },
+                    "at": {
+                      "type": "string",
+                      "description": "When the decision was recorded (ISO date or date-time)."
+                    }
+                  },
+                  "required": ["kind", "reason"],
+                  "additionalProperties": false
                 }
               },
               "required": [

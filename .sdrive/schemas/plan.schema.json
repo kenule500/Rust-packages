@@ -27,7 +27,18 @@
               "action": {
                 "enum": ["create", "modify", "reuse", "delete"]
               },
-              "description": { "type": "string" }
+              "description": { "type": "string" },
+              "resolution": {
+                "type": "object",
+                "description": "Set when this component was descoped rather than built. `sdrive verify` reports a resolved component as withdrawn instead of missing, and `reason` is mandatory.",
+                "properties": {
+                  "kind": { "enum": ["deferred", "superseded"] },
+                  "reason": { "type": "string", "minLength": 20 },
+                  "at": { "type": "string" }
+                },
+                "required": ["kind", "reason"],
+                "additionalProperties": false
+              }
             },
             "required": ["name", "action"]
           }
@@ -69,6 +80,17 @@
                   },
                   "required": ["name", "type", "action"]
                 }
+              },
+              "resolution": {
+                "type": "object",
+                "description": "Set when this entity was descoped rather than modelled. `sdrive verify` reports the entity and its fields as withdrawn instead of missing, and `reason` is mandatory.",
+                "properties": {
+                  "kind": { "enum": ["deferred", "superseded"] },
+                  "reason": { "type": "string", "minLength": 20 },
+                  "at": { "type": "string" }
+                },
+                "required": ["kind", "reason"],
+                "additionalProperties": false
               }
             },
             "required": ["name", "action", "fields"]
@@ -100,6 +122,17 @@
               "type": "string",
               "pattern": "^(FR|NFR)-[0-9]{3}$"
             }
+          },
+          "resolution": {
+            "type": "object",
+            "description": "Set when this endpoint was descoped rather than built - typically a provider route that does not exist in its published API. `sdrive verify` reports it as withdrawn instead of missing, and `reason` is mandatory.",
+            "properties": {
+              "kind": { "enum": ["deferred", "superseded"] },
+              "reason": { "type": "string", "minLength": 20 },
+              "at": { "type": "string" }
+            },
+            "required": ["kind", "reason"],
+            "additionalProperties": false
           }
         },
         "required": ["method", "path", "action", "linkedRequirements"]

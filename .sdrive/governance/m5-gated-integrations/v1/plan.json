@@ -21,6 +21,11 @@
       },
       {
         "name": "crates/wirekit/src/adp.rs",
+        "resolution": {
+          "kind": "deferred",
+          "reason": "ADP partner access was never granted and no machine-readable route reference is published, so the module was never created.",
+          "at": "2026-10-29"
+        },
         "action": "create",
         "description": "AdpClient, Employee, TimeCard, PayrollRun, PayrollReport, SubmissionOutcome. Caches a client-credentials token, preserves correlation IDs, redacts SSN and pay rates, and returns an unknown outcome for a payroll timeout instead of resubmitting."
       },
@@ -95,6 +100,11 @@
       },
       {
         "name": "Lead",
+        "resolution": {
+          "kind": "superseded",
+          "reason": "google_lsa was rebuilt to the two search methods localservices:v1 publishes; the typed lead model it used to expose is no longer part of the module.",
+          "at": "2026-10-29"
+        },
         "action": "create",
         "fields": [
           { "name": "lead_id", "type": "String", "action": "add" },
@@ -106,6 +116,11 @@
       },
       {
         "name": "Booking",
+        "resolution": {
+          "kind": "superseded",
+          "reason": "localservices:v1 publishes no booking method, so this model was dropped when google_lsa was rebuilt to the two search methods.",
+          "at": "2026-10-29"
+        },
         "action": "create",
         "fields": [
           { "name": "booking_id", "type": "String", "action": "add" },
@@ -116,6 +131,11 @@
       },
       {
         "name": "LeadStatus",
+        "resolution": {
+          "kind": "superseded",
+          "reason": "localservices:v1 publishes no lead-status update method, so there is no status to model in the rebuilt google_lsa module.",
+          "at": "2026-10-29"
+        },
         "action": "create",
         "fields": [
           { "name": "value", "type": "LeadStatusKind", "action": "add" }
@@ -158,6 +178,11 @@
       },
       {
         "name": "Employee",
+        "resolution": {
+          "kind": "deferred",
+          "reason": "The ADP module was never built because partner access was never granted, so its payroll models do not exist.",
+          "at": "2026-10-29"
+        },
         "action": "create",
         "fields": [
           { "name": "worker_id", "type": "String", "action": "add" },
@@ -168,6 +193,11 @@
       },
       {
         "name": "TimeCard",
+        "resolution": {
+          "kind": "deferred",
+          "reason": "The ADP module was never built because partner access was never granted, so its payroll models do not exist.",
+          "at": "2026-10-29"
+        },
         "action": "create",
         "fields": [
           { "name": "worker_id", "type": "String", "action": "add" },
@@ -178,6 +208,11 @@
       },
       {
         "name": "PayrollRun",
+        "resolution": {
+          "kind": "deferred",
+          "reason": "The ADP module was never built because partner access was never granted, so its payroll models do not exist.",
+          "at": "2026-10-29"
+        },
         "action": "create",
         "fields": [
           { "name": "run_id", "type": "String", "action": "add" },
@@ -187,6 +222,11 @@
       },
       {
         "name": "PayrollReport",
+        "resolution": {
+          "kind": "deferred",
+          "reason": "The ADP module was never built because partner access was never granted, so its payroll models do not exist.",
+          "at": "2026-10-29"
+        },
         "action": "create",
         "fields": [
           { "name": "run_id", "type": "String", "action": "add" },
@@ -195,6 +235,11 @@
       },
       {
         "name": "SubmissionOutcome",
+        "resolution": {
+          "kind": "deferred",
+          "reason": "The ADP module was never built because partner access was never granted, so its payroll models do not exist.",
+          "at": "2026-10-29"
+        },
         "action": "create",
         "fields": [
           { "name": "sent", "type": "Vec<String>", "action": "add" },

@@ -2340,6 +2340,174 @@ function stepFileModalMatch(direction) {
   updateFileModalCount();
 }
 
+/* ============================================================
+   CODE CARD — VS Code editor look for the file viewer
+   A plain <pre> was readable but not familiar. This renders the
+   file as an editor pane: a tab strip with the file name, a line
+   number gutter, and VS Code Dark+ token colours. Display only —
+   the text is escaped token by token, so a file cannot inject
+   markup into the dashboard.
+   ============================================================ */
+const CODE_LANG_BY_EXT = {
+  js: "js", mjs: "js", cjs: "js", jsx: "js", ts: "js", tsx: "js",
+  json: "json",
+  css: "css", scss: "css", less: "css",
+  html: "html", htm: "html", xml: "html", svg: "html",
+  rs: "rs",
+  py: "py",
+  go: "go",
+  sh: "sh", bash: "sh", zsh: "sh", ps1: "sh",
+  yml: "yaml", yaml: "yaml",
+  toml: "toml",
+  md: "md", markdown: "md"
+};
+
+const CODE_KEYWORDS = {
+  js: "import from export default const let var function class extends implements interface type enum namespace as async await return if else for while do switch case break continue try catch finally throw new typeof instanceof in of this super yield delete void static public private protected readonly get set true false null undefined",
+  rs: "use pub fn let mut const static struct enum trait impl mod crate self super match if else for while loop return break continue where as dyn move ref type unsafe extern in true false",
+  py: "import from as def class return if elif else for while break continue try except finally raise with yield lambda pass global nonlocal assert del in is not and or None True False async await",
+  go: "package import func type struct interface var const return if else for range switch case break continue go defer map chan select nil true false",
+  sh: "if then else elif fi for while do done case esac function return exit export local echo set",
+  css: "",
+  html: "",
+  json: "true false null",
+  yaml: "true false null",
+  toml: "true false",
+  md: ""
+};
+
+function codeLanguageFor(relPath) {
+  const ext = String(relPath).split(".").pop().toLowerCase();
+  return CODE_LANG_BY_EXT[ext] || "text";
+}
+
+function codeFileGlyph(relPath) {
+  const ext = String(relPath).split(".").pop().toLowerCase();
+
+  if (["ts", "tsx"].includes(ext)) return "TS";
+  if (["js", "mjs", "cjs", "jsx"].includes(ext)) return "JS";
+  if (ext === "json") return "{}";
+  if (["html", "htm", "xml", "svg"].includes(ext)) return "<>";
+  if (["css", "scss", "less"].includes(ext)) return "#";
+  if (ext === "rs") return "RS";
+  if (ext === "py") return "PY";
+  if (ext === "go") return "GO";
+  if (ext === "md") return "M";
+
+  return "·";
+}
+
+// One pattern per language: comments, strings, numbers, identifiers. Anything the
+// pattern does not match is punctuation and is emitted as plain text. The third
+// comment alternative catches an unterminated block, so a JSDoc header that spans
+// several lines is one comment rather than scattered punctuation.
+function codePatternFor(lang) {
+  const hashComments = ["py", "sh", "yaml", "toml"].includes(lang) ? "|#[^\\n]*" : "";
+
+  return new RegExp(
+    `(\\/\\/[^\\n]*|\\/\\*[\\s\\S]*?\\*\\/|\\/\\*[\\s\\S]*${hashComments})` +
+      `|('(?:\\\\.|[^'\\\\])*'|"(?:\\\\.|[^"\\\\])*"|\`(?:\\\\.|[^\`\\\\])*\`)` +
+      `|\\b(0x[\\da-fA-F]+|\\d+(?:\\.\\d+)?)\\b` +
+      `|\\b([A-Za-z_$][\\w$]*)\\b`,
+    "g"
+  );
+}
+
+function highlightCodeLines(lines, lang) {
+  const pattern = codePatternFor(lang);
+  const keywords = new Set((CODE_KEYWORDS[lang] || "").split(" ").filter(Boolean));
+  let inBlockComment = false;
+
+  return lines.map((line) => {
+    let source = line;
+    let html = "";
+
+    // A `/* ... */` block that started on an earlier line swallows this one whole.
+    if (inBlockComment) {
+      const end = source.indexOf("*/");
+
+      if (end === -1) {
+        return `<span class="tok-comment">${escapeHtml(source)}</span>`;
+      }
+
+      html += `<span class="tok-comment">${escapeHtml(source.slice(0, end + 2))}</span>`;
+      source = source.slice(end + 2);
+      inBlockComment = false;
+    }
+
+    pattern.lastIndex = 0;
+
+    let last = 0;
+    let match;
+
+    while ((match = pattern.exec(source))) {
+      if (match.index > last) html += escapeHtml(source.slice(last, match.index));
+
+      if (match[1]) {
+        // An unterminated `/*` continues on the next line.
+        if (match[1].startsWith("/*") && !match[1].endsWith("*/")) {
+          html += `<span class="tok-comment">${escapeHtml(source.slice(match.index))}</span>`;
+          inBlockComment = true;
+          last = source.length;
+          break;
+        }
+        html += `<span class="tok-comment">${escapeHtml(match[1])}</span>`;
+      } else if (match[2]) {
+        html += `<span class="tok-string">${escapeHtml(match[2])}</span>`;
+      } else if (match[3]) {
+        html += `<span class="tok-number">${escapeHtml(match[3])}</span>`;
+      } else {
+        const word = match[4];
+        const className = keywords.has(word)
+          ? "tok-keyword"
+          : /^[A-Z]/.test(word)
+            ? "tok-type"
+            : "";
+
+        html += className
+          ? `<span class="${className}">${escapeHtml(word)}</span>`
+          : escapeHtml(word);
+      }
+
+      last = pattern.lastIndex;
+    }
+
+    if (last < source.length) html += escapeHtml(source.slice(last));
+
+    return html;
+  });
+}
+
+function renderCodeCard(content, relPath) {
+  const lines = content.replace(/\r\n?/g, "\n").split("\n");
+
+  if (lines.length > 1 && lines[lines.length - 1] === "") lines.pop();
+
+  const name = String(relPath).split("/").pop();
+  const highlighted = highlightCodeLines(lines, codeLanguageFor(relPath));
+  const gutter = `${lines.length}`.length;
+
+  const rows = highlighted
+    .map(
+      (html, index) =>
+        `<div class="code-line"><span class="code-ln" style="min-width:${gutter}ch">${
+          index + 1
+        }</span><span class="code-src">${html || " "}</span></div>`
+    )
+    .join("");
+
+  return `<div class="code-card">
+      <div class="code-tabs">
+        <div class="code-tab is-active">
+          <span class="code-tab-icon">${escapeHtml(codeFileGlyph(relPath))}</span>
+          <span class="code-tab-name">${escapeHtml(name)}</span>
+        </div>
+        <span class="code-tabs-path">${escapeHtml(relPath)}</span>
+      </div>
+      <div class="code-scroll"><div class="code-body">${rows}</div></div>
+    </div>`;
+}
+
 async function openFileModal(relPath) {
   const overlay = ensureFileModal();
   const pathEl = overlay.querySelector("#file-modal-path");
@@ -2349,6 +2517,7 @@ async function openFileModal(relPath) {
 
   pathEl.textContent = relPath;
   metaEl.textContent = "loading…";
+  body.classList.remove("is-code");
   body.innerHTML = `<div class="panel-loading">Loading…</div>`;
   input.value = "";
   fileModalMatches = [];
@@ -2374,9 +2543,11 @@ async function openFileModal(relPath) {
   fileModalContent = data.content;
   metaEl.textContent = `${data.lines} lines · ${data.bytes} bytes${data.truncated ? " · truncated" : ""}`;
 
+  body.classList.toggle("is-code", !data.markdown);
+
   body.innerHTML = data.markdown
     ? `<article class="spec-markdown">${renderMarkdown(data.content)}</article>`
-    : `<pre>${escapeHtml(data.content)}</pre>`;
+    : renderCodeCard(data.content, relPath);
 
   input.focus();
 }

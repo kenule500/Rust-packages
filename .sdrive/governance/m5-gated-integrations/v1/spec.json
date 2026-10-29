@@ -67,21 +67,29 @@
         {
           "id": "AC-005",
           "text": "Given a GoogleLsaClient built with an injected token source, when list_leads is called, then exactly one HTTPS request is issued to the configured base URL with a bearer token and typed Lead values are returned, and no raw JSON is exposed to the caller.",
+          "withdrawnReason": "Google publishes only accountReports:search and detailedLeadReports:search in localservices:v1, so there is no lead-list method for this criterion to call.",
+          "withdrawnEvidence": "https://localservices.googleapis.com/$discovery/rest?version=v1 - publishes only accountReports:search and detailedLeadReports:search",
           "withdrawn": true
         },
         {
           "id": "AC-006",
           "text": "Given the API answers HTTP 403 because the Ads account is unlinked or unapproved, when the call fails, then the error is the explicit account-not-approved variant rather than a generic auth error, and the response body is redacted in the message.",
+          "withdrawnReason": "With no LSA call available, the 403 account-not-approved branch cannot be produced; the surface it maps is not in the published API.",
+          "withdrawnEvidence": "https://localservices.googleapis.com/$discovery/rest?version=v1 - no lead or booking method is published, so no call can return 403",
           "withdrawn": true
         },
         {
           "id": "AC-007",
           "text": "Given HTTP 429 with a Retry-After header, when the request is retried, then the delay honours the header, the attempt count never exceeds the configured maximum, and request start, finish, retry, and error each emit a tracing event (CON-208, CON-211).",
+          "withdrawnReason": "No LSA endpoint exists to exercise, so Retry-After behaviour cannot be verified against this provider; the wirekit core retry policy covers it elsewhere.",
+          "withdrawnEvidence": "https://localservices.googleapis.com/$discovery/rest?version=v1 - only two search methods are published, so no 429 path can be driven against LSA",
           "withdrawn": true
         },
         {
           "id": "AC-008",
           "text": "Given a lead status update replayed for the same lead ID, when applied twice, then the second call is idempotent with no duplicate state change and no second mutation request.",
+          "withdrawnReason": "localservices:v1 has no lead-status update method, so there is nothing to replay and the idempotency property cannot be observed.",
+          "withdrawnEvidence": "https://localservices.googleapis.com/$discovery/rest?version=v1 - publishes no lead-status update method",
           "withdrawn": true
         },
         {
@@ -133,31 +141,43 @@
         {
           "id": "AC-016",
           "text": "Given client-credentials configuration, when a token is requested, then it is cached until expiry, reused across calls, and refreshed exactly once after a 401 before the call is failed.",
+          "withdrawnReason": "The adp module was never implemented: partner access was never granted and ADP publishes no machine-readable route reference.",
+          "withdrawnEvidence": "https://developers.adp.com/ - serves a JavaScript shell with no verifiable route reference; partner access never granted",
           "withdrawn": true
         },
         {
           "id": "AC-017",
           "text": "Given ADP returns its structured error array, when a call fails, then the mapped error preserves the correlation ID and every returned error code and message.",
+          "withdrawnReason": "No ADP call can be made, so the structured error array cannot be produced or mapped by any implementation.",
+          "withdrawnEvidence": "https://developers.adp.com/ - no verifiable route reference; partner access never granted",
           "withdrawn": true
         },
         {
           "id": "AC-018",
           "text": "Given a payroll submission times out, when the call returns, then the outcome is an explicit unknown-outcome state requiring reconciliation and no automatic resubmission occurs (CON-208).",
+          "withdrawnReason": "There is no payroll submission to time out: the module that would return the unknown outcome was never built.",
+          "withdrawnEvidence": "https://developers.adp.com/ - no verifiable route reference; partner access never granted, so adp.rs was never created",
           "withdrawn": true
         },
         {
           "id": "AC-019",
           "text": "Given worker records carrying an SSN and pay rates, when formatted with Debug, traced, or included in an error, then those values are redacted and their types do not implement Serialize (CON-214).",
+          "withdrawnReason": "The ADP model types do not exist, so their redaction cannot be tested. Intacct sender-password redaction remains covered by AC-012.",
+          "withdrawnEvidence": "https://developers.adp.com/ - no verifiable route reference; partner access never granted, so adp.rs was never created",
           "withdrawn": true
         },
         {
           "id": "AC-020",
           "text": "Given a batch time-card export where two of ten records fail, when the export completes, then the two failures are reported per record with their identifiers, the eight successes are reported as sent, and no hour is silently dropped.",
+          "withdrawnReason": "There is no batch export to report per-record outcomes for, because the ADP module was never built.",
+          "withdrawnEvidence": "https://developers.adp.com/ - no verifiable route reference; partner access never granted, so adp.rs was never created",
           "withdrawn": true
         },
         {
           "id": "AC-021",
           "text": "Given two tenants using the same module concurrently, when either tenant calls, then no credential, cached token, or cached response belonging to the other tenant is observable.",
+          "withdrawnReason": "This criterion was scoped to the ADP module, which was never built. Two-tenant isolation is exercised by T6.1 on the modules that do exist.",
+          "withdrawnEvidence": "https://developers.adp.com/ - no verifiable route reference; partner access never granted, so adp.rs was never created",
           "withdrawn": true
         }
       ]

@@ -5,6 +5,7 @@
 //! in `intacct.rs`.
 
 mod intacct;
+mod lsa;
 
 use wirekit::angi::{import_csv, parse_email, AngiWebhook, ColumnMap, ImportOutcome};
 use wirekit::Secret;

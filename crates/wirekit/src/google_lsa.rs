@@ -293,18 +293,23 @@ impl GoogleLsaClient {
             .try_header("accept", "application/json")?
             .rate_limit_key("google-lsa");
 
-        let raw = self.client.send(spec).await?;
-
-        if raw.status == 403 {
-            return Err(WirekitError::Api {
-                status: 403,
-                code: String::from(CODE_ACCOUNT_NOT_APPROVED),
-                message: String::from(
-                    "the Google Ads account is not linked to this manager or its access is not approved",
-                ),
-                details: None,
-            });
-        }
+        // The core client turns non-2xx responses into an error before `send`
+        // returns, so the 403 special case has to be caught here rather than on a
+        // RawResponse that never arrives (caught by ac_028).
+        let raw = match self.client.send(spec).await {
+            Ok(raw) => raw,
+            Err(WirekitError::Api { status: 403, .. }) => {
+                return Err(WirekitError::Api {
+                    status: 403,
+                    code: String::from(CODE_ACCOUNT_NOT_APPROVED),
+                    message: String::from(
+                        "the Google Ads account is not linked to this manager or its access is not approved",
+                    ),
+                    details: None,
+                });
+            }
+            Err(other) => return Err(other),
+        };
 
         if raw.status >= 400 {
             return Err(WirekitError::Api {

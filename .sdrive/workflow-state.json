@@ -263,10 +263,10 @@
         {
           "id": "v1",
           "phase": "backlog",
-          "currentStep": "planning",
+          "currentStep": "implementation",
           "gates": {
             "specification": "approved",
-            "planning": "pending",
+            "planning": "approved",
             "implementation": "pending",
             "review": "pending"
           },
@@ -275,6 +275,11 @@
               "event": "Proposed from group expression [w2 p1] on shared branch feature/w2-p1",
               "by": "SpecDrive",
               "timestamp": "2026-10-30T17:48:28.130Z"
+            },
+            {
+              "event": "Gate 2 approved: technical plan and execution tasks",
+              "by": "kenule500",
+              "timestamp": "2026-10-30T18:07:05.642Z"
             }
           ]
         }

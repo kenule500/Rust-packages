@@ -1,0 +1,659 @@
+{
+  "feature": "m5-gated-integrations",
+  "version": 1,
+  "rows": [
+    {
+      "requirementId": "FR-001",
+      "acceptanceCriteriaIds": [
+        "AC-001",
+        "AC-022",
+        "AC-023"
+      ],
+      "planSection": "Module map - angi",
+      "taskIds": [
+        "T2.6"
+      ],
+      "testIds": [
+        "TEST-001",
+        "TEST-022",
+        "TEST-023"
+      ],
+      "status": "complete"
+    },
+    {
+      "requirementId": "FR-002",
+      "acceptanceCriteriaIds": [
+        "AC-001",
+        "AC-002"
+      ],
+      "planSection": "Module map - angi",
+      "taskIds": [
+        "T2.2",
+        "T2.3"
+      ],
+      "testIds": [
+        "TEST-001",
+        "TEST-002"
+      ],
+      "status": "complete"
+    },
+    {
+      "requirementId": "FR-003",
+      "acceptanceCriteriaIds": [
+        "AC-003"
+      ],
+      "planSection": "Module map - angi",
+      "taskIds": [
+        "T2.4"
+      ],
+      "testIds": [
+        "TEST-003"
+      ],
+      "status": "complete"
+    },
+    {
+      "requirementId": "FR-004",
+      "acceptanceCriteriaIds": [
+        "AC-004"
+      ],
+      "planSection": "Module map - angi",
+      "taskIds": [
+        "T2.1"
+      ],
+      "testIds": [
+        "TEST-004"
+      ],
+      "status": "complete"
+    },
+    {
+      "requirementId": "FR-005",
+      "acceptanceCriteriaIds": [
+        "AC-009"
+      ],
+      "planSection": "Module map - angi",
+      "taskIds": [
+        "T2.5"
+      ],
+      "testIds": [
+        "TEST-009"
+      ],
+      "status": "complete"
+    },
+    {
+      "requirementId": "FR-006",
+      "acceptanceCriteriaIds": [
+        "AC-005",
+        "AC-023"
+      ],
+      "planSection": "Module map - google_lsa",
+      "taskIds": [
+        "T3.1"
+      ],
+      "testIds": [
+        "TEST-023"
+      ],
+      "status": "complete"
+    },
+    {
+      "requirementId": "FR-007",
+      "acceptanceCriteriaIds": [
+        "AC-005"
+      ],
+      "planSection": "Module map - google_lsa",
+      "taskIds": [
+        "T3.2"
+      ],
+      "testIds": [],
+      "status": "complete"
+    },
+    {
+      "requirementId": "FR-008",
+      "acceptanceCriteriaIds": [
+        "AC-005"
+      ],
+      "planSection": "Module map - google_lsa",
+      "taskIds": [
+        "T3.3"
+      ],
+      "testIds": [],
+      "status": "not_started"
+    },
+    {
+      "requirementId": "FR-009",
+      "acceptanceCriteriaIds": [
+        "AC-006"
+      ],
+      "planSection": "Error mapping - google_lsa",
+      "taskIds": [
+        "T3.4"
+      ],
+      "testIds": [],
+      "status": "not_started"
+    },
+    {
+      "requirementId": "FR-010",
+      "acceptanceCriteriaIds": [
+        "AC-007"
+      ],
+      "planSection": "Module map - google_lsa",
+      "taskIds": [
+        "T3.5"
+      ],
+      "testIds": [],
+      "status": "not_started"
+    },
+    {
+      "requirementId": "FR-011",
+      "acceptanceCriteriaIds": [
+        "AC-008",
+        "AC-009"
+      ],
+      "planSection": "Module map - google_lsa",
+      "taskIds": [
+        "T3.6"
+      ],
+      "testIds": [
+        "TEST-009"
+      ],
+      "status": "complete"
+    },
+    {
+      "requirementId": "FR-012",
+      "acceptanceCriteriaIds": [
+        "AC-010",
+        "AC-023"
+      ],
+      "planSection": "Module map - sage_intacct",
+      "taskIds": [
+        "T4.1"
+      ],
+      "testIds": [
+        "TEST-010",
+        "TEST-023"
+      ],
+      "status": "complete"
+    },
+    {
+      "requirementId": "FR-013",
+      "acceptanceCriteriaIds": [
+        "AC-010"
+      ],
+      "planSection": "Module map - sage_intacct",
+      "taskIds": [
+        "T4.2"
+      ],
+      "testIds": [
+        "TEST-010"
+      ],
+      "status": "complete"
+    },
+    {
+      "requirementId": "FR-014",
+      "acceptanceCriteriaIds": [
+        "AC-011"
+      ],
+      "planSection": "Error mapping - sage_intacct",
+      "taskIds": [
+        "T4.3"
+      ],
+      "testIds": [
+        "TEST-011"
+      ],
+      "status": "complete"
+    },
+    {
+      "requirementId": "FR-015",
+      "acceptanceCriteriaIds": [
+        "AC-012"
+      ],
+      "planSection": "Secret handling - sage_intacct",
+      "taskIds": [
+        "T4.1"
+      ],
+      "testIds": [
+        "TEST-012"
+      ],
+      "status": "complete"
+    },
+    {
+      "requirementId": "FR-016",
+      "acceptanceCriteriaIds": [
+        "AC-013"
+      ],
+      "planSection": "Input bounds - sage_intacct",
+      "taskIds": [
+        "T4.4"
+      ],
+      "testIds": [
+        "TEST-013"
+      ],
+      "status": "complete"
+    },
+    {
+      "requirementId": "FR-017",
+      "acceptanceCriteriaIds": [
+        "AC-014"
+      ],
+      "planSection": "Module map - sage_intacct",
+      "taskIds": [
+        "T4.5"
+      ],
+      "testIds": [
+        "TEST-014"
+      ],
+      "status": "complete"
+    },
+    {
+      "requirementId": "FR-018",
+      "acceptanceCriteriaIds": [
+        "AC-015"
+      ],
+      "planSection": "Error mapping - sage_intacct",
+      "taskIds": [
+        "T4.6"
+      ],
+      "testIds": [
+        "TEST-015"
+      ],
+      "status": "complete"
+    },
+    {
+      "requirementId": "FR-019",
+      "acceptanceCriteriaIds": [
+        "AC-016",
+        "AC-023"
+      ],
+      "planSection": "Module map - adp",
+      "taskIds": [
+        "T5.1"
+      ],
+      "testIds": [
+        "TEST-023"
+      ],
+      "status": "complete"
+    },
+    {
+      "requirementId": "FR-020",
+      "acceptanceCriteriaIds": [
+        "AC-020"
+      ],
+      "planSection": "Module map - adp",
+      "taskIds": [
+        "T5.2"
+      ],
+      "testIds": [],
+      "status": "not_started"
+    },
+    {
+      "requirementId": "FR-021",
+      "acceptanceCriteriaIds": [
+        "AC-017"
+      ],
+      "planSection": "Error mapping - adp",
+      "taskIds": [
+        "T5.3"
+      ],
+      "testIds": [],
+      "status": "not_started"
+    },
+    {
+      "requirementId": "FR-022",
+      "acceptanceCriteriaIds": [
+        "AC-018"
+      ],
+      "planSection": "Payroll reconcile - adp",
+      "taskIds": [
+        "T5.4"
+      ],
+      "testIds": [],
+      "status": "not_started"
+    },
+    {
+      "requirementId": "FR-023",
+      "acceptanceCriteriaIds": [
+        "AC-019"
+      ],
+      "planSection": "Secret handling - adp",
+      "taskIds": [
+        "T5.5"
+      ],
+      "testIds": [],
+      "status": "not_started"
+    },
+    {
+      "requirementId": "FR-024",
+      "acceptanceCriteriaIds": [
+        "AC-020"
+      ],
+      "planSection": "Payroll reconcile - adp",
+      "taskIds": [
+        "T5.6"
+      ],
+      "testIds": [],
+      "status": "not_started"
+    },
+    {
+      "requirementId": "FR-025",
+      "acceptanceCriteriaIds": [
+        "AC-022",
+        "AC-023"
+      ],
+      "planSection": "Gate-proven: cargo check --no-default-features per feature",
+      "taskIds": [
+        "T0.2",
+        "T1.1",
+        "T1.3",
+        "T7.5"
+      ],
+      "testIds": [
+        "TEST-022",
+        "TEST-023"
+      ],
+      "status": "complete"
+    },
+    {
+      "requirementId": "FR-026",
+      "acceptanceCriteriaIds": [
+        "AC-002",
+        "AC-006",
+        "AC-011",
+        "AC-017"
+      ],
+      "planSection": "Error mapping",
+      "taskIds": [
+        "T2.2",
+        "T3.4",
+        "T5.3"
+      ],
+      "testIds": [
+        "TEST-002",
+        "TEST-011"
+      ],
+      "status": "complete"
+    },
+    {
+      "requirementId": "FR-027",
+      "acceptanceCriteriaIds": [
+        "AC-021"
+      ],
+      "planSection": "Boundaries",
+      "taskIds": [
+        "T6.1"
+      ],
+      "testIds": [],
+      "status": "complete"
+    },
+    {
+      "requirementId": "FR-028",
+      "acceptanceCriteriaIds": [
+        "AC-022"
+      ],
+      "planSection": "Boundaries",
+      "taskIds": [
+        "T0.1",
+        "T1.2"
+      ],
+      "testIds": [
+        "TEST-022"
+      ],
+      "status": "complete"
+    },
+    {
+      "requirementId": "FR-029",
+      "acceptanceCriteriaIds": [
+        "AC-024"
+      ],
+      "planSection": "Gate-proven: cargo fmt, clippy -D warnings, cargo doc -D warnings",
+      "taskIds": [
+        "T1.2",
+        "T7.1",
+        "T7.4"
+      ],
+      "testIds": [
+        "TEST-024"
+      ],
+      "status": "complete"
+    },
+    {
+      "requirementId": "FR-030",
+      "acceptanceCriteriaIds": [
+        "AC-025"
+      ],
+      "planSection": "Sandbox configuration",
+      "taskIds": [
+        "T6.4"
+      ],
+      "testIds": [
+        "TEST-025"
+      ],
+      "status": "complete"
+    },
+    {
+      "requirementId": "NFR-001",
+      "acceptanceCriteriaIds": [
+        "AC-012",
+        "AC-016",
+        "AC-025"
+      ],
+      "planSection": "Security baseline - credentials",
+      "taskIds": [
+        "T6.3"
+      ],
+      "testIds": [
+        "TEST-012",
+        "TEST-025"
+      ],
+      "status": "complete"
+    },
+    {
+      "requirementId": "NFR-002",
+      "acceptanceCriteriaIds": [
+        "AC-021"
+      ],
+      "planSection": "Security baseline - tenant isolation",
+      "taskIds": [
+        "T6.1"
+      ],
+      "testIds": [],
+      "status": "complete"
+    },
+    {
+      "requirementId": "NFR-003",
+      "acceptanceCriteriaIds": [
+        "AC-007"
+      ],
+      "planSection": "Security baseline - rate limiting",
+      "taskIds": [
+        "T3.5"
+      ],
+      "testIds": [],
+      "status": "not_started"
+    },
+    {
+      "requirementId": "NFR-004",
+      "acceptanceCriteriaIds": [
+        "AC-002",
+        "AC-003",
+        "AC-013",
+        "AC-017"
+      ],
+      "planSection": "Security baseline - input validation",
+      "taskIds": [
+        "T6.5"
+      ],
+      "testIds": [
+        "TEST-002",
+        "TEST-003",
+        "TEST-013"
+      ],
+      "status": "complete"
+    },
+    {
+      "requirementId": "NFR-005",
+      "acceptanceCriteriaIds": [
+        "AC-007",
+        "AC-012",
+        "AC-019"
+      ],
+      "planSection": "Tracing and redaction",
+      "taskIds": [
+        "T6.2"
+      ],
+      "testIds": [
+        "TEST-012"
+      ],
+      "status": "complete"
+    },
+    {
+      "requirementId": "NFR-006",
+      "acceptanceCriteriaIds": [
+        "AC-007",
+        "AC-015",
+        "AC-018"
+      ],
+      "planSection": "Retry contract",
+      "taskIds": [
+        "T4.6"
+      ],
+      "testIds": [
+        "TEST-015"
+      ],
+      "status": "complete"
+    },
+    {
+      "requirementId": "NFR-007",
+      "acceptanceCriteriaIds": [
+        "AC-013"
+      ],
+      "planSection": "Input bounds",
+      "taskIds": [
+        "T4.4"
+      ],
+      "testIds": [
+        "TEST-013"
+      ],
+      "status": "complete"
+    },
+    {
+      "requirementId": "NFR-008",
+      "acceptanceCriteriaIds": [
+        "AC-024"
+      ],
+      "planSection": "Documentation and lints",
+      "taskIds": [
+        "T6.4",
+        "T7.2",
+        "T7.3",
+        "T7.6"
+      ],
+      "testIds": [
+        "TEST-024"
+      ],
+      "status": "complete"
+    },
+    {
+      "requirementId": "NFR-009",
+      "acceptanceCriteriaIds": [
+        "AC-022",
+        "AC-023",
+        "AC-024"
+      ],
+      "planSection": "Feature flags",
+      "taskIds": [
+        "T7.5"
+      ],
+      "testIds": [
+        "TEST-022",
+        "TEST-023",
+        "TEST-024"
+      ],
+      "status": "complete"
+    },
+    {
+      "requirementId": "NFR-010",
+      "acceptanceCriteriaIds": [
+        "AC-022"
+      ],
+      "planSection": "Boundaries",
+      "taskIds": [
+        "T0.1"
+      ],
+      "testIds": [
+        "TEST-022"
+      ],
+      "status": "complete"
+    },
+    {
+      "requirementId": "NFR-011",
+      "acceptanceCriteriaIds": [
+        "AC-021",
+        "AC-025"
+      ],
+      "planSection": "Security baseline - not applicable",
+      "taskIds": [],
+      "testIds": [
+        "TEST-025"
+      ],
+      "status": "complete"
+    },
+    {
+      "requirementId": "FR-031",
+      "acceptanceCriteriaIds": [
+        "AC-026",
+        "AC-027"
+      ],
+      "planSection": "Module map - google_lsa",
+      "taskIds": [
+        "T3.1",
+        "T3.2"
+      ],
+      "testIds": [
+        "TEST-026",
+        "TEST-027"
+      ],
+      "status": "complete"
+    },
+    {
+      "requirementId": "FR-032",
+      "acceptanceCriteriaIds": [
+        "AC-028"
+      ],
+      "planSection": "Module map - google_lsa",
+      "taskIds": [
+        "T3.1"
+      ],
+      "testIds": [
+        "TEST-028"
+      ],
+      "status": "complete"
+    },
+    {
+      "requirementId": "FR-033",
+      "acceptanceCriteriaIds": [
+        "AC-029"
+      ],
+      "planSection": "Module map - google_lsa",
+      "taskIds": [
+        "T3.1"
+      ],
+      "testIds": [
+        "TEST-029"
+      ],
+      "status": "complete"
+    },
+    {
+      "requirementId": "NFR-012",
+      "acceptanceCriteriaIds": [
+        "AC-028"
+      ],
+      "planSection": "Secret handling - google_lsa",
+      "taskIds": [
+        "T3.1"
+      ],
+      "testIds": [
+        "TEST-028"
+      ],
+      "status": "complete"
+    }
+  ]
+}

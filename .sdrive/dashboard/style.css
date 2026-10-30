@@ -3767,6 +3767,124 @@ body.drawer-open {
   color: var(--text);
 }
 
+/* ---- Code card: VS Code editor look for the file viewer ----
+   The panel keeps its own chrome; inside it a source file is rendered as an editor:
+   tab strip, line-number gutter, and Dark+ token colours. Markdown files keep the
+   document rendering, so nothing about specs changes. */
+.file-modal-body.is-code {
+  padding: 0;
+  background: #1e1e1e;
+}
+
+.code-card {
+  display: flex;
+  flex-direction: column;
+  min-height: 100%;
+  background: #1e1e1e;
+}
+
+.code-tabs {
+  position: sticky;
+  top: 0;
+  z-index: 1;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  height: 35px;
+  padding: 0 12px;
+  background: #252526;
+  border-bottom: 1px solid #2b2b2b;
+}
+
+.code-tab {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  height: 35px;
+  padding: 0 12px;
+  background: #1e1e1e;
+  border-top: 1px solid #0078d4;
+  color: #d4d4d4;
+  font-size: 12px;
+  white-space: nowrap;
+}
+
+.code-tab-icon {
+  font-family: var(--mono);
+  font-size: 9.5px;
+  font-weight: 600;
+  letter-spacing: 0;
+  color: #519aba;
+}
+
+.code-tab-name {
+  font-family: var(--mono);
+}
+
+.code-tabs-path {
+  margin-left: auto;
+  font-family: var(--mono);
+  font-size: 11px;
+  color: #8b8b8b;
+  word-break: break-all;
+  text-align: right;
+}
+
+.code-scroll {
+  flex: 1;
+  overflow: auto;
+}
+
+.code-body {
+  min-width: max-content;
+  padding: 10px 0 28px;
+}
+
+.code-line {
+  display: flex;
+  align-items: flex-start;
+  font-family: var(--mono);
+  font-size: 12.5px;
+  line-height: 20px;
+}
+
+.code-line:hover {
+  background: #2a2d2e;
+}
+
+.code-ln {
+  flex: 0 0 auto;
+  padding: 0 14px 0 18px;
+  text-align: right;
+  color: #6e7681;
+  font-variant-numeric: tabular-nums;
+  user-select: none;
+}
+
+.code-src {
+  padding-right: 28px;
+  white-space: pre;
+  color: #d4d4d4;
+}
+
+.tok-keyword { color: #569cd6; }
+.tok-string { color: #ce9178; }
+.tok-comment { color: #6a9955; font-style: italic; }
+.tok-number { color: #b5cea8; }
+.tok-type { color: #4ec9b0; }
+
+/* Find-in-file highlights have to stay legible on the editor background. */
+.file-modal-body.is-code mark.spec-hit {
+  background: #613214;
+  color: #f8f8f2;
+  border-radius: 2px;
+}
+
+.file-modal-body.is-code mark.spec-hit.active {
+  background: #0078d4;
+  color: #ffffff;
+}
+
 /* ---- Overview product-type badge ---- */
 .ov-type-badge {
   display: inline-flex;

@@ -116,8 +116,19 @@ fn ac_040_no_database_tenant_billing_or_application_domain_types() {
 
     for (name, source) in common::crate_sources() {
         for needle in forbidden {
+            // A declaration match must be the whole identifier: `struct Account`
+            // must not reject a provider type whose real name is
+            // `AccountReport`, which is Google's own schema name for it.
+            let hit = match needle.strip_prefix("struct ") {
+                Some(type_name) => source
+                    .split(|character: char| !(character.is_alphanumeric() || character == '_'))
+                    .collect::<Vec<_>>()
+                    .windows(2)
+                    .any(|pair| pair[0] == "struct" && pair[1] == type_name),
+                None => source.contains(needle),
+            };
             assert!(
-                !source.contains(needle),
+                !hit,
                 "{name} introduces the application-domain concept `{needle}`"
             );
         }

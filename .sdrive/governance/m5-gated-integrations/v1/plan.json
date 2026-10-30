@@ -1,0 +1,700 @@
+{
+  "feature": "m5-gated-integrations",
+  "version": 1,
+  "architecture": {
+    "approach": "Four additive, default-off modules added to the existing wirekit crate: angi (parser and importer, no network), google_lsa (LSA over OAuth2 reusing wirekit::google_oauth), sage_intacct (XML gateway limited to three entities), and adp (REST over OAuth2 client credentials). No new crate, no new workspace member, no root manifest change (CON-101, CON-103, CON-104). Every module reuses wirekit core for the client, retry, rate limit, tracing, secret type, and WirekitError; no module depends on another. Each live module takes a base URL at construction so it is addressable by a sandbox without partner access. angi ships first because it has no network dependency; adp ships last because its payroll reconcile semantics carry the highest cost of being wrong.",
+    "components": [
+      {
+        "name": "crates/wirekit/src/angi.rs",
+        "action": "create",
+        "description": "AngiLead, AngiLeadParser, AngiImport, ParseError, and the deterministic dedupe key. Parses caller-supplied email and CSV bytes only; adds no HTTP client for Angi."
+      },
+      {
+        "name": "crates/wirekit/src/google_lsa.rs",
+        "action": "create",
+        "description": "GoogleLsaClient, Lead, Booking, LeadStatus. Reuses wirekit::google_oauth for refresh, maps 403 to an explicit account-not-approved variant, dedupes by lead ID, and never assumes a webhook."
+      },
+      {
+        "name": "crates/wirekit/src/sage_intacct.rs",
+        "action": "create",
+        "description": "SageIntacctClient, Customer, Invoice, JournalEntry, ReportRequest. Derives success from the gateway status and errno, holds the sender password in the wirekit secret type, and bounds XML bytes and depth."
+      },
+      {
+        "name": "crates/wirekit/src/adp.rs",
+        "resolution": {
+          "kind": "deferred",
+          "reason": "ADP partner access was never granted and no machine-readable route reference is published, so the module was never created.",
+          "at": "2026-10-29"
+        },
+        "action": "create",
+        "description": "AdpClient, Employee, TimeCard, PayrollRun, PayrollReport, SubmissionOutcome. Caches a client-credentials token, preserves correlation IDs, redacts SSN and pay rates, and returns an unknown outcome for a payroll timeout instead of resubmitting."
+      },
+      {
+        "name": "crates/wirekit/src/lib.rs",
+        "action": "modify",
+        "description": "Register the four modules behind #[cfg(feature = \"...\")] with their feature names; keep forbid(unsafe_code) and deny(missing_docs)."
+      },
+      {
+        "name": "crates/wirekit/Cargo.toml",
+        "action": "modify",
+        "description": "Add the angi, google-lsa, sage-intacct, and adp features with optional dep: entries. Features are additive and default-off."
+      },
+      {
+        "name": "crates/wirekit/README.md",
+        "action": "modify",
+        "description": "Document each feature, what it adds, and whether it needs network access."
+      },
+      {
+        "name": "crates/wirekit/src/client.rs",
+        "action": "reuse",
+        "description": "Consumed from BP-005 on feature/m1-first-publish. Not re-implemented and not forked. (reuse reference; the file is crates/wirekit/src/client.rs)"
+      },
+      {
+        "name": "crates/wirekit/src/auth.rs",
+        "action": "reuse",
+        "description": "Token refresh for the LSA module (CON-212). (reuse reference; the file is crates/wirekit/src/auth.rs)"
+      },
+      {
+        "name": "crates/wirekit/src/error.rs",
+        "action": "reuse",
+        "description": "Reused wirekit core source; not modified by this feature."
+      },
+      {
+        "name": "crates/wirekit/src/noaa.rs",
+        "action": "reuse",
+        "description": "Reused wirekit core source; not modified by this feature."
+      },
+      {
+        "name": "crates/wirekit/src/pipeline.rs",
+        "action": "reuse",
+        "description": "Reused wirekit core source; not modified by this feature."
+      },
+      {
+        "name": "crates/wirekit/src/rate_limit.rs",
+        "action": "reuse",
+        "description": "Reused wirekit core source; not modified by this feature."
+      },
+      {
+        "name": "crates/wirekit/src/retry.rs",
+        "action": "reuse",
+        "description": "Reused wirekit core source; not modified by this feature."
+      },
+      {
+        "name": "crates/wirekit/src/secret.rs",
+        "action": "reuse",
+        "description": "Reused wirekit core source; not modified by this feature."
+      },
+      {
+        "name": "crates/wirekit/src/sendgrid.rs",
+        "action": "reuse",
+        "description": "Reused wirekit core source; not modified by this feature."
+      },
+      {
+        "name": "crates/wirekit/src/slack.rs",
+        "action": "reuse",
+        "description": "Reused wirekit core source; not modified by this feature."
+      },
+      {
+        "name": "crates/wirekit/src/trace.rs",
+        "action": "reuse",
+        "description": "Reused wirekit core source; not modified by this feature."
+      },
+      {
+        "name": "crates/wirekit/src/twilio.rs",
+        "action": "reuse",
+        "description": "Reused wirekit core source; not modified by this feature."
+      }
+    ],
+    "referencedRequirementIds": [
+      "FR-001",
+      "FR-002",
+      "FR-003",
+      "FR-004",
+      "FR-005",
+      "FR-006",
+      "FR-007",
+      "FR-008",
+      "FR-009",
+      "FR-010",
+      "FR-011",
+      "FR-012",
+      "FR-013",
+      "FR-014",
+      "FR-015",
+      "FR-016",
+      "FR-017",
+      "FR-018",
+      "FR-019",
+      "FR-020",
+      "FR-021",
+      "FR-022",
+      "FR-023",
+      "FR-024",
+      "FR-025",
+      "FR-026",
+      "FR-027",
+      "FR-028",
+      "FR-029",
+      "FR-030",
+      "NFR-001",
+      "NFR-002",
+      "NFR-003",
+      "NFR-004",
+      "NFR-005",
+      "NFR-006",
+      "NFR-007",
+      "NFR-008",
+      "NFR-009",
+      "NFR-010",
+      "NFR-011"
+    ]
+  },
+  "dataModel": {
+    "entities": [
+      {
+        "name": "AngiLead",
+        "action": "create",
+        "fields": [
+          {
+            "name": "source",
+            "type": "String",
+            "action": "add"
+          },
+          {
+            "name": "lead_id",
+            "type": "Option<String>",
+            "nullable": true,
+            "action": "add"
+          },
+          {
+            "name": "contact_name",
+            "type": "Option<String>",
+            "nullable": true,
+            "action": "add"
+          },
+          {
+            "name": "phone",
+            "type": "Option<String>",
+            "nullable": true,
+            "action": "add"
+          },
+          {
+            "name": "email",
+            "type": "Option<String>",
+            "nullable": true,
+            "action": "add"
+          },
+          {
+            "name": "address",
+            "type": "Option<Address>",
+            "nullable": true,
+            "action": "add"
+          },
+          {
+            "name": "service",
+            "type": "Option<String>",
+            "nullable": true,
+            "action": "add"
+          },
+          {
+            "name": "received_at",
+            "type": "Timestamp",
+            "action": "add"
+          }
+        ]
+      },
+      {
+        "name": "AngiImportOutcome",
+        "action": "create",
+        "fields": [
+          {
+            "name": "line",
+            "type": "usize",
+            "action": "add"
+          },
+          {
+            "name": "outcome",
+            "type": "ImportOutcome",
+            "action": "add"
+          },
+          {
+            "name": "reason",
+            "type": "Option<String>",
+            "nullable": true,
+            "action": "add"
+          }
+        ]
+      },
+      {
+        "name": "ParseError",
+        "action": "create",
+        "fields": [
+          {
+            "name": "field",
+            "type": "String",
+            "action": "add"
+          },
+          {
+            "name": "reason",
+            "type": "String",
+            "action": "add"
+          }
+        ]
+      },
+      {
+        "name": "Lead",
+        "resolution": {
+          "kind": "deferred",
+          "reason": "The published localservices:v1 discovery document defines no lead-status or booking method",
+          "at": "2026-10-29"
+        },
+        "action": "create",
+        "fields": [
+          {
+            "name": "lead_id",
+            "type": "String",
+            "action": "add"
+          },
+          {
+            "name": "lead_type",
+            "type": "String",
+            "action": "add"
+          },
+          {
+            "name": "contact",
+            "type": "Contact",
+            "action": "add"
+          },
+          {
+            "name": "job_details",
+            "type": "Option<JobDetails>",
+            "nullable": true,
+            "action": "add"
+          },
+          {
+            "name": "attribution",
+            "type": "Option<Attribution>",
+            "nullable": true,
+            "action": "add"
+          }
+        ]
+      },
+      {
+        "name": "Booking",
+        "resolution": {
+          "kind": "deferred",
+          "reason": "The published localservices:v1 discovery document defines no lead-status or booking method",
+          "at": "2026-10-29"
+        },
+        "action": "create",
+        "fields": [
+          {
+            "name": "booking_id",
+            "type": "String",
+            "action": "add"
+          },
+          {
+            "name": "lead_id",
+            "type": "String",
+            "action": "add"
+          },
+          {
+            "name": "status",
+            "type": "BookingStatus",
+            "action": "add"
+          },
+          {
+            "name": "attribution",
+            "type": "Option<Attribution>",
+            "nullable": true,
+            "action": "add"
+          }
+        ]
+      },
+      {
+        "name": "LeadStatus",
+        "resolution": {
+          "kind": "deferred",
+          "reason": "The published localservices:v1 discovery document defines no lead-status or booking method",
+          "at": "2026-10-29"
+        },
+        "action": "create",
+        "fields": [
+          {
+            "name": "value",
+            "type": "LeadStatusKind",
+            "action": "add"
+          }
+        ]
+      },
+      {
+        "name": "Customer",
+        "action": "create",
+        "fields": [
+          {
+            "name": "external_key",
+            "type": "String",
+            "action": "add"
+          },
+          {
+            "name": "name",
+            "type": "String",
+            "action": "add"
+          },
+          {
+            "name": "provider_id",
+            "type": "Option<String>",
+            "nullable": true,
+            "action": "add"
+          }
+        ],
+        "resolution": {
+          "kind": "deferred",
+          "reason": "Intacct shipped a generic call() rather than named entity models",
+          "at": "2026-10-29"
+        }
+      },
+      {
+        "name": "Invoice",
+        "action": "create",
+        "fields": [
+          {
+            "name": "external_key",
+            "type": "String",
+            "action": "add"
+          },
+          {
+            "name": "customer_id",
+            "type": "String",
+            "action": "add"
+          },
+          {
+            "name": "line_items",
+            "type": "Vec<InvoiceLine>",
+            "action": "add"
+          }
+        ],
+        "resolution": {
+          "kind": "deferred",
+          "reason": "Intacct shipped a generic call() rather than named entity models",
+          "at": "2026-10-29"
+        }
+      },
+      {
+        "name": "JournalEntry",
+        "action": "create",
+        "fields": [
+          {
+            "name": "external_key",
+            "type": "String",
+            "action": "add"
+          },
+          {
+            "name": "debits",
+            "type": "Vec<JournalLine>",
+            "action": "add"
+          },
+          {
+            "name": "credits",
+            "type": "Vec<JournalLine>",
+            "action": "add"
+          }
+        ],
+        "resolution": {
+          "kind": "deferred",
+          "reason": "Intacct shipped a generic call() rather than named entity models",
+          "at": "2026-10-29"
+        }
+      },
+      {
+        "name": "ReportRequest",
+        "action": "create",
+        "fields": [
+          {
+            "name": "report_name",
+            "type": "String",
+            "action": "add"
+          },
+          {
+            "name": "parameters",
+            "type": "BTreeMap<String, String>",
+            "action": "add"
+          }
+        ],
+        "resolution": {
+          "kind": "deferred",
+          "reason": "Intacct shipped a generic call() rather than named entity models",
+          "at": "2026-10-29"
+        }
+      },
+      {
+        "name": "Employee",
+        "resolution": {
+          "kind": "deferred",
+          "reason": "ADP partner access was never granted and developers.adp.com publishes no machine-readable API contract, so no route could be verified",
+          "at": "2026-10-29"
+        },
+        "action": "create",
+        "fields": [
+          {
+            "name": "worker_id",
+            "type": "String",
+            "action": "add"
+          },
+          {
+            "name": "name",
+            "type": "String",
+            "action": "add"
+          },
+          {
+            "name": "ssn",
+            "type": "SecretRedacted",
+            "action": "add"
+          },
+          {
+            "name": "pay_rate",
+            "type": "SecretRedacted",
+            "action": "add"
+          }
+        ]
+      },
+      {
+        "name": "TimeCard",
+        "resolution": {
+          "kind": "deferred",
+          "reason": "ADP partner access was never granted and developers.adp.com publishes no machine-readable API contract, so no route could be verified",
+          "at": "2026-10-29"
+        },
+        "action": "create",
+        "fields": [
+          {
+            "name": "worker_id",
+            "type": "String",
+            "action": "add"
+          },
+          {
+            "name": "hours",
+            "type": "Decimal",
+            "action": "add"
+          },
+          {
+            "name": "earnings",
+            "type": "Option<Decimal>",
+            "nullable": true,
+            "action": "add"
+          },
+          {
+            "name": "approval_state",
+            "type": "ApprovalState",
+            "action": "add"
+          }
+        ]
+      },
+      {
+        "name": "PayrollRun",
+        "resolution": {
+          "kind": "deferred",
+          "reason": "ADP partner access was never granted and developers.adp.com publishes no machine-readable API contract, so no route could be verified",
+          "at": "2026-10-29"
+        },
+        "action": "create",
+        "fields": [
+          {
+            "name": "run_id",
+            "type": "String",
+            "action": "add"
+          },
+          {
+            "name": "cycle",
+            "type": "String",
+            "action": "add"
+          },
+          {
+            "name": "status",
+            "type": "PayrollStatus",
+            "action": "add"
+          }
+        ]
+      },
+      {
+        "name": "PayrollReport",
+        "resolution": {
+          "kind": "deferred",
+          "reason": "ADP partner access was never granted and developers.adp.com publishes no machine-readable API contract, so no route could be verified",
+          "at": "2026-10-29"
+        },
+        "action": "create",
+        "fields": [
+          {
+            "name": "run_id",
+            "type": "String",
+            "action": "add"
+          },
+          {
+            "name": "records",
+            "type": "Vec<RecordOutcome>",
+            "action": "add"
+          }
+        ]
+      },
+      {
+        "name": "SubmissionOutcome",
+        "resolution": {
+          "kind": "deferred",
+          "reason": "ADP partner access was never granted and developers.adp.com publishes no machine-readable API contract, so no route could be verified",
+          "at": "2026-10-29"
+        },
+        "action": "create",
+        "fields": [
+          {
+            "name": "sent",
+            "type": "Vec<String>",
+            "action": "add"
+          },
+          {
+            "name": "failed",
+            "type": "Vec<RecordOutcome>",
+            "action": "add"
+          },
+          {
+            "name": "unknown",
+            "type": "Option<ClientReference>",
+            "nullable": true,
+            "action": "add"
+          }
+        ]
+      }
+    ],
+    "flowDescription": "Caller constructs one client per tenant with its own credentials and optional base URL. Each call builds a typed request, delegates transport, retry, rate-limit, and tracing to wirekit core, then maps the provider response into a typed model or a WirekitError. The Angi module never performs I/O: it takes bytes the caller already has and returns AngiLead values plus per-row outcomes. Nothing is persisted; every model is returned to the caller and dropped or stored by the consuming application."
+  },
+  "securityConsiderations": [
+    {
+      "requirementId": "NFR-001",
+      "description": "CON-511 and CON-519 expanded: credentials arrive at construction, are held in the wirekit secret type, are never embedded or defaulted, and no module reads a .env file. Rotation is possible because nothing caches a credential beyond the client instance."
+    },
+    {
+      "requirementId": "NFR-002",
+      "description": "CON-512 expanded: tenant isolation is structural. One client per tenant, no module-level cache or static, and no shared token or response store, so concurrent tenants cannot observe each other."
+    },
+    {
+      "requirementId": "NFR-003",
+      "description": "CON-514 expanded: a per-provider token bucket from wirekit core, with caller override, and a tracing metric on every rate-limit hit."
+    },
+    {
+      "requirementId": "NFR-004",
+      "description": "CON-515 expanded: email bodies, CSV rows, JSON leads, XML gateway responses, and ADP error arrays are all untrusted input and produce typed errors rather than panics or silent defaults."
+    },
+    {
+      "requirementId": "NFR-005",
+      "description": "CON-214 and CON-211 expanded: request start, finish, retry, rate-limit, and error are traced; the sender password, SSN, and pay rates are redacted and their types do not implement Serialize."
+    },
+    {
+      "requirementId": "NFR-008",
+      "description": "CON-520 enforced through the https-only base URL check, and CON-201/CON-202 kept in force: forbid(unsafe_code), deny(missing_docs), one rustdoc comment per public item."
+    },
+    {
+      "requirementId": "NFR-011",
+      "description": "CON-516 recorded as NOT APPLICABLE: no database, cache, or query surface exists in these modules, so there is no injection vector to parameterise."
+    }
+  ],
+  "performanceConsiderations": [
+    {
+      "requirementId": "NFR-007",
+      "strategy": "Byte and nesting-depth ceilings are configuration-driven and enforced before or during parse: XML for Intacct, CSV row and file size for Angi, response size for LSA and ADP."
+    },
+    {
+      "requirementId": "NFR-004",
+      "strategy": "Validation happens before allocation grows: parse into a bounded structure, then map into a model, so a hostile body cannot force unbounded allocation."
+    },
+    {
+      "requirementId": "NFR-005",
+      "strategy": "One tracing event per request stage, not per field, and redacted values are never formatted into the event, so tracing cost stays flat with payload size."
+    },
+    {
+      "requirementId": "NFR-006",
+      "strategy": "Retry backoff is bounded to three attempts with jitter, so a failing provider cannot hold a caller for an unbounded time."
+    }
+  ],
+  "dependencies": [
+    {
+      "name": "wirekit core (BP-005)",
+      "type": "internal",
+      "action": "no_change",
+      "notes": "Consumed as-is from feature/m1-first-publish. Not on main yet; T0.1 verifies it before any code is written."
+    },
+    {
+      "name": "wirekit::google_oauth",
+      "type": "internal",
+      "action": "no_change",
+      "notes": "Reused for LSA token refresh (CON-212); not re-implemented."
+    },
+    {
+      "name": "wirekit secret type, WirekitError, retry, rate limiter, tracing",
+      "type": "internal",
+      "action": "no_change",
+      "notes": "Reused across all four modules; no second error type and no second retry policy."
+    },
+    {
+      "name": "quick-xml",
+      "type": "library",
+      "action": "add",
+      "notes": "sage-intacct feature only, attached with dep: so it stays optional. Version pinned at apply from crates.io; licence checked for MIT OR Apache-2.0 compatibility. No skill expected."
+    },
+    {
+      "name": "csv",
+      "type": "library",
+      "action": "add",
+      "notes": "angi feature only, attached with dep: so it stays optional. Version pinned at apply from crates.io; licence checked. No skill expected."
+    },
+    {
+      "name": "Google Ads / LSA access",
+      "type": "external",
+      "action": "no_change",
+      "notes": "Live-use gate only. No task depends on it; the module is sandbox-addressable."
+    },
+    {
+      "name": "Sage Intacct partner agreement",
+      "type": "external",
+      "action": "no_change",
+      "notes": "Live-use gate only."
+    },
+    {
+      "name": "ADP partner or enterprise access",
+      "type": "external",
+      "action": "no_change",
+      "notes": "Live-use gate only; product family [to be confirmed]."
+    },
+    {
+      "name": "Angi partner feed",
+      "type": "external",
+      "action": "no_change",
+      "notes": "Optional capability; the module ships without assuming a feed exists."
+    }
+  ],
+  "risks": [
+    {
+      "description": "wirekit core never lands on the base branch, leaving this feature unbuildable.",
+      "mitigation": "T0.1 blocks the start; the plan depends on BP-005 instead of duplicating core."
+    },
+    {
+      "description": "A new dependency brings a licence incompatible with MIT OR Apache-2.0.",
+      "mitigation": "Licence verified before adding; both dependencies are feature-gated, so removal is cheap."
+    },
+    {
+      "description": "Provider endpoint paths are invented from memory.",
+      "mitigation": "The plan fixes the contract only; paths are confirmed from provider documentation at apply and recorded in rustdoc."
+    },
+    {
+      "description": "Partner access is denied for LSA, ADP, or Intacct.",
+      "mitigation": "Every live module is sandbox-addressable, so the contract is implementable without access."
+    },
+    {
+      "description": "A payroll submission is retried after a timeout and double-pays.",
+      "mitigation": "Unknown-outcome state plus a caller client reference (FR-022, T5.4)."
+    },
+    {
+      "description": "Four provider modules drift into a framework.",
+      "mitigation": "No shared state, no cross-module dependency, one crate, feature-flagged (FR-027, FR-028)."
+    }
+  ]
+}

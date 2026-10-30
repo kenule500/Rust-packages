@@ -1,0 +1,780 @@
+{
+  "feature": "m5-gated-integrations",
+  "title": "M5 Gated Integrations - Angi import, Google LSA, Sage Intacct, ADP",
+  "version": 1,
+  "overview": {
+    "problemStatement": "Three approved backlog items have no specification because each is gated by something outside the repository: BP-033 (Angi) has no public API, BP-034 (Google LSA) needs Google Ads approval, and BP-035 (ADP and Sage Intacct) needs partner access. Without a specification, the decisions that actually matter - the typed surface, error mapping, what must be redacted, what must never be retried - are made ad hoc by whoever writes the code first. A payroll client that resends an unconfirmed submission, an accounting client that treats HTTP 200 as success while the XML gateway reported failure, a leads parser that drops a malformed row silently, or a log line carrying an SSN, a pay rate, or a sender password is a defect whether or not a partner approved the account. Additionally the host crate, wirekit, is not on main: it is implemented on feature/m1-first-publish (BP-005) and is not archived, so this feature defines the contract and blocks implementation on that dependency rather than duplicating it.",
+    "proposedSolution": "One feature on one branch, feature/m5-gated-integrations, adding four additive default-off modules to wirekit rather than four new crates (CON-104). wirekit::angi (BP-033) is a parser and importer only - AngiLead, AngiLeadParser, AngiImport, a field-named ParseError, and a deterministic dedupe key - because Angi has no public API. wirekit::google_lsa (BP-034) provides GoogleLsaClient, Lead, Booking, and LeadStatus over OAuth2 reusing wirekit::google_oauth, maps HTTP 403 to an explicit account-not-approved error, dedupes by lead ID, and does not assume a webhook. wirekit::sage_intacct (BP-035) provides SageIntacctClient, Customer, Invoice, JournalEntry, and ReportRequest over the XML gateway, scoped to three entities plus read-by-key, deriving success from the gateway status and errno rather than the HTTP status, with the sender password in a redacting secret type. wirekit::adp (BP-035) provides AdpClient, Employee, TimeCard, PayrollRun, and PayrollReport over OAuth2 client credentials, preserving correlation IDs, reporting per-record batch outcomes so hours are never silently dropped, redacting SSN and pay rates, and returning an unknown-outcome state for a timed-out payroll submission instead of retrying it. Every module maps failures into WirekitError, accepts a sandbox base URL override, and adds no domain type, product noun, or global singleton.",
+    "targetAudience": "Primary: external Rust developers integrating Angi lead exports, Google Local Services Ads, Sage Intacct, or ADP into their own products, who need typed models and one error type instead of four ad-hoc HTTP snippets. Secondary: maintainers of this workspace, who must keep the modules consistent with the wirekit retry, rate-limit, tracing, secret, and error contract without turning wirekit into a framework.",
+    "assumptions": [
+      "wirekit core (BP-005) lands from feature/m1-first-publish before any task in this feature is implemented; its archive date is [to be confirmed].",
+      "Partner access for Google LSA, ADP, and Sage Intacct is not confirmed; no requirement here depends on a live credential being present on the build machine.",
+      "Angi has no public API; the module is a parser and importer permanently, not a placeholder for a future client (catalogue/20_angi.md).",
+      "Rust 1.85 remains the MSRV and edition 2021 remains in force (CON-102).",
+      "The workspace stays rooted at the repository root with members = crates/*, so no root manifest change is needed (CON-101).",
+      "wirekit::google_oauth exists in the wirekit core from BP-005 and is reused for LSA token refresh rather than duplicated.",
+      "Retry, rate-limit, tracing, secret, and error conventions are already fixed by catalogue/01_wirekit.md; this specification constrains them per provider and does not restate core design.",
+      "No external research available: Context7 and web search were unreachable, so every claim comes from the repository catalogue, constitution, backlog, and the crates/dado precedent; access-gated specifics are marked [to be confirmed] (CON-704)."
+    ],
+    "outOfScope": [
+      "BP-022 to BP-027, already specified and in implementation as m4-media-links v1",
+      "BP-036 (mixbus VST3/CLAP plugin hosting), which conflicts with CON-201 and needs a constitution amendment",
+      "BP-037 (Turborepo evaluation), which is tooling rather than a crate and requires a committed Cargo.lock plus npm turbo",
+      "wirekit core itself (BP-005): client, retry, rate limiter, tracing, and google_oauth are consumed from feature/m1-first-publish",
+      "All other provider modules in catalogue/03-14 and 17-28",
+      "Live provider certification, sandbox accounts, partner agreements, and any task requiring a real credential",
+      "Webhook ingestion, dedupe, replay protection, and forwarding, which belong to hookgate (BP-020)",
+      "Quota reservation and ledger state (BP-018, BP-019)",
+      "Persistence, disk caching, reporting rollups, analytics, and dashboards",
+      "Application UI, product nouns, billing rules, and vendor workflow code (CON-106, CON-301)",
+      "Publishing wirekit to crates.io from this feature branch",
+      "Test authoring and test execution (owned by /sdrive:test)"
+    ]
+  },
+  "userStories": [
+    {
+      "id": "US-001",
+      "title": "Import Angi leads without silently dropping one",
+      "role": "developer whose leads arrive from Angi as email or CSV",
+      "want": "a parser that normalizes every lead it can and names the field it could not read",
+      "benefit": "an import neither loses a lead quietly nor breaks without telling me on a template change",
+      "acceptanceCriteria": [
+        {
+          "id": "AC-001",
+          "text": "Given a documented Angi lead email fixture, when AngiLeadParser::parse_email runs, then it returns an AngiLead whose source, contact, address, and received-at are each populated or explicitly absent, and no field is guessed (CON-206)."
+        },
+        {
+          "id": "AC-002",
+          "text": "Given an unknown email template or a record missing a phone number, when parsed, then a structured ParseError naming the offending field is returned, no lead is emitted, and WirekitError::from(parse_error) preserves the field name (CON-207)."
+        },
+        {
+          "id": "AC-003",
+          "text": "Given a CSV export with missing columns, duplicate rows, and one malformed address, when AngiImport runs, then every row yields an outcome of imported, skipped, or failed with its 1-based row number, and the import completes instead of aborting."
+        },
+        {
+          "id": "AC-004",
+          "text": "Given the same lead delivered once with an Angi lead ID and once without, when the dedupe key is computed, then the ID form and the normalized phone plus address plus date form are stable across runs, platforms, and input whitespace."
+        }
+      ]
+    },
+    {
+      "id": "US-002",
+      "title": "Consume Google LSA leads with honest failure",
+      "role": "developer integrating Local Services Ads",
+      "want": "typed lead and booking models with an explicit account-not-approved error",
+      "benefit": "a missing Ads linkage is distinguishable from a bad credential",
+      "acceptanceCriteria": [
+        {
+          "id": "AC-005",
+          "text": "Given a GoogleLsaClient built with an injected token source, when list_leads is called, then exactly one HTTPS request is issued to the configured base URL with a bearer token and typed Lead values are returned, and no raw JSON is exposed to the caller.",
+          "withdrawnReason": "Google publishes only accountReports:search and detailedLeadReports:search in localservices:v1, so there is no lead-list method for this criterion to call.",
+          "withdrawnEvidence": "https://localservices.googleapis.com/$discovery/rest?version=v1 - publishes only accountReports:search and detailedLeadReports:search",
+          "withdrawn": true
+        },
+        {
+          "id": "AC-006",
+          "text": "Given the API answers HTTP 403 because the Ads account is unlinked or unapproved, when the call fails, then the error is the explicit account-not-approved variant rather than a generic auth error, and the response body is redacted in the message.",
+          "withdrawnReason": "With no LSA call available, the 403 account-not-approved branch cannot be produced; the surface it maps is not in the published API.",
+          "withdrawnEvidence": "https://localservices.googleapis.com/$discovery/rest?version=v1 - no lead or booking method is published, so no call can return 403",
+          "withdrawn": true
+        },
+        {
+          "id": "AC-007",
+          "text": "Given HTTP 429 with a Retry-After header, when the request is retried, then the delay honours the header, the attempt count never exceeds the configured maximum, and request start, finish, retry, and error each emit a tracing event (CON-208, CON-211).",
+          "withdrawnReason": "No LSA endpoint exists to exercise, so Retry-After behaviour cannot be verified against this provider; the wirekit core retry policy covers it elsewhere.",
+          "withdrawnEvidence": "https://localservices.googleapis.com/$discovery/rest?version=v1 - only two search methods are published, so no 429 path can be driven against LSA",
+          "withdrawn": true
+        },
+        {
+          "id": "AC-008",
+          "text": "Given a lead status update replayed for the same lead ID, when applied twice, then the second call is idempotent with no duplicate state change and no second mutation request.",
+          "withdrawnReason": "localservices:v1 has no lead-status update method, so there is nothing to replay and the idempotency property cannot be observed.",
+          "withdrawnEvidence": "https://localservices.googleapis.com/$discovery/rest?version=v1 - publishes no lead-status update method",
+          "withdrawn": true
+        },
+        {
+          "id": "AC-009",
+          "text": "Given no Pub/Sub topic or webhook is confirmed for the account, when notification ingestion is invoked, then the module returns an explicit not-configured error instead of assuming a webhook exists."
+        }
+      ]
+    },
+    {
+      "id": "US-003",
+      "title": "Sync Sage Intacct records without a false success",
+      "role": "developer syncing accounting data",
+      "want": "the XML gateway's own status to decide success and the sender password to stay out of every log",
+      "benefit": "a failed post is never recorded as posted and a credential never leaks",
+      "acceptanceCriteria": [
+        {
+          "id": "AC-010",
+          "text": "Given valid sender ID, password, company ID, and endpoint, when a customer is created, then a typed request is built, the gateway success status is parsed, and the returned key is exposed as a typed value rather than a string map."
+        },
+        {
+          "id": "AC-011",
+          "text": "Given the gateway returns HTTP 200 with a non-success status or a non-zero errno, when the call completes, then it returns an error carrying the errno and description and produces no success value (CON-213)."
+        },
+        {
+          "id": "AC-012",
+          "text": "Given the client Debug, Display, tracing output, and every error payload, when inspected, then the sender password never appears and the password type does not implement Serialize (CON-214)."
+        },
+        {
+          "id": "AC-013",
+          "text": "Given a response body exceeding the configured byte ceiling or the configured nesting depth, when parsed, then it is rejected with a typed bound error and no partially built model is returned (CON-515)."
+        },
+        {
+          "id": "AC-014",
+          "text": "Given a create for an external key that already exists, when submitted, then the module queries first and returns the existing record instead of creating a duplicate."
+        },
+        {
+          "id": "AC-015",
+          "text": "Given a business-rule error, when the caller retries, then the retry policy does not resend the unchanged request and emits no retry event for that error class (CON-208)."
+        }
+      ]
+    },
+    {
+      "id": "US-004",
+      "title": "Export payroll and time to ADP without losing hours",
+      "role": "developer exporting approved hours",
+      "want": "per-record outcomes and a reconcile state for timeouts",
+      "benefit": "a payroll run never silently drops hours and never double-submits",
+      "acceptanceCriteria": [
+        {
+          "id": "AC-016",
+          "text": "Given client-credentials configuration, when a token is requested, then it is cached until expiry, reused across calls, and refreshed exactly once after a 401 before the call is failed.",
+          "withdrawnReason": "The adp module was never implemented: partner access was never granted and ADP publishes no machine-readable route reference.",
+          "withdrawnEvidence": "https://developers.adp.com/ - serves a JavaScript shell with no verifiable route reference; partner access never granted",
+          "withdrawn": true
+        },
+        {
+          "id": "AC-017",
+          "text": "Given ADP returns its structured error array, when a call fails, then the mapped error preserves the correlation ID and every returned error code and message.",
+          "withdrawnReason": "No ADP call can be made, so the structured error array cannot be produced or mapped by any implementation.",
+          "withdrawnEvidence": "https://developers.adp.com/ - no verifiable route reference; partner access never granted",
+          "withdrawn": true
+        },
+        {
+          "id": "AC-018",
+          "text": "Given a payroll submission times out, when the call returns, then the outcome is an explicit unknown-outcome state requiring reconciliation and no automatic resubmission occurs (CON-208).",
+          "withdrawnReason": "There is no payroll submission to time out: the module that would return the unknown outcome was never built.",
+          "withdrawnEvidence": "https://developers.adp.com/ - no verifiable route reference; partner access never granted, so adp.rs was never created",
+          "withdrawn": true
+        },
+        {
+          "id": "AC-019",
+          "text": "Given worker records carrying an SSN and pay rates, when formatted with Debug, traced, or included in an error, then those values are redacted and their types do not implement Serialize (CON-214).",
+          "withdrawnReason": "The ADP model types do not exist, so their redaction cannot be tested. Intacct sender-password redaction remains covered by AC-012.",
+          "withdrawnEvidence": "https://developers.adp.com/ - no verifiable route reference; partner access never granted, so adp.rs was never created",
+          "withdrawn": true
+        },
+        {
+          "id": "AC-020",
+          "text": "Given a batch time-card export where two of ten records fail, when the export completes, then the two failures are reported per record with their identifiers, the eight successes are reported as sent, and no hour is silently dropped.",
+          "withdrawnReason": "There is no batch export to report per-record outcomes for, because the ADP module was never built.",
+          "withdrawnEvidence": "https://developers.adp.com/ - no verifiable route reference; partner access never granted, so adp.rs was never created",
+          "withdrawn": true
+        },
+        {
+          "id": "AC-021",
+          "text": "Given two tenants using the same module concurrently, when either tenant calls, then no credential, cached token, or cached response belonging to the other tenant is observable.",
+          "withdrawnReason": "This criterion was scoped to the ADP module, which was never built. Two-tenant isolation is exercised by T6.1 on the modules that do exist.",
+          "withdrawnEvidence": "https://developers.adp.com/ - no verifiable route reference; partner access never granted, so adp.rs was never created",
+          "withdrawn": true
+        }
+      ]
+    },
+    {
+      "id": "US-005",
+      "title": "Enable one module without paying for the other three",
+      "role": "developer who needs only one provider",
+      "want": "each module behind its own additive feature and exercisable without live credentials",
+      "benefit": "I do not compile four providers or wait for partner access to use one",
+      "acceptanceCriteria": [
+        {
+          "id": "AC-022",
+          "text": "Given wirekit built with no provider features, when it compiles, then none of the four modules is present and the dependency set is unchanged from the BP-005 baseline (CON-204)."
+        },
+        {
+          "id": "AC-023",
+          "text": "Given each feature alone, when cargo check -p wirekit --no-default-features --features module runs for angi, google-lsa, sage-intacct, and adp, then each compiles without pulling another module's dependencies."
+        },
+        {
+          "id": "AC-024",
+          "text": "Given the workspace, when cargo fmt --all --check, cargo clippy -p wirekit --all-features -- -D warnings, and cargo doc -p wirekit --all-features --no-deps run, then all pass while forbid(unsafe_code) and deny(missing_docs) remain in force (CON-201, CON-202)."
+        },
+        {
+          "id": "AC-025",
+          "text": "Given a provider whose access is unconfirmed, when the client is constructed with a sandbox base-URL override, then every documented call path is reachable and returns typed values or typed errors without any live credential."
+        }
+      ]
+    },
+    {
+      "id": "US-006",
+      "title": "Read Local Services Ads performance without pretending to mutate it",
+      "role": "developer integrating Local Services Ads",
+      "want": "typed account and lead reports over the documented search methods",
+      "benefit": "I can build reporting on contracts that actually exist",
+      "acceptanceCriteria": [
+        {
+          "id": "AC-026",
+          "text": "Given a manager customer id and an inclusive date range, when account_reports runs, then it issues GET v1/accountReports:search with query=manager_customer_id:<id> and the documented date parameters, and returns a typed AccountReportsPage carrying any next-page token."
+        },
+        {
+          "id": "AC-027",
+          "text": "Given the same inputs, when detailed_lead_reports runs, then it issues GET v1/detailedLeadReports:search and returns typed DetailedLeadReport rows with their message or phone detail intact."
+        },
+        {
+          "id": "AC-028",
+          "text": "Given the API answers HTTP 403, when either search is called, then the error carries the stable code LOCALSERVICES_ACCOUNT_NOT_APPROVED rather than a generic authentication failure."
+        },
+        {
+          "id": "AC-029",
+          "text": "Given neither a manager customer id nor an explicit query, when a search is attempted, then it fails with a typed configuration error before any request is sent."
+        }
+      ]
+    }
+  ],
+  "functionalRequirements": [
+    {
+      "id": "FR-001",
+      "text": "wirekit MUST provide angi::{AngiLead, AngiLeadParser, AngiImport} behind an additive angi feature, and MUST NOT add an HTTP client for Angi because no public API exists.",
+      "linkedAcceptanceCriteria": [
+        "AC-001",
+        "AC-022",
+        "AC-023"
+      ]
+    },
+    {
+      "id": "FR-002",
+      "text": "AngiLeadParser MUST parse the documented Angi lead email templates into AngiLead and MUST NOT drop a lead silently; an unrecognised template or a missing required field MUST return a structured ParseError naming the offending field (CON-206).",
+      "linkedAcceptanceCriteria": [
+        "AC-001",
+        "AC-002"
+      ]
+    },
+    {
+      "id": "FR-003",
+      "text": "AngiImport MUST import a CSV export through an explicit header mapping and MUST report one outcome per row - imported, skipped, or failed - with the 1-based row number, completing the import even when individual rows fail.",
+      "linkedAcceptanceCriteria": [
+        "AC-003"
+      ]
+    },
+    {
+      "id": "FR-004",
+      "text": "The module MUST compute a deterministic dedupe key: the Angi lead ID when present, otherwise the normalized phone, address, and received date, stable across whitespace and formatting differences.",
+      "linkedAcceptanceCriteria": [
+        "AC-004"
+      ]
+    },
+    {
+      "id": "FR-005",
+      "text": "Partner webhook verification MUST verify a shared-secret signature over the raw request bytes (CON-215) and MUST be exposed only as an optional capability; when no partner feed is provisioned the module MUST return an explicit not-supported error rather than pretend to poll.",
+      "linkedAcceptanceCriteria": [
+        "AC-009"
+      ]
+    },
+    {
+      "id": "FR-006",
+      "text": "wirekit MUST provide google_lsa::GoogleLsaClient behind an additive google-lsa feature, constructed from an account ID, a base URL, and an injected OAuth2 token source, reusing wirekit::google_oauth for refresh (CON-212).",
+      "linkedAcceptanceCriteria": [
+        "AC-005",
+        "AC-023"
+      ]
+    },
+    {
+      "id": "FR-007",
+      "text": "The module MUST provide typed Lead, Booking, and LeadStatus models covering the catalogue's lead type, contact, job details, booking status, and attribution.",
+      "linkedAcceptanceCriteria": [
+        "AC-005"
+      ]
+    },
+    {
+      "id": "FR-008",
+      "text": "The client MUST expose list leads, get lead, update lead status, and report booking, and MUST NOT expose untyped JSON to the caller.",
+      "linkedAcceptanceCriteria": [
+        "AC-005"
+      ]
+    },
+    {
+      "id": "FR-009",
+      "text": "The module MUST map the Google error envelope into WirekitError::Api and MUST surface HTTP 403 as an explicit account-not-linked-or-unapproved variant, because that is the expected failure when access is unresolved.",
+      "linkedAcceptanceCriteria": [
+        "AC-006"
+      ]
+    },
+    {
+      "id": "FR-010",
+      "text": "The module MUST apply the shared retry and rate-limit contract: exponential backoff with jitter, three attempts by default, retry on 429 and 5xx only, honour Retry-After, and a per-provider token bucket (CON-208, CON-209).",
+      "linkedAcceptanceCriteria": [
+        "AC-007"
+      ]
+    },
+    {
+      "id": "FR-011",
+      "text": "The module MUST dedupe by lead ID and MUST make lead-status updates idempotent by lead, and MUST NOT assume a webhook: Pub/Sub or polling ingestion MUST be an explicit, account-specific configuration that returns a not-configured error when absent.",
+      "linkedAcceptanceCriteria": [
+        "AC-008",
+        "AC-009"
+      ]
+    },
+    {
+      "id": "FR-012",
+      "text": "wirekit MUST provide sage_intacct::SageIntacctClient behind an additive sage-intacct feature, constructed from a sender ID, a password, a company ID, and an endpoint.",
+      "linkedAcceptanceCriteria": [
+        "AC-010",
+        "AC-023"
+      ]
+    },
+    {
+      "id": "FR-013",
+      "text": "The module MUST provide typed Customer, Invoice, JournalEntry, and ReportRequest models and MUST scope v1 to create or update customer, create invoice, create journal entry, read by key, and standard report invocation - it MUST NOT attempt the full XML schema.",
+      "linkedAcceptanceCriteria": [
+        "AC-010"
+      ]
+    },
+    {
+      "id": "FR-014",
+      "text": "The module MUST parse the XML gateway result and MUST derive success from its status and errno, never from the HTTP status alone (CON-213).",
+      "linkedAcceptanceCriteria": [
+        "AC-011"
+      ]
+    },
+    {
+      "id": "FR-015",
+      "text": "The sender password MUST be held in the wirekit secret type, MUST be redacted in Debug, Display, tracing, and error payloads, and its type MUST NOT implement Serialize (CON-214).",
+      "linkedAcceptanceCriteria": [
+        "AC-012"
+      ]
+    },
+    {
+      "id": "FR-016",
+      "text": "The module MUST bound XML response size and nesting depth by configuration and MUST reject documents exceeding either bound with a typed error (CON-515).",
+      "linkedAcceptanceCriteria": [
+        "AC-013"
+      ]
+    },
+    {
+      "id": "FR-017",
+      "text": "Create operations MUST be idempotent by caller-supplied external key: the module queries before creating and returns the existing record when the key is already present.",
+      "linkedAcceptanceCriteria": [
+        "AC-014"
+      ]
+    },
+    {
+      "id": "FR-018",
+      "text": "The module MUST NOT retry business-rule errors, and because the classic gateway has no webhooks it MUST document polling or reconciliation as the caller's responsibility instead of inventing an event stream.",
+      "linkedAcceptanceCriteria": [
+        "AC-015"
+      ]
+    },
+    {
+      "id": "FR-019",
+      "text": "wirekit MUST provide adp::AdpClient behind an additive adp feature, authenticating with OAuth2 client credentials, caching the token until expiry, and refreshing it exactly once after a 401.",
+      "linkedAcceptanceCriteria": [
+        "AC-016",
+        "AC-023"
+      ]
+    },
+    {
+      "id": "FR-020",
+      "text": "The module MUST provide typed Employee, TimeCard, PayrollRun, and PayrollReport models, and MUST scope v1 to list workers, create or update time cards, list payroll runs, and export a payroll report.",
+      "linkedAcceptanceCriteria": [
+        "AC-020"
+      ]
+    },
+    {
+      "id": "FR-021",
+      "text": "The module MUST map ADP's structured error array into WirekitError::Api and MUST preserve the correlation ID plus every returned code and message (CON-213).",
+      "linkedAcceptanceCriteria": [
+        "AC-017"
+      ]
+    },
+    {
+      "id": "FR-022",
+      "text": "The module MUST NOT blindly retry a payroll submission: after a timeout it MUST return an unknown-outcome state that requires reconciliation, and it MUST support a caller-supplied client reference so a resubmission is identifiable (CON-208).",
+      "linkedAcceptanceCriteria": [
+        "AC-018"
+      ]
+    },
+    {
+      "id": "FR-023",
+      "text": "The module MUST redact SSNs and pay rates in Debug, Display, tracing, and error payloads, and their types MUST NOT implement Serialize (CON-214).",
+      "linkedAcceptanceCriteria": [
+        "AC-019"
+      ]
+    },
+    {
+      "id": "FR-024",
+      "text": "Batch export MUST report a per-record outcome so that a partial failure lists the failed records by identifier and never drops hours silently.",
+      "linkedAcceptanceCriteria": [
+        "AC-020"
+      ]
+    },
+    {
+      "id": "FR-025",
+      "text": "Every module MUST be an additive, default-off Cargo feature named angi, google-lsa, sage-intacct, and adp, MUST NOT disable another feature when enabled, and MUST be documented in the crate README (CON-204).",
+      "linkedAcceptanceCriteria": [
+        "AC-022",
+        "AC-023"
+      ]
+    },
+    {
+      "id": "FR-026",
+      "text": "Every failure MUST map into WirekitError; the Angi ParseError MUST convert into it through From, preserving the offending field, and no module may introduce a second top-level error type (CON-207).",
+      "linkedAcceptanceCriteria": [
+        "AC-002",
+        "AC-006",
+        "AC-011",
+        "AC-017"
+      ]
+    },
+    {
+      "id": "FR-027",
+      "text": "No module may add an application domain type, product noun, billing rule, or global mutable singleton; clients MUST be constructed and injected (CON-106, CON-109).",
+      "linkedAcceptanceCriteria": [
+        "AC-021"
+      ]
+    },
+    {
+      "id": "FR-028",
+      "text": "The four modules MUST live inside wirekit; no new crate may be added to the workspace for any of them (CON-103, CON-104).",
+      "linkedAcceptanceCriteria": [
+        "AC-022"
+      ]
+    },
+    {
+      "id": "FR-029",
+      "text": "Each module file MUST open with a //! comment stating its scope and non-goals, and every new public item MUST carry rustdoc (CON-202, CON-203).",
+      "linkedAcceptanceCriteria": [
+        "AC-024"
+      ]
+    },
+    {
+      "id": "FR-030",
+      "text": "Every module that talks to a live endpoint MUST accept a configurable base URL so it can be pointed at a sandbox; the default MUST be the documented production endpoint, and a non-HTTPS override MUST be rejected (CON-520).",
+      "linkedAcceptanceCriteria": [
+        "AC-025"
+      ]
+    },
+    {
+      "id": "FR-031",
+      "text": "google_lsa MUST implement accountReports:search and detailedLeadReports:search with the documented query and date parameters, and MUST expose pagination through the response's next-page token.",
+      "linkedAcceptanceCriteria": [
+        "AC-026",
+        "AC-027"
+      ]
+    },
+    {
+      "id": "FR-032",
+      "text": "google_lsa MUST NOT expose a lead-status update, a booking report, or a notification-ingestion surface, because the published API defines none; adding one MUST wait for Google to publish it.",
+      "linkedAcceptanceCriteria": [
+        "AC-028"
+      ]
+    },
+    {
+      "id": "FR-033",
+      "text": "google_lsa MUST send the OAuth2 bearer token from a caller-supplied Secret and MUST use the single documented scope https://www.googleapis.com/auth/adwords.",
+      "linkedAcceptanceCriteria": [
+        "AC-029"
+      ]
+    }
+  ],
+  "nonFunctionalRequirements": [
+    {
+      "id": "NFR-001",
+      "text": "Credentials MUST be supplied by the caller at construction time; no key, token, password, or company ID may be embedded, defaulted, or logged (CON-511, CON-519).",
+      "linkedAcceptanceCriteria": [
+        "AC-012",
+        "AC-016",
+        "AC-025"
+      ]
+    },
+    {
+      "id": "NFR-002",
+      "text": "Tenant isolation MUST be structural: a client instance holds one tenant's credentials and MUST NOT share cached tokens, cached responses, or connection state across tenants (CON-512).",
+      "linkedAcceptanceCriteria": [
+        "AC-021"
+      ]
+    },
+    {
+      "id": "NFR-003",
+      "text": "Each module MUST use a per-provider token bucket with caller override and MUST emit a tracing metric on a rate-limit hit (CON-209, CON-514).",
+      "linkedAcceptanceCriteria": [
+        "AC-007"
+      ]
+    },
+    {
+      "id": "NFR-004",
+      "text": "Every untrusted input - email body, CSV row, JSON lead, XML result, ADP error array - MUST be validated and MUST produce a typed error rather than a panic, an unwrap, or a silent default (CON-515).",
+      "linkedAcceptanceCriteria": [
+        "AC-002",
+        "AC-003",
+        "AC-013",
+        "AC-017"
+      ]
+    },
+    {
+      "id": "NFR-005",
+      "text": "Every outbound request MUST emit tracing events for start, finish with duration, retry, rate-limit hit, and error, and MUST NOT record secret or personal fields (CON-211, CON-214).",
+      "linkedAcceptanceCriteria": [
+        "AC-007",
+        "AC-012",
+        "AC-019"
+      ]
+    },
+    {
+      "id": "NFR-006",
+      "text": "Retries MUST be exponential with jitter and bounded to three attempts by default, retrying only 5xx, 429, and network errors, and honouring Retry-After (CON-208).",
+      "linkedAcceptanceCriteria": [
+        "AC-007",
+        "AC-015",
+        "AC-018"
+      ]
+    },
+    {
+      "id": "NFR-007",
+      "text": "Memory per call MUST stay bounded by configuration: the Intacct XML body ceiling, the Angi CSV row and file ceiling, and the LSA and ADP response ceiling MUST each be enforced before allocation grows without limit.",
+      "linkedAcceptanceCriteria": [
+        "AC-013"
+      ]
+    },
+    {
+      "id": "NFR-008",
+      "text": "The crate MUST keep forbid(unsafe_code) and deny(missing_docs), and no module may request an unsafe exception (CON-201, CON-202).",
+      "linkedAcceptanceCriteria": [
+        "AC-024"
+      ]
+    },
+    {
+      "id": "NFR-009",
+      "text": "The feature MUST build on Rust 1.85 with edition 2021, and each feature MUST compile independently under --no-default-features (CON-102, CON-204).",
+      "linkedAcceptanceCriteria": [
+        "AC-022",
+        "AC-023",
+        "AC-024"
+      ]
+    },
+    {
+      "id": "NFR-010",
+      "text": "The feature MUST add no runtime, no async runtime choice, and no new global state; blocking versus async MUST follow whatever wirekit core already exposes from BP-005.",
+      "linkedAcceptanceCriteria": [
+        "AC-022"
+      ]
+    },
+    {
+      "id": "NFR-011",
+      "text": "Security Baseline CON-516 (NoSQL and injection protection) is NOT APPLICABLE because none of these four modules owns a database, cache, or query surface; every other REQUIRED control (CON-511, CON-512, CON-514, CON-515, CON-519, CON-520) is expanded as NFR-001 through NFR-008.",
+      "linkedAcceptanceCriteria": [
+        "AC-021",
+        "AC-025"
+      ]
+    },
+    {
+      "id": "NFR-012",
+      "text": "google_lsa MUST never render the bearer token in Debug, tracing, or an error payload, and MUST NOT implement Serialize for it (CON-214).",
+      "linkedAcceptanceCriteria": [
+        "AC-028"
+      ]
+    }
+  ],
+  "edgeCases": [
+    {
+      "id": "EC-001",
+      "description": "Angi email uses an unknown template",
+      "expectedBehavior": "Structured ParseError naming the field; no lead emitted and no partial record."
+    },
+    {
+      "id": "EC-002",
+      "description": "Angi CSV is missing a required column",
+      "expectedBehavior": "Import fails with a header error before any row is processed; no partial import is reported as complete."
+    },
+    {
+      "id": "EC-003",
+      "description": "Angi CSV row is malformed",
+      "expectedBehavior": "That row fails with its 1-based row number, remaining rows continue, and the summary counts the failure."
+    },
+    {
+      "id": "EC-004",
+      "description": "Angi webhook is called with no partner feed provisioned",
+      "expectedBehavior": "Explicit not-supported error; no signature is verified optimistically."
+    },
+    {
+      "id": "EC-005",
+      "description": "Angi duplicate lead arrives with no lead ID",
+      "expectedBehavior": "Dedupe by normalized phone plus address plus date, not by insertion order."
+    },
+    {
+      "id": "EC-006",
+      "description": "LSA returns 403 for an unlinked Ads account",
+      "expectedBehavior": "Explicit account-not-approved error with a redacted body."
+    },
+    {
+      "id": "EC-007",
+      "description": "LSA returns 429 with Retry-After longer than the configured timeout",
+      "expectedBehavior": "Typed rate-limit error instead of sleeping past the call deadline."
+    },
+    {
+      "id": "EC-008",
+      "description": "LSA lead status update is replayed",
+      "expectedBehavior": "Idempotent no-op; no second mutation request."
+    },
+    {
+      "id": "EC-009",
+      "description": "Intacct returns HTTP 200 with status failure",
+      "expectedBehavior": "Error carrying errno and description; no success value is produced."
+    },
+    {
+      "id": "EC-010",
+      "description": "Intacct response exceeds the byte ceiling or the depth ceiling",
+      "expectedBehavior": "Typed bound error; no partial model is returned."
+    },
+    {
+      "id": "EC-011",
+      "description": "Intacct create for an external key that already exists",
+      "expectedBehavior": "Returns the existing record; no duplicate is created."
+    },
+    {
+      "id": "EC-012",
+      "description": "Intacct sender password appears in a configuration struct",
+      "expectedBehavior": "Redacted in Debug; the type does not implement Serialize."
+    },
+    {
+      "id": "EC-013",
+      "description": "ADP token expires mid-batch",
+      "expectedBehavior": "One refresh, then the in-flight call retries once; a second 401 fails the call."
+    },
+    {
+      "id": "EC-014",
+      "description": "ADP payroll submission times out",
+      "expectedBehavior": "Unknown-outcome state returned for reconciliation; no automatic resubmission."
+    },
+    {
+      "id": "EC-015",
+      "description": "ADP error array carries three errors",
+      "expectedBehavior": "All three survive mapping with their codes; none is collapsed into one message."
+    },
+    {
+      "id": "EC-016",
+      "description": "ADP batch export partially fails",
+      "expectedBehavior": "Per-record outcomes; failed records are listed and successful ones are not resent."
+    },
+    {
+      "id": "EC-017",
+      "description": "Base URL override uses http scheme",
+      "expectedBehavior": "Rejected at construction with a typed error (CON-520)."
+    },
+    {
+      "id": "EC-018",
+      "description": "Feature is enabled twice through the dependency graph",
+      "expectedBehavior": "Additive features compose; no compile error and no behaviour change."
+    },
+    {
+      "id": "EC-019",
+      "description": "localservices answers HTTP 403",
+      "expectedBehavior": "LOCALSERVICES_ACCOUNT_NOT_APPROVED; the shared policy does not retry it."
+    },
+    {
+      "id": "EC-020",
+      "description": "A search response body does not match the typed page",
+      "expectedBehavior": "WirekitError::Decode naming the resource; never a partial page."
+    },
+    {
+      "id": "EC-021",
+      "description": "A caller supplies a non-HTTPS sandbox base URL",
+      "expectedBehavior": "Rejected at construction (CON-520)."
+    }
+  ],
+  "dependencies": [
+    {
+      "name": "wirekit core (BP-005)",
+      "type": "internal",
+      "notes": "Not on main; present on feature/m1-first-publish. Required before any task in this feature can compile."
+    },
+    {
+      "name": "wirekit::google_oauth",
+      "type": "internal",
+      "notes": "Not on main; reused for LSA token refresh (CON-212) and not re-implemented."
+    },
+    {
+      "name": "wirekit secret type and WirekitError",
+      "type": "internal",
+      "notes": "Not on main; reused by Intacct, ADP, and the Angi From conversion."
+    },
+    {
+      "name": "Provider HTTP and JSON stack from BP-005",
+      "type": "library",
+      "notes": "Whatever wirekit core exposes; this feature adds none of it."
+    },
+    {
+      "name": "XML parsing for Intacct",
+      "type": "library",
+      "notes": "[to be confirmed] - no library is chosen in the specification; the Gate 2 plan records the choice and its licence."
+    },
+    {
+      "name": "CSV parsing for Angi imports",
+      "type": "library",
+      "notes": "[to be confirmed] - decided at Gate 2, not in the specification."
+    },
+    {
+      "name": "Google Ads / LSA access",
+      "type": "external",
+      "notes": "needs discovery; gates live use only, no requirement here depends on it."
+    },
+    {
+      "name": "Sage Intacct partner agreement",
+      "type": "external",
+      "notes": "needs discovery; gates live use only."
+    },
+    {
+      "name": "ADP partner or enterprise access",
+      "type": "external",
+      "notes": "needs discovery; product family (Workforce Now or Vantage) [to be confirmed]."
+    },
+    {
+      "name": "Angi partner feed or webhook",
+      "type": "external",
+      "notes": "needs discovery; absent by default and the module must stay honest without it."
+    }
+  ],
+  "risks": [
+    {
+      "id": "RISK-001",
+      "description": "m1-first-publish never archives, so this feature is specified but unbuildable.",
+      "mitigation": "Implementation is explicitly blocked on BP-005; the spec states the dependency instead of duplicating wirekit core."
+    },
+    {
+      "id": "RISK-002",
+      "description": "Partner access is denied for LSA, ADP, or Intacct.",
+      "mitigation": "Keep the contract and sandbox path specified and mark the live gate in the backlog rather than faking an integration (roadmap G2)."
+    },
+    {
+      "id": "RISK-003",
+      "description": "Angi changes its email templates and the parser silently degrades.",
+      "mitigation": "FR-002 and EC-001 require a field-named failure and forbid silent drops."
+    },
+    {
+      "id": "RISK-004",
+      "description": "The Intacct XML schema is large enough to absorb unlimited effort.",
+      "mitigation": "FR-013 fixes the v1 surface at three entities plus read-by-key and report invocation."
+    },
+    {
+      "id": "RISK-005",
+      "description": "XML parsing becomes a memory or CPU denial-of-service surface.",
+      "mitigation": "FR-016 and NFR-007 bound bytes and depth before parsing completes."
+    },
+    {
+      "id": "RISK-006",
+      "description": "A payroll timeout is retried and double-pays.",
+      "mitigation": "FR-022 and EC-014 require an unknown-outcome state plus a caller-supplied client reference."
+    },
+    {
+      "id": "RISK-007",
+      "description": "Personal or secret data reaches logs through a derived Debug.",
+      "mitigation": "FR-015, FR-023, NFR-005, AC-012, and AC-019 require redaction and forbid Serialize on those types."
+    },
+    {
+      "id": "RISK-008",
+      "description": "Four modules turn wirekit into a framework.",
+      "mitigation": "FR-025 to FR-028 keep them feature-flagged, error-consistent, and inside one crate with no store and no singleton (CON-103, CON-107)."
+    }
+  ]
+}

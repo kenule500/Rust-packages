@@ -1,0 +1,653 @@
+{
+  "feature": "m5-gated-integrations",
+  "version": 1,
+  "phases": [
+    {
+      "phaseId": "P0",
+      "name": "Preconditions",
+      "dependencies": [],
+      "tasks": [
+        {
+          "id": "T0.1",
+          "title": "Confirm wirekit core exists on the base branch",
+          "description": "Check for crates/wirekit/Cargo.toml with WirekitClient, WirekitError, retry, rate limit, tracing, and google_oauth. If absent, stop and report the feature as blocked on BP-005.",
+          "linkedRequirements": [
+            "FR-028",
+            "NFR-010"
+          ],
+          "linkedAcceptanceCriteria": [
+            "AC-022"
+          ],
+          "completed": true
+        },
+        {
+          "id": "T0.2",
+          "title": "Confirm the XML and CSV dependency choices",
+          "description": "Record quick-xml and csv with pinned versions and a confirmed MIT OR Apache-2.0 compatible licence before either is added.",
+          "linkedRequirements": [
+            "FR-025"
+          ],
+          "linkedAcceptanceCriteria": [
+            "AC-023"
+          ],
+          "completed": true
+        }
+      ]
+    },
+    {
+      "phaseId": "P1",
+      "name": "Feature scaffolding",
+      "dependencies": [
+        "P0"
+      ],
+      "tasks": [
+        {
+          "id": "T1.1",
+          "title": "Add the four module features to Cargo.toml",
+          "description": "Add angi, google-lsa, sage-intacct, and adp as additive default-off features with optional dep: dependencies. Enabling one must not enable another.",
+          "linkedRequirements": [
+            "FR-025"
+          ],
+          "linkedAcceptanceCriteria": [
+            "AC-022",
+            "AC-023"
+          ],
+          "completed": true
+        },
+        {
+          "id": "T1.2",
+          "title": "Create and register the four module files",
+          "description": "Add src/angi.rs, src/google_lsa.rs, src/sage_intacct.rs, and src/adp.rs behind cfg(feature), each opening with a //! comment stating scope and non-goals.",
+          "linkedRequirements": [
+            "FR-029",
+            "FR-028"
+          ],
+          "linkedAcceptanceCriteria": [
+            "AC-024"
+          ],
+          "completed": false,
+          "resolution": {
+            "kind": "superseded",
+            "reason": "Scope reduced from four modules to three; the angi, google_lsa and sage_intacct files were created and registered, and adp was descoped",
+            "at": "2026-10-29"
+          }
+        },
+        {
+          "id": "T1.3",
+          "title": "Document the features in the crate README",
+          "description": "List each feature, what it adds, and whether it needs network access.",
+          "linkedRequirements": [
+            "FR-025"
+          ],
+          "linkedAcceptanceCriteria": [
+            "AC-022"
+          ],
+          "completed": true
+        }
+      ]
+    },
+    {
+      "phaseId": "P2",
+      "name": "Angi module",
+      "dependencies": [
+        "P1"
+      ],
+      "tasks": [
+        {
+          "id": "T2.1",
+          "title": "Define AngiLead and the dedupe key",
+          "description": "Model the catalogue fields and implement a deterministic dedupe key: lead ID when present, otherwise normalized phone plus address plus date.",
+          "linkedRequirements": [
+            "FR-004"
+          ],
+          "linkedAcceptanceCriteria": [
+            "AC-004"
+          ],
+          "completed": true
+        },
+        {
+          "id": "T2.2",
+          "title": "Define ParseError and its WirekitError conversion",
+          "description": "ParseError exposes the offending field and reason, and converts into WirekitError through From without losing the field name.",
+          "linkedRequirements": [
+            "FR-002",
+            "FR-026"
+          ],
+          "linkedAcceptanceCriteria": [
+            "AC-002"
+          ],
+          "completed": true
+        },
+        {
+          "id": "T2.3",
+          "title": "Implement the email template parser",
+          "description": "Parse the documented templates into AngiLead; return ParseError for an unknown template or a missing required field and never emit a partial lead.",
+          "linkedRequirements": [
+            "FR-002"
+          ],
+          "linkedAcceptanceCriteria": [
+            "AC-001",
+            "AC-002"
+          ],
+          "completed": true
+        },
+        {
+          "id": "T2.4",
+          "title": "Implement CSV import with per-row outcomes",
+          "description": "AngiImport takes an explicit header mapping and yields one outcome per row with a 1-based row number; a missing column fails before any row is processed.",
+          "linkedRequirements": [
+            "FR-003"
+          ],
+          "linkedAcceptanceCriteria": [
+            "AC-003"
+          ],
+          "completed": true
+        },
+        {
+          "id": "T2.5",
+          "title": "Implement optional partner webhook verification",
+          "description": "Verify a shared-secret signature over the raw request bytes only, and return an explicit not-supported error when no partner feed is provisioned.",
+          "linkedRequirements": [
+            "FR-005"
+          ],
+          "linkedAcceptanceCriteria": [
+            "AC-009"
+          ],
+          "completed": true
+        },
+        {
+          "id": "T2.6",
+          "title": "Confirm no HTTP client was added for Angi",
+          "description": "The angi feature compiles alone and references no provider URL or HTTP client, because Angi has no public API.",
+          "linkedRequirements": [
+            "FR-001"
+          ],
+          "linkedAcceptanceCriteria": [
+            "AC-001",
+            "AC-022"
+          ],
+          "completed": true
+        }
+      ]
+    },
+    {
+      "phaseId": "P3",
+      "name": "Google LSA module",
+      "dependencies": [
+        "P1"
+      ],
+      "tasks": [
+        {
+          "id": "T3.1",
+          "title": "Implement GoogleLsaClient construction",
+          "description": "Take an account ID, a base URL, and an injected token source, and reuse wirekit::google_oauth for refresh (CON-212).",
+          "linkedRequirements": [
+            "FR-006"
+          ],
+          "linkedAcceptanceCriteria": [
+            "AC-005"
+          ],
+          "completed": true
+        },
+        {
+          "id": "T3.2",
+          "title": "Define the LSA models",
+          "description": "Type Lead, Booking, and LeadStatus from the catalogue fields; no raw JSON reaches the caller.",
+          "linkedRequirements": [
+            "FR-007"
+          ],
+          "linkedAcceptanceCriteria": [
+            "AC-005"
+          ],
+          "completed": true
+        },
+        {
+          "id": "T3.3",
+          "resolution": {
+            "kind": "superseded",
+            "reason": "The published localservices:v1 discovery document defines no lead-status or booking method",
+            "at": "2026-10-29"
+          },
+          "title": "Implement list, get, update status, and report booking",
+          "description": "Confirm provider paths from documentation before implementing, and return typed values from all four calls.",
+          "linkedRequirements": [
+            "FR-008"
+          ],
+          "linkedAcceptanceCriteria": [
+            "AC-005"
+          ],
+          "completed": false
+        },
+        {
+          "id": "T3.4",
+          "resolution": {
+            "kind": "superseded",
+            "reason": "The 403 account-not-approved branch belongs to the lead surface, which localservices:v1 does not publish.",
+            "at": "2026-10-29"
+          },
+          "title": "Map the Google error envelope and the 403 case",
+          "description": "Map into WirekitError::Api and surface HTTP 403 as the explicit account-not-linked-or-unapproved variant with a redacted body.",
+          "linkedRequirements": [
+            "FR-009",
+            "FR-026"
+          ],
+          "linkedAcceptanceCriteria": [
+            "AC-006"
+          ],
+          "completed": false
+        },
+        {
+          "id": "T3.5",
+          "resolution": {
+            "kind": "superseded",
+            "reason": "No LSA endpoint remains to exercise the per-provider rate-limit bucket; the wirekit core retry and rate-limit policy is already tested.",
+            "at": "2026-10-29"
+          },
+          "title": "Wire retry and the per-provider rate-limit bucket",
+          "description": "Use the core retry policy (three attempts, 5xx/429/network, Retry-After honoured) and a per-provider token bucket with tracing on a hit.",
+          "linkedRequirements": [
+            "FR-010",
+            "NFR-003"
+          ],
+          "linkedAcceptanceCriteria": [
+            "AC-007"
+          ],
+          "completed": false
+        },
+        {
+          "id": "T3.6",
+          "title": "Make status updates idempotent and notifications explicit",
+          "description": "A replayed status update produces no second mutation, and a missing Pub/Sub or webhook configuration returns a not-configured error.",
+          "linkedRequirements": [
+            "FR-011"
+          ],
+          "linkedAcceptanceCriteria": [
+            "AC-008",
+            "AC-009"
+          ],
+          "completed": false,
+          "resolution": {
+            "kind": "superseded",
+            "reason": "The published localservices:v1 discovery document defines no lead-status or booking method",
+            "at": "2026-10-29"
+          }
+        }
+      ]
+    },
+    {
+      "phaseId": "P4",
+      "name": "Sage Intacct module",
+      "dependencies": [
+        "P1"
+      ],
+      "tasks": [
+        {
+          "id": "T4.1",
+          "title": "Implement SageIntacctClient and its configuration",
+          "description": "Sender ID, company ID, endpoint, and a password held in the wirekit secret type, redacted in Debug and never Serialize.",
+          "linkedRequirements": [
+            "FR-012",
+            "FR-015"
+          ],
+          "linkedAcceptanceCriteria": [
+            "AC-010",
+            "AC-012"
+          ],
+          "completed": true
+        },
+        {
+          "id": "T4.2",
+          "title": "Define the Intacct request models",
+          "description": "Customer, Invoice, JournalEntry, and ReportRequest, limited to create or update customer, create invoice, create journal entry, read by key, and report invocation.",
+          "linkedRequirements": [
+            "FR-013"
+          ],
+          "linkedAcceptanceCriteria": [
+            "AC-010"
+          ],
+          "completed": false,
+          "resolution": {
+            "kind": "superseded",
+            "reason": "Intacct shipped a documented generic call() instead of named Customer/Invoice/JournalEntry models",
+            "at": "2026-10-29"
+          }
+        },
+        {
+          "id": "T4.3",
+          "title": "Parse the gateway result instead of the HTTP status",
+          "description": "Derive success from status and errno; HTTP 200 with a failure status returns an error carrying both values.",
+          "linkedRequirements": [
+            "FR-014"
+          ],
+          "linkedAcceptanceCriteria": [
+            "AC-011"
+          ],
+          "completed": true
+        },
+        {
+          "id": "T4.4",
+          "title": "Enforce XML input bounds",
+          "description": "Configuration-driven byte ceiling and nesting depth; exceeding either returns a typed bound error with no partial model.",
+          "linkedRequirements": [
+            "FR-016",
+            "NFR-007"
+          ],
+          "linkedAcceptanceCriteria": [
+            "AC-013"
+          ],
+          "completed": true
+        },
+        {
+          "id": "T4.5",
+          "title": "Make creates idempotent by external key",
+          "description": "Query before create and return the existing record when the external key is already present.",
+          "linkedRequirements": [
+            "FR-017"
+          ],
+          "linkedAcceptanceCriteria": [
+            "AC-014"
+          ],
+          "completed": true
+        },
+        {
+          "id": "T4.6",
+          "title": "Classify business errors as non-retryable",
+          "description": "A business-rule error is not resent unchanged, emits no retry event, and polling or reconciliation is documented as the caller's responsibility.",
+          "linkedRequirements": [
+            "FR-018",
+            "NFR-006"
+          ],
+          "linkedAcceptanceCriteria": [
+            "AC-015"
+          ],
+          "completed": true
+        }
+      ]
+    },
+    {
+      "phaseId": "P5",
+      "name": "ADP module",
+      "dependencies": [
+        "P1"
+      ],
+      "tasks": [
+        {
+          "id": "T5.1",
+          "resolution": {
+            "kind": "deferred",
+            "reason": "ADP partner access was never granted and developers.adp.com publishes no machine-readable API contract, so no route could be verified",
+            "at": "2026-10-29"
+          },
+          "title": "Implement AdpClient with a cached client-credentials token",
+          "description": "Cache the token until expiry and refresh it exactly once after a 401 before failing the call.",
+          "linkedRequirements": [
+            "FR-019"
+          ],
+          "linkedAcceptanceCriteria": [
+            "AC-016"
+          ],
+          "completed": false
+        },
+        {
+          "id": "T5.2",
+          "resolution": {
+            "kind": "deferred",
+            "reason": "ADP partner access was never granted and developers.adp.com publishes no machine-readable API contract, so no route could be verified",
+            "at": "2026-10-29"
+          },
+          "title": "Define the ADP models",
+          "description": "Employee, TimeCard, PayrollRun, and PayrollReport, limited to list workers, create or update time cards, list payroll runs, and export a payroll report.",
+          "linkedRequirements": [
+            "FR-020"
+          ],
+          "linkedAcceptanceCriteria": [
+            "AC-020"
+          ],
+          "completed": false
+        },
+        {
+          "id": "T5.3",
+          "resolution": {
+            "kind": "deferred",
+            "reason": "ADP partner access was never granted and developers.adp.com publishes no machine-readable API contract, so no route could be verified",
+            "at": "2026-10-29"
+          },
+          "title": "Map the ADP error array",
+          "description": "Preserve the correlation ID plus every returned code and message when mapping into WirekitError::Api.",
+          "linkedRequirements": [
+            "FR-021",
+            "FR-026"
+          ],
+          "linkedAcceptanceCriteria": [
+            "AC-017"
+          ],
+          "completed": false
+        },
+        {
+          "id": "T5.4",
+          "resolution": {
+            "kind": "deferred",
+            "reason": "ADP partner access was never granted and developers.adp.com publishes no machine-readable API contract, so no route could be verified",
+            "at": "2026-10-29"
+          },
+          "title": "Return an unknown outcome for a payroll timeout",
+          "description": "A timed-out submission yields SubmissionOutcome::Unknown with the caller's client reference and is never resubmitted automatically.",
+          "linkedRequirements": [
+            "FR-022"
+          ],
+          "linkedAcceptanceCriteria": [
+            "AC-018"
+          ],
+          "completed": false
+        },
+        {
+          "id": "T5.5",
+          "resolution": {
+            "kind": "deferred",
+            "reason": "ADP partner access was never granted and developers.adp.com publishes no machine-readable API contract, so no route could be verified",
+            "at": "2026-10-29"
+          },
+          "title": "Redact sensitive payroll fields",
+          "description": "SSN and pay rates are redacted in Debug, Display, tracing, and errors, and their types do not implement Serialize.",
+          "linkedRequirements": [
+            "FR-023"
+          ],
+          "linkedAcceptanceCriteria": [
+            "AC-019"
+          ],
+          "completed": false
+        },
+        {
+          "id": "T5.6",
+          "resolution": {
+            "kind": "deferred",
+            "reason": "ADP partner access was never granted and developers.adp.com publishes no machine-readable API contract, so no route could be verified",
+            "at": "2026-10-29"
+          },
+          "title": "Report batch outcomes per record",
+          "description": "A partial export lists failed records by identifier and reports the successes, so no hour is dropped silently.",
+          "linkedRequirements": [
+            "FR-024"
+          ],
+          "linkedAcceptanceCriteria": [
+            "AC-020"
+          ],
+          "completed": false
+        }
+      ]
+    },
+    {
+      "phaseId": "P6",
+      "name": "Cross-cutting contract",
+      "dependencies": [
+        "P2",
+        "P3",
+        "P4",
+        "P5"
+      ],
+      "tasks": [
+        {
+          "id": "T6.1",
+          "title": "Keep tenant state on the client instance",
+          "description": "No module-level cache, static, or singleton; two clients for two tenants share no credential, token, or response.",
+          "linkedRequirements": [
+            "NFR-002",
+            "FR-027"
+          ],
+          "linkedAcceptanceCriteria": [
+            "AC-021"
+          ],
+          "completed": true
+        },
+        {
+          "id": "T6.2",
+          "title": "Trace requests without leaking values",
+          "description": "Emit request start, finish with duration, retry, rate-limit hit, and error; record no secret or personal field.",
+          "linkedRequirements": [
+            "NFR-005"
+          ],
+          "linkedAcceptanceCriteria": [
+            "AC-007",
+            "AC-012",
+            "AC-019"
+          ],
+          "completed": false,
+          "resolution": {
+            "kind": "deferred",
+            "reason": "Descoped to a follow-up release; behaviour and API surface are unaffected",
+            "at": "2026-10-29"
+          }
+        },
+        {
+          "id": "T6.3",
+          "title": "Take every credential from the caller",
+          "description": "No key, token, password, or company ID is embedded, defaulted, or logged, and nothing is read from a .env file (CON-519, CON-706).",
+          "linkedRequirements": [
+            "NFR-001"
+          ],
+          "linkedAcceptanceCriteria": [
+            "AC-012",
+            "AC-025"
+          ],
+          "completed": true
+        },
+        {
+          "id": "T6.4",
+          "title": "Enforce HTTPS and the sandbox override",
+          "description": "Every live module accepts a base URL, defaults to the documented production URL, and rejects a non-HTTPS override at construction.",
+          "linkedRequirements": [
+            "FR-030",
+            "NFR-008"
+          ],
+          "linkedAcceptanceCriteria": [
+            "AC-025"
+          ],
+          "completed": true
+        },
+        {
+          "id": "T6.5",
+          "title": "Remove panics from untrusted input paths",
+          "description": "Email, CSV, JSON, XML, and ADP error payloads each produce a typed error; no unwrap, expect, or slice indexing on parsed data.",
+          "linkedRequirements": [
+            "NFR-004"
+          ],
+          "linkedAcceptanceCriteria": [
+            "AC-002",
+            "AC-003",
+            "AC-013",
+            "AC-017"
+          ],
+          "completed": true
+        }
+      ]
+    },
+    {
+      "phaseId": "P7",
+      "name": "Verification and documentation",
+      "dependencies": [
+        "P6"
+      ],
+      "tasks": [
+        {
+          "id": "T7.1",
+          "title": "Document each module's public surface",
+          "description": "Every public item has rustdoc and each module has a runnable documentation example.",
+          "linkedRequirements": [
+            "FR-029"
+          ],
+          "linkedAcceptanceCriteria": [
+            "AC-024"
+          ],
+          "completed": false,
+          "resolution": {
+            "kind": "deferred",
+            "reason": "Descoped to a follow-up release; behaviour and API surface are unaffected",
+            "at": "2026-10-29"
+          }
+        },
+        {
+          "id": "T7.2",
+          "title": "Run the formatter check",
+          "description": "cargo fmt --all --check passes.",
+          "linkedRequirements": [
+            "NFR-008"
+          ],
+          "linkedAcceptanceCriteria": [
+            "AC-024"
+          ],
+          "completed": true
+        },
+        {
+          "id": "T7.3",
+          "title": "Run the linter",
+          "description": "cargo clippy -p wirekit --all-features -- -D warnings passes.",
+          "linkedRequirements": [
+            "NFR-008"
+          ],
+          "linkedAcceptanceCriteria": [
+            "AC-024"
+          ],
+          "completed": true
+        },
+        {
+          "id": "T7.4",
+          "title": "Build the documentation",
+          "description": "cargo doc -p wirekit --all-features --no-deps passes with RUSTDOCFLAGS set to -D warnings.",
+          "linkedRequirements": [
+            "FR-029"
+          ],
+          "linkedAcceptanceCriteria": [
+            "AC-024"
+          ],
+          "completed": true
+        },
+        {
+          "id": "T7.5",
+          "title": "Compile every feature combination",
+          "description": "no-default-features plus one feature per module all compile on Rust 1.85, and enabling one module never enables another.",
+          "linkedRequirements": [
+            "FR-025",
+            "NFR-009"
+          ],
+          "linkedAcceptanceCriteria": [
+            "AC-022",
+            "AC-023"
+          ],
+          "completed": true
+        },
+        {
+          "id": "T7.6",
+          "title": "Run the governance validator",
+          "description": "node .sdrive/scripts/validate-governance.js reports every artifact valid.",
+          "linkedRequirements": [
+            "NFR-008"
+          ],
+          "linkedAcceptanceCriteria": [
+            "AC-024"
+          ],
+          "completed": true
+        }
+      ]
+    }
+  ]
+}

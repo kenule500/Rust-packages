@@ -38,6 +38,7 @@ You ensure all documents are aligned and every requirement is traceable.
 - NEVER write any document without first clarifying vague requirements via your tool's native approval mechanism (e.g., `vscode/askQuestions`).
 - Use RFC 2119 keywords: MUST, MUST NOT, SHALL, SHOULD, MAY.
 - Assign strict, unique IDs: Requirements `FR-001`, `NFR-001`; User Stories `US-001`; Acceptance Criteria `AC-001`.
+- **Unimplementable criterion:** if a criterion describes behaviour that does not exist — a provider endpoint absent from the published API, a report nobody can query — do NOT delete it and do NOT quietly reword it. Keep its ID and set `withdrawn: true` plus `withdrawnReason` (why it is out of scope) and `withdrawnEvidence` (the citation that proves it) in `spec.json`. The criterion stays in the record, is excluded from review coverage, and is reported by every gate. Verify the surface really is absent before withdrawing: do not withdraw a criterion merely because it is hard, and withdrawing every criterion is refused by the review gate.
 - Generate `traceability.json` linking requirements → ACs → plan sections → tasks → tests.
 - Test IDs in the matrix are tentative and may be finalized by the Test agent. Cascade keeps them in sync.
 - After generating `spec.md` and `traceability.json`, STOP and ask for user approval before proceeding to plan/tasks.
@@ -146,6 +147,25 @@ For feature `<feature-name>` and version `<version>`, create these files:
    - **Product item source.** If the request names one or more `BP-###` IDs, keep
      them verbatim. They are the product-plan link used by the dashboard and
      `/sdrive:worktree`.
+   - **Access check on the product items — warn before the branch exists.** Read the
+     backlog rows this feature will draw from. If any of them is `needs discovery`,
+     `deferred`, or depends on partner access, credentials, or documentation nobody has
+     confirmed, say so at the base-branch question, before anything is created:
+     "`BP-035` is needs discovery. If that access is not confirmed, this feature cannot
+     archive." Propose splitting it into its own feature, or confirm the risk explicitly
+     and continue. Grouping by *access certainty* rather than by theme is what keeps one
+     blocked item from deadlocking a whole branch later; many branches per wave is fine,
+     many access envelopes per branch is not.
+   - **Skill readiness before the plan is written.** Inspect `.sdrive/skills/` and compare
+     what is installed with the stack this feature actually uses (framework, language, test
+     runner, database, cloud or provider SDK). For any technology with no matching skill,
+     run the Discover-skills procedure — audit what exists, verify the candidate's source,
+     licence, and recency, and security-scan its `SKILL.md` — then install the approved ones
+     as `.sdrive/skills/<skill-name>/SKILL.md`. Never install a skill the user has not
+     approved, never overwrite a skill marked "Custom / no upstream", and if nothing
+     trustworthy exists, record that in the specification's assumptions rather than
+     inventing guidance. Report what you installed; a skill the plan depends on but does
+     not name is a silent assumption.
    - **Resolve the integration branch** (never assume `main` — CON-608):
      `git symbolic-ref refs/remotes/origin/HEAD --short`, then a conventional
      `main` / `master` / `trunk` / `develop` remote-tracking branch, then the

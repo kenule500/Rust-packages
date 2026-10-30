@@ -145,6 +145,103 @@
           ]
         }
       ]
+    },
+    {
+      "name": "m5-gated-integrations",
+      "branch": "feature/m5-gated-integrations",
+      "base": "main",
+      "productItems": [
+        "BP-033",
+        "BP-034",
+        "BP-035"
+      ],
+      "currentVersion": "v1",
+      "versions": [
+        {
+          "id": "v1",
+          "phase": "ongoing",
+          "currentStep": "implementation",
+          "gates": {
+            "specification": "approved",
+            "planning": "approved",
+            "implementation": "approved",
+            "review": "approved"
+          },
+          "history": [
+            {
+              "event": "Framework 0.1.46 adopted on main before proposal; tree clean at 8dd6f27",
+              "by": "SpecDrive",
+              "timestamp": "2026-10-29T01:21:10Z"
+            },
+            {
+              "event": "Feature branch feature/m5-gated-integrations created from main",
+              "by": "SpecDrive",
+              "timestamp": "2026-10-29T01:21:10Z"
+            },
+            {
+              "event": "Proposal scope: BP-033, BP-034, BP-035. BP-022 to BP-027 already owned by m4-media-links; BP-036 conflicts with CON-201; BP-037 is tooling, not a crate",
+              "by": "SpecDrive",
+              "timestamp": "2026-10-29T01:21:10Z"
+            },
+            {
+              "event": "Specification and traceability drafted; Gate 1 awaiting human approval",
+              "by": "SpecDrive",
+              "timestamp": "2026-10-29T01:21:10Z"
+            },
+            {
+              "event": "Gate 1 approved: specification and traceability",
+              "by": "kenule500",
+              "timestamp": "2026-10-29T01:28:18Z"
+            },
+            {
+              "event": "Plan, tasks, and traceability synced; security baseline expanded into NFR-001 to NFR-008 with CON-516 recorded NOT APPLICABLE; Gate 2 awaiting human approval",
+              "by": "SpecDrive",
+              "timestamp": "2026-10-29T01:28:18Z"
+            },
+            {
+              "event": "Gate 2 approved: technical plan and execution tasks",
+              "by": "kenule500",
+              "timestamp": "2026-10-29T01:36:42Z"
+            },
+            {
+              "event": "Proposal complete. Implementation held: /sdrive:apply starts only after feature/m1-first-publish is archived and wirekit core (BP-005) is on main (T0.1)",
+              "by": "SpecDrive",
+              "timestamp": "2026-10-29T01:36:42Z"
+            },
+            {
+              "event": "Implementation started: T0.1 precondition satisfied (crates/wirekit present after main merge dda3cd8); spec moved from backlog to ongoing",
+              "by": "SpecDrive",
+              "timestamp": "2026-10-29T07:03:13Z"
+            },
+            {
+              "event": "spec_updated: LSA surface corrected against the published localservices:v1 discovery document; FR-007/008/011 and US-002 superseded by FR-031/032/033 and US-006 (IDs preserved)",
+              "by": "SpecDrive",
+              "timestamp": "2026-10-29T08:40:14Z"
+            },
+            {
+              "event": "specification_approved",
+              "by": "kenule500",
+              "actor": "kenule500",
+              "previousValue": "pending",
+              "timestamp": "2026-10-29T08:42:29.095Z"
+            },
+            {
+              "event": "implementation_approved",
+              "by": "kenule500",
+              "actor": "kenule500",
+              "previousValue": "pending",
+              "timestamp": "2026-10-30T09:44:39.333Z"
+            },
+            {
+              "event": "review_approved",
+              "by": "kenule500",
+              "actor": "kenule500",
+              "previousValue": "pending",
+              "timestamp": "2026-10-30T09:49:11.505Z"
+            }
+          ]
+        }
+      ]
     }
   ]
 }

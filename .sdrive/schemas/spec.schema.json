@@ -73,9 +73,34 @@
                 "text": {
                   "type": "string",
                   "minLength": 10
+                },
+                "withdrawn": {
+                  "type": "boolean",
+                  "description": "True when the criterion describes behaviour that cannot be implemented - typically a third-party endpoint or report that does not exist. A withdrawn criterion stays in the specification and in the record, but is excluded from review coverage."
+                },
+                "withdrawnReason": {
+                  "type": "string",
+                  "minLength": 20,
+                  "description": "Why this criterion is out of scope. Required when withdrawn is true."
+                },
+                "withdrawnEvidence": {
+                  "type": "string",
+                  "minLength": 10,
+                  "description": "Citation showing the behaviour is unavailable - a documentation URL, a discovery document, or a ticket. Required when withdrawn is true."
                 }
               },
-              "required": ["id", "text"]
+              "required": ["id", "text"],
+              "if": {
+                "properties": { "withdrawn": { "const": true } },
+                "required": ["withdrawn"]
+              },
+              "then": {
+                "properties": {
+                  "withdrawnReason": { "type": "string", "minLength": 20 },
+                  "withdrawnEvidence": { "type": "string", "minLength": 10 }
+                },
+                "required": ["withdrawnReason", "withdrawnEvidence"]
+              }
             }
           }
         },

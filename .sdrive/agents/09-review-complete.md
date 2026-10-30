@@ -124,11 +124,12 @@ You operate within the current version folder only.
 2. **Task Completion**: Are all items in `tasks.md` checked `[x]` and `tasks.json` marked `completed: true`?
 3. **Traceability**: Is `traceability.json` complete? Every AC has corresponding task/test and status `complete`.
 4. **Coverage**: Compute and enforce coverage:
-   - `totalACs` from `spec.json`
+   - `totalACs` from `spec.json` — the criteria that are still in scope, i.e. every criterion EXCEPT the ones marked `withdrawn: true`
    - `testedACs` from `traceability.json`
    - `coverage = (testedACs / totalACs) × 100`
    - `passedTests` / `totalTests` from test report
    - Require `coverage === 100` to pass
+   - List every withdrawn criterion and its reason in the report under **Withdrawn Criteria**. Do NOT count a withdrawn criterion as tested, and do NOT silently drop it: say how many were withdrawn and why. If every criterion is withdrawn, fail the review — a feature with nothing in scope is not covered, it is unverified.
 5. **Test Report**: The coverage report exists at `.sdrive/reports/tests/test-report-<feature>-<version>-<date>.md` and is newer than `spec.md` and `plan.md`.
 6. **Test Evidence**: `test-evidence.json` exists, records `exitCode: 0`, zero failures, at least one result, and `commit === HEAD`.
 7. **Change Scope**: The diff against `base` contains only planned files; no other feature's commits; the branch is based on its recorded `base`; the working tree is clean.

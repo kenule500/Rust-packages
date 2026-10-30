@@ -71,6 +71,11 @@ You operate within the current version folder only.
 - `sdrive verify` is a **static spec-to-code diff only**. It reads `plan.json`, scans source files for components/endpoints/entities/fields/dependencies, and writes `verification.json`. It does NOT run tests and does NOT execute any test runner. Never substitute a test run for `sdrive verify`.
 - If verification fails, do NOT mark the feature as complete. Report failures and stop.
 - Verification results are the source of truth — never override them.
+- **Descoped work is recorded, never faked.** If a task or plan item cannot be performed — partner access never granted, a provider endpoint that does not exist, documentation nobody published — do NOT mark it `completed`, and do NOT delete it. Record a `resolution` on the item in `tasks.json` or `plan.json`:
+  ```json
+  "resolution": { "kind": "deferred", "reason": "<why it cannot be done>", "at": "<ISO date>" }
+  ```
+  `reason` is mandatory (20+ characters) and must name the blocker, not restate the task. Then apply the same change to the specification: an acceptance criterion that the descoped work would have satisfied must be withdrawn (`withdrawn`, `withdrawnReason`, `withdrawnEvidence` in `spec.json`) or it will block review coverage. Never resolve every task, and never resolve a task just because finishing it is inconvenient — `sdrive approve <feature> implementation` names every descoped task in its output, and a reviewer will read it.
 - After implementation, recommend the user run `/sdrive:test <feature>` to generate tests.
 - **`--all` Mode Rule:** If the user invokes this command with `--all` (e.g. `/sdrive:apply --all`), you MUST implement EVERY feature currently in `ongoing/`, one after the other, in a single run. See the `<all-mode>` section for the exact procedure. In `--all` mode, the per-feature rules above still apply to each feature individually — you simply repeat the full workflow for each one. Each feature still gets its OWN branch and its OWN approval gates. **One-branch-per-feature (CON-606) applies in every mode — there is never a shared-branch option.**
 </rules>

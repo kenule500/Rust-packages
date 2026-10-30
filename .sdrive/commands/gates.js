@@ -1,6 +1,7 @@
 const fs = require("fs");
 const path = require("path");
 const { execFileSync } = require("child_process");
+const { isResolved, resolutionOf, describeResolved } = require("../scripts/lib/resolution");
 
 const projectRoot = process.cwd();
 
@@ -189,9 +190,23 @@ function headCommit(root) {
   }
 }
 
+// Task counts for the implementation gate.
+//
+// A task is one of three things, not two:
+//   done       `completed: true`
+//   resolved   descoped with a stated reason (`resolution.reason`)
+//   outstanding  everything else
+//
+// Resolved is deliberately its own bucket. Counting a resolved task as incomplete
+// makes a descoped feature unarchivable - the deadlock that has no legitimate exit
+// except implementing the impossible or deleting the record. Counting it as done
+// would put a false completion in the governance record, which is the one thing
+// this gate exists to prevent. So it is neither: it is reported.
 function countTasks(tasksJson) {
   let total = 0;
   let done = 0;
+  let resolved = 0;
+  const resolvedTasks = [];
 
   for (const phase of (tasksJson && tasksJson.phases) || []) {
     for (const task of phase.tasks || []) {
@@ -199,29 +214,104 @@ function countTasks(tasksJson) {
 
       if (task.completed === true) {
         done += 1;
+      } else if (isResolved(task)) {
+        resolved += 1;
+        resolvedTasks.push({ id: task.id, ...resolutionOf(task) });
       }
     }
   }
 
-  return { total, done };
+  return { total, done, resolved, outstanding: total - done - resolved, resolvedTasks };
 }
 
 // Acceptance criteria are declared on the user stories in spec.json. Coverage is
 // always measured against THESE, never against the traceability matrix's own rows —
 // otherwise a criterion that is missing from the matrix would silently stop counting
 // and the feature would look fully covered.
+function eachAcceptanceCriterion(specJson, visit) {
+  for (const story of (specJson && specJson.userStories) || []) {
+    for (const ac of story.acceptanceCriteria || []) {
+      if (ac && ac.id) visit(ac);
+    }
+  }
+}
+
+// Every declared criterion, withdrawn ones included. "What did the spec ask for" and
+// "what is still in scope" are different questions, and answering both with one list
+// is how a criterion changes state without anyone recording that it did.
 function collectAcceptanceCriteria(specJson) {
   const ids = [];
 
-  for (const story of (specJson && specJson.userStories) || []) {
-    for (const ac of story.acceptanceCriteria || []) {
-      if (ac && ac.id && !ids.includes(ac.id)) {
-        ids.push(ac.id);
-      }
+  eachAcceptanceCriterion(specJson, (ac) => {
+    if (!ids.includes(ac.id)) {
+      ids.push(ac.id);
     }
-  }
+  });
 
   return ids;
+}
+
+// A withdrawal only counts when it says why. `spec.schema.json` enforces the same two
+// fields with minimum lengths; this checks presence, because the gate reads `spec.json`
+// directly and cannot assume `sdrive validate` was run first. A bare `{"withdrawn": true}`
+// is therefore NOT a withdrawal: the criterion stays in coverage and is reported.
+function withdrawalIsSubstantiated(ac) {
+  return Boolean(
+    String(ac.withdrawnReason || "").trim() && String(ac.withdrawnEvidence || "").trim()
+  );
+}
+
+// Criteria the specification itself places out of scope (`withdrawn: true`).
+//
+// An acceptance criterion can describe behaviour that does not exist anywhere - a
+// provider endpoint that was never published, a report nobody can query. It cannot be
+// implemented, and deleting it would quietly rewrite a specification that has already
+// been reviewed. Withdrawal keeps the ID, the reason, and a citation in the record,
+// and removes the criterion from coverage instead.
+//
+// It is deliberately NOT a way to clear an untested criterion:
+//   - `spec.schema.json` requires `withdrawnReason` and `withdrawnEvidence` whenever
+//     `withdrawn` is true, so an unnamed withdrawal is not a valid spec;
+//   - an unsubstantiated withdrawal is refused by the review gate, not honoured;
+//   - every consumer that computes coverage reports the withdrawn list;
+//   - the review gate refuses when withdrawing has left nothing in scope.
+function collectWithdrawnAcceptanceCriteria(specJson) {
+  const withdrawn = [];
+
+  eachAcceptanceCriterion(specJson, (ac) => {
+    if (ac.withdrawn !== true) return;
+    if (withdrawn.some((entry) => entry.id === ac.id)) return;
+
+    withdrawn.push({
+      id: ac.id,
+      reason: String(ac.withdrawnReason || ""),
+      evidence: String(ac.withdrawnEvidence || ""),
+      substantiated: withdrawalIsSubstantiated(ac)
+    });
+  });
+
+  return withdrawn;
+}
+
+// The withdrawals that actually take a criterion out of scope.
+function collectSubstantiatedWithdrawals(specJson) {
+  return collectWithdrawnAcceptanceCriteria(specJson).filter((entry) => entry.substantiated);
+}
+
+// The set coverage is actually measured against.
+function collectEffectiveAcceptanceCriteria(specJson) {
+  const excluded = collectSubstantiatedWithdrawals(specJson).map((entry) => entry.id);
+
+  return collectAcceptanceCriteria(specJson).filter((id) => !excluded.includes(id));
+}
+
+// Shared wording, so the planning gate, the review gate, and archive cannot describe
+// the same list three different ways.
+function describeWithdrawnCriteria(withdrawn) {
+  const shown = withdrawn.slice(0, 6).map((entry) => entry.id).join(", ");
+  const suffix = withdrawn.length > 6 ? ", ..." : "";
+
+  return `${withdrawn.length} acceptance criteria are withdrawn and excluded from coverage (${shown}${suffix}). Reasons and evidence are recorded in spec.json.`;
 }
 
 // A criterion counts as tested only when a traceability row links it to at least one
@@ -308,17 +398,24 @@ function checkGateRequirements(root, feature, version, gate) {
   }
 
   // Prerequisite gates must already be approved.
-  const gateIndex = GATE_ORDER.indexOf(gate);
+  //
+  // The list is the slice of GATE_ORDER strictly BEFORE `gate`, then filtered against
+  // `gate` itself. The slice already excludes it; the filter is there because the one
+  // refusal that is always wrong is naming the gate being approved as its own unmet
+  // prerequisite. A user cannot satisfy that, since approving the prerequisite IS the
+  // action being refused, so it must be impossible for any ordering of GATE_ORDER to
+  // produce it.
+  const gateIndex = Math.max(GATE_ORDER.indexOf(gate), 0);
+  const prerequisites = GATE_ORDER.slice(0, gateIndex).filter((earlier) => earlier !== gate);
 
-  for (let i = 0; i < gateIndex; i += 1) {
-    const earlier = GATE_ORDER[i];
-
+  prerequisites.forEach((earlier) => {
     if (!isGateApprovedFor(version, earlier)) {
       blockers.push(
-        `Prerequisite gate "${earlier}" is "${gateStatusFor(version, earlier)}", not "approved".`
+        `Prerequisite gate "${earlier}" is "${gateStatusFor(version, earlier)}", not "approved" ` +
+          `(required before "${gate}"; order: ${GATE_ORDER.join(" -> ")}).`
       );
     }
-  }
+  });
 
   const requireSpecFile = (name, why) => {
     if (location && !fs.existsSync(path.join(location.dir, name))) {
@@ -355,13 +452,31 @@ function checkGateRequirements(root, feature, version, gate) {
 
     if (specJson && tasksJson) {
       const planned = collectPlannedAcceptanceCriteria(specJson, tasksJson);
-      const unplanned = collectAcceptanceCriteria(specJson).filter((ac) => !planned.has(ac));
+      const withdrawn = collectWithdrawnAcceptanceCriteria(specJson);
+      const substantiated = withdrawn.filter((entry) => entry.substantiated);
+      const unplanned = collectEffectiveAcceptanceCriteria(specJson).filter((ac) => !planned.has(ac));
 
       if (unplanned.length > 0) {
         warnings.push(
           `${unplanned.length} acceptance criteria are not linked to any task (${unplanned
             .slice(0, 6)
             .join(", ")}${unplanned.length > 6 ? ", ..." : ""}). The review gate needs a passing test for every one of them - plan them explicitly.`
+        );
+      }
+
+      // Withdrawal is a decision someone made, so it is always reported - never a
+      // criterion that quietly stopped appearing in the count.
+      if (substantiated.length > 0) {
+        warnings.push(describeWithdrawnCriteria(substantiated));
+      }
+
+      if (withdrawn.length > substantiated.length) {
+        warnings.push(
+          `${withdrawn.length - substantiated.length} acceptance criteria are marked withdrawn without a reason and evidence (${withdrawn
+            .filter((entry) => !entry.substantiated)
+            .slice(0, 6)
+            .map((entry) => entry.id)
+            .join(", ")}). Fill in \`withdrawnReason\` and \`withdrawnEvidence\` in spec.json - the review gate refuses an unexplained withdrawal.`
         );
       }
     }
@@ -377,10 +492,18 @@ function checkGateRequirements(root, feature, version, gate) {
 
       if (tasks.total === 0) {
         blockers.push("tasks.json contains no tasks, so there is no work to certify.");
-      } else if (tasks.done < tasks.total) {
+      } else if (tasks.outstanding > 0) {
         blockers.push(
-          `${tasks.total - tasks.done} of ${tasks.total} tasks are still incomplete in tasks.json.`
+          `${tasks.outstanding} of ${tasks.total} tasks are still incomplete in tasks.json` +
+            (tasks.resolved > 0 ? ` (${tasks.done} completed, ${tasks.resolved} descoped).` : ".")
         );
+      }
+
+      // A descope is a decision someone made, so it is always named. Silent scope
+      // reduction is how a "finished" feature quietly comes to mean something
+      // narrower than the specification that was approved.
+      if (tasks.resolved > 0) {
+        warnings.push(describeResolved(tasks.resolvedTasks, "tasks"));
       }
     }
 
@@ -470,20 +593,54 @@ function checkGateRequirements(root, feature, version, gate) {
         "Missing or unreadable traceability.json, so test coverage cannot be verified."
       );
     } else {
-      const allAcs = collectAcceptanceCriteria(readJsonIfPresent(govFile("spec.json")));
+      const specJson = readJsonIfPresent(govFile("spec.json"));
+      const declaredAcs = collectAcceptanceCriteria(specJson);
+      const withdrawnAcs = collectWithdrawnAcceptanceCriteria(specJson);
+      const substantiatedAcs = collectSubstantiatedWithdrawals(specJson);
+      const unsubstantiatedAcs = withdrawnAcs.filter((entry) => !entry.substantiated);
+      const effectiveAcs = collectEffectiveAcceptanceCriteria(specJson);
       const testedAcs = collectTestedAcceptanceCriteria(traceJson);
-      const untested = allAcs.filter((ac) => !testedAcs.includes(ac));
+      // Coverage is measured against the criteria that are still in scope. A withdrawn
+      // criterion is not an untested one, and counting it as untested would make an
+      // accurate specification impossible to archive.
+      const untested = effectiveAcs.filter((ac) => !testedAcs.includes(ac));
 
-      if (allAcs.length === 0) {
+      if (declaredAcs.length === 0) {
         warnings.push(
           "spec.json declares no acceptance criteria, so coverage could not be computed."
         );
+      } else if (effectiveAcs.length === 0) {
+        // Every criterion withdrawn is not a fully covered feature, it is a feature with
+        // nothing left to verify. Without this refusal, `withdrawn: true` on all of them
+        // would be a one-line bypass of the coverage gate.
+        blockers.push(
+          `All ${declaredAcs.length} acceptance criteria are withdrawn, so nothing is left in scope to verify. ` +
+            "Keep at least one criterion in coverage, or describe the excluded surface in `overview.outOfScope` instead of withdrawing every criterion."
+        );
       } else if (untested.length > 0) {
         blockers.push(
-          `${untested.length} of ${allAcs.length} acceptance criteria have no passing test (${untested
+          `${untested.length} of ${effectiveAcs.length} acceptance criteria have no passing test (${untested
             .slice(0, 6)
             .join(", ")}${untested.length > 6 ? ", ..." : ""}) - run \`/sdrive:test ${feature.name}\` first, then re-run the review.`
         );
+      }
+
+      // A withdrawal nobody explained is not a withdrawal. This is checked here rather
+      // than trusted to `sdrive validate`, because approve reads spec.json directly and
+      // a hand-edited flag must not be worth more than a passing test.
+      if (unsubstantiatedAcs.length > 0) {
+        blockers.push(
+          `${unsubstantiatedAcs.length} acceptance criteria are marked withdrawn without a reason and evidence (${unsubstantiatedAcs
+            .slice(0, 6)
+            .map((entry) => entry.id)
+            .join(", ")}${unsubstantiatedAcs.length > 6 ? ", ..." : ""}). Set \`withdrawnReason\` and \`withdrawnEvidence\` in spec.json, or remove the flag - until then the criterion still counts as untested.`
+        );
+      }
+
+      // Reported after the verdict either way: withdrawing scope is a decision the
+      // archive record must mention, not a silent reduction of the denominator.
+      if (substantiatedAcs.length > 0 && effectiveAcs.length > 0) {
+        warnings.push(describeWithdrawnCriteria(substantiatedAcs));
       }
     }
 
@@ -591,5 +748,10 @@ module.exports = {
   GATE_ORDER,
   SPEC_STAGES,
   findSpecLocation,
+  collectAcceptanceCriteria,
+  collectWithdrawnAcceptanceCriteria,
+  collectSubstantiatedWithdrawals,
+  collectEffectiveAcceptanceCriteria,
+  collectTestedAcceptanceCriteria,
   checkGateRequirements
 };

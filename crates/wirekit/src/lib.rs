@@ -68,8 +68,17 @@ pub mod retry;
 pub mod secret;
 pub mod trace;
 
+#[cfg(feature = "angi")]
+pub mod angi;
+
+#[cfg(feature = "google-lsa")]
+pub mod google_lsa;
+
 #[cfg(feature = "noaa")]
 pub mod noaa;
+
+#[cfg(feature = "sage-intacct")]
+pub mod sage_intacct;
 
 #[cfg(feature = "sendgrid")]
 pub mod sendgrid;

@@ -195,11 +195,37 @@ impl fmt::Debug for AuthorizationRequest {
     fn fmt(&self, formatter: &mut fmt::Formatter<'_>) -> fmt::Result {
         formatter
             .debug_struct("AuthorizationRequest")
-            .field("url", &self.url.as_str())
+            .field("url", &redact_state(&self.url))
             .field("state", &"***")
             .field("code_verifier", &"***")
             .finish()
     }
+}
+
+/// Render `url` with the `state` query value masked.
+///
+/// The URL must carry `state`, so printing it verbatim would leak the value the
+/// adjacent `state: ***` field exists to protect (CON-214). Every other parameter
+/// stays readable, so the output is still useful when debugging a callback.
+fn redact_state(url: &url::Url) -> String {
+    let pairs: Vec<(String, String)> = url
+        .query_pairs()
+        .map(|(key, value)| {
+            let value = if key == "state" {
+                String::from("***")
+            } else {
+                value.into_owned()
+            };
+            (key.into_owned(), value)
+        })
+        .collect();
+
+    let mut redacted = url.clone();
+    redacted
+        .query_pairs_mut()
+        .clear()
+        .extend_pairs(pairs.iter().map(|(key, value)| (key.as_str(), value.as_str())));
+    redacted.to_string()
 }
 
 /// Revoke an access token or a refresh token.

@@ -76,9 +76,9 @@
     { "requirementId": "NFR-006", "description": "CON-516 recorded NOT APPLICABLE: no database, cache, or query surface. CON-513, CON-517, and CON-518 are also not applicable: no server responses, markup, or browser sessions." }
   ],
   "performanceConsiderations": [
-    { "requirementId": "NFR-003", "description": "One bucket update per token-endpoint request; tokens are cached until expiry minus the safety margin, so refresh traffic stays bounded." },
-    { "requirementId": "NFR-004", "description": "Error bodies are size-bounded before decoding, so a hostile response cannot force unbounded allocation." },
-    { "requirementId": "NFR-005", "description": "PKCE uses S256 once per authorization; no per-request hashing on the token path." }
+    { "requirementId": "NFR-003", "strategy": "One bucket update per token-endpoint request; tokens are cached until expiry minus the safety margin, so refresh traffic stays bounded." },
+    { "requirementId": "NFR-004", "strategy": "Error bodies are size-bounded before decoding, so a hostile response cannot force unbounded allocation." },
+    { "requirementId": "NFR-005", "strategy": "PKCE uses S256 once per authorization; no per-request hashing on the token path." }
   ],
   "dependencies": [
     { "name": "wirekit core (BP-005)", "type": "internal", "action": "no_change", "notes": "On main after m1-first-publish: client, retry, bucket, tracing, secret, error." },

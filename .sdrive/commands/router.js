@@ -101,6 +101,11 @@ function main() {
   // Detect the --all flag anywhere in the arguments.
   const allFlag = rawArgs.includes("--all");
   const rawFeature = rawArgs.find((arg) => arg !== "--all");
+  // A bracketed argument is a group expression, not a feature name. `[wave1 p2]` selects
+  // backlog items; kebab-casing it would produce the nonsense feature `wave1-p2`, and a
+  // comma list would become one name. It is passed through verbatim so /sdrive:propose can
+  // resolve it and show the user what it selected before creating anything.
+  const rawGroup = rawArgs.find((arg) => /^\[.*\]$/.test(String(arg).trim()));
 
   // Permission check
   if (!checkPermission(command)) {
@@ -117,6 +122,17 @@ function main() {
 
   if (allFlag) {
     console.log(`\n📦 Mode: --all (every ongoing feature)`);
+  } else if (rawGroup) {
+    if (!command.acceptsGroup) {
+      console.error(`❌ ${command.command} does not accept a group expression.`);
+      console.error(
+        `   A group such as [wave1 p2] belongs to /sdrive:propose, which creates the features.`
+      );
+      process.exit(1);
+    }
+
+    featureName = rawGroup.trim();
+    console.log(`\n📦 Group: ${featureName}`);
   } else if (rawFeature) {
     featureName = toKebabCase(rawFeature);
     console.log(`\n📦 Feature: ${featureName}`);

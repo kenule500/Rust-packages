@@ -1,0 +1,228 @@
+{
+  "feature": "google-oauth-shared-helper",
+  "version": 1,
+  "rows": [
+    {
+      "requirementId": "FR-001",
+      "acceptanceCriteriaIds": [
+        "AC-001",
+        "AC-009"
+      ],
+      "planSection": "Module surface",
+      "taskIds": [
+        "T1.1",
+        "T1.2"
+      ],
+      "testIds": [],
+      "status": "not_started"
+    },
+    {
+      "requirementId": "FR-002",
+      "acceptanceCriteriaIds": [
+        "AC-001",
+        "AC-002"
+      ],
+      "planSection": "Authorization URL and PKCE",
+      "taskIds": [
+        "T2.1"
+      ],
+      "testIds": [],
+      "status": "not_started"
+    },
+    {
+      "requirementId": "FR-003",
+      "acceptanceCriteriaIds": [
+        "AC-003"
+      ],
+      "planSection": "Authorization URL and PKCE",
+      "taskIds": [
+        "T2.1"
+      ],
+      "testIds": [],
+      "status": "not_started"
+    },
+    {
+      "requirementId": "FR-004",
+      "acceptanceCriteriaIds": [
+        "AC-004"
+      ],
+      "planSection": "Code exchange",
+      "taskIds": [
+        "T2.2"
+      ],
+      "testIds": [],
+      "status": "not_started"
+    },
+    {
+      "requirementId": "FR-005",
+      "acceptanceCriteriaIds": [
+        "AC-005"
+      ],
+      "planSection": "Error mapping",
+      "taskIds": [
+        "T3.1"
+      ],
+      "testIds": [],
+      "status": "not_started"
+    },
+    {
+      "requirementId": "FR-006",
+      "acceptanceCriteriaIds": [
+        "AC-006"
+      ],
+      "planSection": "Refresh and store",
+      "taskIds": [
+        "T2.3"
+      ],
+      "testIds": [],
+      "status": "not_started"
+    },
+    {
+      "requirementId": "FR-007",
+      "acceptanceCriteriaIds": [
+        "AC-007"
+      ],
+      "planSection": "Revocation",
+      "taskIds": [
+        "T2.4"
+      ],
+      "testIds": [],
+      "status": "not_started"
+    },
+    {
+      "requirementId": "FR-008",
+      "acceptanceCriteriaIds": [
+        "AC-009"
+      ],
+      "planSection": "TokenStore trait",
+      "taskIds": [
+        "T1.2"
+      ],
+      "testIds": [],
+      "status": "not_started"
+    },
+    {
+      "requirementId": "FR-009",
+      "acceptanceCriteriaIds": [
+        "AC-001"
+      ],
+      "planSection": "Endpoint configuration",
+      "taskIds": [
+        "T3.4"
+      ],
+      "testIds": [],
+      "status": "not_started"
+    },
+    {
+      "requirementId": "FR-010",
+      "acceptanceCriteriaIds": [
+        "AC-008"
+      ],
+      "planSection": "Secret handling",
+      "taskIds": [
+        "T3.3"
+      ],
+      "testIds": [],
+      "status": "not_started"
+    },
+    {
+      "requirementId": "FR-011",
+      "acceptanceCriteriaIds": [
+        "AC-008"
+      ],
+      "planSection": "Tracing and redaction",
+      "taskIds": [
+        "T3.6"
+      ],
+      "testIds": [],
+      "status": "not_started"
+    },
+    {
+      "requirementId": "FR-012",
+      "acceptanceCriteriaIds": [
+        "AC-006"
+      ],
+      "planSection": "google_lsa integration",
+      "taskIds": [
+        "T3.7"
+      ],
+      "testIds": [],
+      "status": "not_started"
+    },
+    {
+      "requirementId": "NFR-001",
+      "acceptanceCriteriaIds": [
+        "AC-008"
+      ],
+      "planSection": "Security baseline - credentials",
+      "taskIds": [
+        "T3.3"
+      ],
+      "testIds": [],
+      "status": "not_started"
+    },
+    {
+      "requirementId": "NFR-002",
+      "acceptanceCriteriaIds": [
+        "AC-006"
+      ],
+      "planSection": "Security baseline - isolation",
+      "taskIds": [
+        "T3.3"
+      ],
+      "testIds": [],
+      "status": "not_started"
+    },
+    {
+      "requirementId": "NFR-003",
+      "acceptanceCriteriaIds": [
+        "AC-006"
+      ],
+      "planSection": "Security baseline - rate limiting",
+      "taskIds": [
+        "T3.5"
+      ],
+      "testIds": [],
+      "status": "not_started"
+    },
+    {
+      "requirementId": "NFR-004",
+      "acceptanceCriteriaIds": [
+        "AC-005",
+        "AC-009"
+      ],
+      "planSection": "Security baseline - input validation",
+      "taskIds": [
+        "T3.2"
+      ],
+      "testIds": [],
+      "status": "not_started"
+    },
+    {
+      "requirementId": "NFR-005",
+      "acceptanceCriteriaIds": [
+        "AC-009"
+      ],
+      "planSection": "Lints and MSRV",
+      "taskIds": [
+        "T4.1",
+        "T4.2",
+        "T4.3",
+        "T4.4",
+        "T4.5"
+      ],
+      "testIds": [],
+      "status": "not_started"
+    },
+    {
+      "requirementId": "NFR-006",
+      "acceptanceCriteriaIds": [
+        "AC-009"
+      ],
+      "planSection": "Security baseline - not applicable",
+      "taskIds": [],
+      "testIds": [],
+      "status": "not_started"
+    }
+  ]
+}

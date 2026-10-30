@@ -250,6 +250,35 @@
           ]
         }
       ]
+    },
+    {
+      "name": "google-oauth-shared-helper",
+      "branch": "feature/w2-p1",
+      "base": "main",
+      "productItems": [
+        "BP-015"
+      ],
+      "currentVersion": "v1",
+      "versions": [
+        {
+          "id": "v1",
+          "phase": "backlog",
+          "currentStep": "planning",
+          "gates": {
+            "specification": "approved",
+            "planning": "pending",
+            "implementation": "pending",
+            "review": "pending"
+          },
+          "history": [
+            {
+              "event": "Proposed from group expression [w2 p1] on shared branch feature/w2-p1",
+              "by": "SpecDrive",
+              "timestamp": "2026-10-30T17:48:28.130Z"
+            }
+          ]
+        }
+      ]
     }
   ]
 }

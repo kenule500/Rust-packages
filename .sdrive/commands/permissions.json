@@ -261,6 +261,11 @@
       "admin",
       "reviewer",
       "developer"
+    ],
+    "group:resolve": [
+      "admin",
+      "reviewer",
+      "developer"
     ]
   }
 }

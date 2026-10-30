@@ -1,0 +1,99 @@
+{
+  "feature": "google-oauth-shared-helper",
+  "version": 1,
+  "architecture": {
+    "approach": "One feature-flagged module inside wirekit, src/google_oauth.rs, behind an additive default-off google-oauth feature. It reuses the crate client, retry policy, token bucket, tracing, secret type, and WirekitError, and adds no crate, runtime, or I/O (CON-103, CON-104, CON-108). Authorization Code plus PKCE is the only flow the types can express: AuthorizationRequest is only produced by a constructor that generates a verifier, so no code path omits PKCE (CON-212). Storage is a trait so the library never persists anything; the crate ships a non-durable in-memory store and documents durable encryption as the implementor's contract.",
+    "components": [
+      { "name": "crates/wirekit/src/google_oauth.rs", "action": "create", "description": "GoogleOAuthClient, AuthorizationRequest, TokenResponse, TokenStore, MemoryTokenStore, RevokeRequest; PKCE authorization, code exchange, refresh-once, revoke." },
+      { "name": "crates/wirekit/src/lib.rs", "action": "modify", "description": "Register the module behind #[cfg(feature = \"google-oauth\")]; keep forbid(unsafe_code) and deny(missing_docs)." },
+      { "name": "crates/wirekit/Cargo.toml", "action": "modify", "description": "Add the google-oauth feature; no new dependency." },
+      { "name": "crates/wirekit/src/google_lsa.rs", "action": "modify", "description": "Accept a GoogleOAuthClient token source for refresh while keeping the static-token path (FR-012)." },
+      { "name": "crates/wirekit/README.md", "action": "modify", "description": "Document the feature and the TokenStore contract." },
+      { "name": "crates/wirekit/src/client.rs", "action": "reuse", "description": "Pooled client and request pipeline (BP-005)." },
+      { "name": "crates/wirekit/src/rate_limit.rs", "action": "reuse", "description": "Per-provider token bucket for the token endpoint." },
+      { "name": "crates/wirekit/src/retry.rs", "action": "reuse", "description": "Three-attempt policy; refresh is not a retry." },
+      { "name": "crates/wirekit/src/error.rs", "action": "reuse", "description": "WirekitError is the single error type (CON-207)." },
+      { "name": "crates/wirekit/src/trace.rs", "action": "reuse", "description": "Tracing and URL redaction." },
+      { "name": "crates/wirekit/src/secret.rs", "action": "reuse", "description": "Secret type for the client secret and every token (CON-214)." }
+    ],
+    "referencedRequirementIds": [
+      "FR-001", "FR-002", "FR-003", "FR-004", "FR-005", "FR-006",
+      "FR-007", "FR-008", "FR-009", "FR-010", "FR-011", "FR-012",
+      "NFR-001", "NFR-002", "NFR-003", "NFR-004", "NFR-005", "NFR-006"
+    ]
+  },
+  "dataModel": {
+    "entities": [
+      {
+        "name": "GoogleOAuthClient",
+        "action": "create",
+        "fields": [
+          { "name": "client_id", "type": "String", "action": "add" },
+          { "name": "client_secret", "type": "Secret<String>", "action": "add" },
+          { "name": "redirect_uri", "type": "Url", "action": "add" },
+          { "name": "scopes", "type": "Vec<String>", "action": "add" },
+          { "name": "token_endpoint", "type": "Url", "action": "add" },
+          { "name": "clock", "type": "Clock", "action": "add" }
+        ]
+      },
+      {
+        "name": "AuthorizationRequest",
+        "action": "create",
+        "fields": [
+          { "name": "url", "type": "Url", "action": "add" },
+          { "name": "state", "type": "Secret<String>", "action": "add" },
+          { "name": "code_verifier", "type": "Secret<String>", "action": "add" }
+        ]
+      },
+      {
+        "name": "TokenResponse",
+        "action": "create",
+        "fields": [
+          { "name": "access_token", "type": "Secret<String>", "action": "add" },
+          { "name": "refresh_token", "type": "Option<Secret<String>>", "nullable": true, "action": "add" },
+          { "name": "expires_at", "type": "Timestamp", "action": "add" },
+          { "name": "scopes", "type": "Vec<String>", "action": "add" }
+        ]
+      },
+      {
+        "name": "RevokeRequest",
+        "action": "create",
+        "fields": [
+          { "name": "token", "type": "Secret<String>", "action": "add" },
+          { "name": "hint", "type": "Option<String>", "nullable": true, "action": "add" }
+        ]
+      }
+    ],
+    "flowDescription": "The caller constructs one GoogleOAuthClient per tenant with its own client id, secret, redirect URI, scopes, and an injected clock and TokenStore. authorization_url generates a state and verifier and returns a URL; the caller stores the state server-side and redirects. On callback the caller passes state and code back; the module compares state, posts code plus verifier to the token endpoint, and saves the resulting TokenResponse through the store. Later token requests load from the store, refresh once when the token is inside the safety margin, and save the refreshed record. Revocation removes the record. The library never reads or writes a file, database, or environment variable.",
+    "note": "No persistence in the crate; TokenStore is supplied by the caller."
+  },
+  "securityConsiderations": [
+    { "requirementId": "NFR-001", "description": "CON-511 and CON-519 expanded: client id, secret, and every token come from the caller at construction or from the store; none is embedded, defaulted, or read from an environment variable." },
+    { "requirementId": "NFR-002", "description": "CON-512 expanded: no global or static token cache; a client owns its state, so two tenants cannot observe each other's tokens." },
+    { "requirementId": "NFR-003", "description": "CON-514 expanded: the token endpoint is charged to the shared per-provider bucket with a caller override." },
+    { "requirementId": "NFR-004", "description": "CON-515 expanded: provider error bodies, redirect parameters, and scope strings are validated and produce typed errors; no panic path." },
+    { "requirementId": "NFR-005", "description": "CON-201 and CON-202 kept in force: forbid(unsafe_code), deny(missing_docs), rustdoc on every public item." },
+    { "requirementId": "NFR-006", "description": "CON-516 recorded NOT APPLICABLE: no database, cache, or query surface. CON-513, CON-517, and CON-518 are also not applicable: no server responses, markup, or browser sessions." }
+  ],
+  "performanceConsiderations": [
+    { "requirementId": "NFR-003", "description": "One bucket update per token-endpoint request; tokens are cached until expiry minus the safety margin, so refresh traffic stays bounded." },
+    { "requirementId": "NFR-004", "description": "Error bodies are size-bounded before decoding, so a hostile response cannot force unbounded allocation." },
+    { "requirementId": "NFR-005", "description": "PKCE uses S256 once per authorization; no per-request hashing on the token path." }
+  ],
+  "dependencies": [
+    { "name": "wirekit core (BP-005)", "type": "internal", "action": "no_change", "notes": "On main after m1-first-publish: client, retry, bucket, tracing, secret, error." },
+    { "name": "rand", "type": "library", "action": "no_change", "notes": "CSPRNG for state and code_verifier; already a dependency." },
+    { "name": "sha2", "type": "library", "action": "no_change", "notes": "SHA-256 for the PKCE S256 challenge; already a dependency." },
+    { "name": "base64", "type": "library", "action": "no_change", "notes": "base64url encoding of the challenge; already a dependency." },
+    { "name": "url", "type": "library", "action": "no_change", "notes": "URL construction and validation; already a dependency." },
+    { "name": "serde and serde_json", "type": "library", "action": "no_change", "notes": "TokenResponse decoding; already dependencies." },
+    { "name": "Google OAuth app registration", "type": "external", "action": "no_change", "notes": "Live-use gate only; no task depends on it. Sensitive-scope verification [to be confirmed]." }
+  ],
+  "risks": [
+    { "description": "Google requires app verification for sensitive scopes, delaying M2.", "mitigation": "Scopes are caller-supplied; each module requests only its own." },
+    { "description": "Refresh-token storage is security-critical and lives outside the crate.", "mitigation": "The TokenStore boundary is documented and the in-memory store is marked non-durable." },
+    { "description": "Changing google_lsa to accept a token source could break callers.", "mitigation": "FR-012 retains a static-token path." },
+    { "description": "Concurrent refresh storms across processes.", "mitigation": "Single-flight per client; a shared store needs an implementor-level lock, documented in the trait." },
+    { "description": "Clock skew makes a fresh token look expired.", "mitigation": "The clock is injected and a time before issue is treated as elapsed, triggering exactly one refresh." }
+  ]
+}

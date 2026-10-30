@@ -65,7 +65,12 @@
           "linkedAcceptanceCriteria": [
             "AC-024"
           ],
-          "completed": false
+          "completed": false,
+          "resolution": {
+            "kind": "superseded",
+            "reason": "Scope reduced from four modules to three; the angi, google_lsa and sage_intacct files were created and registered, and adp was descoped",
+            "at": "2026-10-29"
+          }
         },
         {
           "id": "T1.3",
@@ -260,7 +265,12 @@
             "AC-008",
             "AC-009"
           ],
-          "completed": false
+          "completed": false,
+          "resolution": {
+            "kind": "superseded",
+            "reason": "The published localservices:v1 discovery document defines no lead-status or booking method",
+            "at": "2026-10-29"
+          }
         }
       ]
     },
@@ -635,7 +645,7 @@
           "linkedAcceptanceCriteria": [
             "AC-024"
           ],
-          "completed": false
+          "completed": true
         }
       ]
     }

@@ -262,7 +262,7 @@
       "versions": [
         {
           "id": "v1",
-          "phase": "backlog",
+          "phase": "ongoing",
           "currentStep": "implementation",
           "gates": {
             "specification": "approved",
@@ -285,6 +285,11 @@
               "event": "Split onto its own branch so the un-gated credential layer does not wait on partner access",
               "by": "SpecDrive",
               "timestamp": "2026-10-30T18:13:14.404Z"
+            },
+            {
+              "event": "Implementation started: spec moved from backlog to ongoing on feature/google-oauth-shared-helper",
+              "by": "SpecDrive",
+              "timestamp": "2026-10-30T18:19:17.826Z"
             }
           ]
         }

@@ -253,7 +253,7 @@
     },
     {
       "name": "google-oauth-shared-helper",
-      "branch": "feature/w2-p1",
+      "branch": "feature/google-oauth-shared-helper",
       "base": "main",
       "productItems": [
         "BP-015"
@@ -280,6 +280,11 @@
               "event": "Gate 2 approved: technical plan and execution tasks",
               "by": "kenule500",
               "timestamp": "2026-10-30T18:07:05.642Z"
+            },
+            {
+              "event": "Split onto its own branch so the un-gated credential layer does not wait on partner access",
+              "by": "SpecDrive",
+              "timestamp": "2026-10-30T18:13:14.404Z"
             }
           ]
         }

@@ -74,6 +74,9 @@ pub mod angi;
 #[cfg(feature = "google-lsa")]
 pub mod google_lsa;
 
+#[cfg(feature = "google-oauth")]
+pub mod google_oauth;
+
 #[cfg(feature = "noaa")]
 pub mod noaa;
 

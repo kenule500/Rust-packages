@@ -7,8 +7,8 @@
       "name": "Module skeleton",
       "dependencies": [],
       "tasks": [
-        { "id": "T1.1", "title": "Add the google-oauth feature and register the module", "description": "Add google-oauth = [] as an additive default-off feature and register the module behind cfg(feature).", "linkedRequirements": ["FR-001"], "linkedAcceptanceCriteria": ["AC-001", "AC-009"], "completed": false },
-        { "id": "T1.2", "title": "Define the five public types", "description": "GoogleOAuthClient, AuthorizationRequest, TokenResponse, TokenStore, RevokeRequest, plus a non-durable MemoryTokenStore. TokenStore must be object-safe.", "linkedRequirements": ["FR-001", "FR-008"], "linkedAcceptanceCriteria": ["AC-009"], "completed": false }
+        { "id": "T1.1", "title": "Add the google-oauth feature and register the module", "description": "Add google-oauth = [] as an additive default-off feature and register the module behind cfg(feature).", "linkedRequirements": ["FR-001"], "linkedAcceptanceCriteria": ["AC-001", "AC-009"], "completed": true },
+        { "id": "T1.2", "title": "Define the five public types", "description": "GoogleOAuthClient, AuthorizationRequest, TokenResponse, TokenStore, RevokeRequest, plus a non-durable MemoryTokenStore. TokenStore must be object-safe.", "linkedRequirements": ["FR-001", "FR-008"], "linkedAcceptanceCriteria": ["AC-009"], "completed": true }
       ]
     },
     {
@@ -16,10 +16,10 @@
       "name": "Authorization, exchange, refresh, revoke",
       "dependencies": ["P1"],
       "tasks": [
-        { "id": "T2.1", "title": "Build the authorization URL with state and PKCE", "description": "Emit response_type=code, scopes, redirect URI, a CSPRNG state, and code_challenge with S256. No code path may omit PKCE.", "linkedRequirements": ["FR-002", "FR-003"], "linkedAcceptanceCriteria": ["AC-001", "AC-002", "AC-003"], "completed": false },
-        { "id": "T2.2", "title": "Exchange the code for tokens", "description": "Post code and verifier to the token endpoint; return a typed response with absolute expiry computed from the injected clock.", "linkedRequirements": ["FR-004"], "linkedAcceptanceCriteria": ["AC-004"], "completed": false },
-        { "id": "T2.3", "title": "Refresh once on 401 and persist through the store", "description": "At most one refresh per request; save the refreshed record; a second 401 fails without another attempt.", "linkedRequirements": ["FR-006"], "linkedAcceptanceCriteria": ["AC-006"], "completed": false },
-        { "id": "T2.4", "title": "Revoke a token and delete the record", "description": "Call the revocation endpoint once and remove the record through the TokenStore.", "linkedRequirements": ["FR-007"], "linkedAcceptanceCriteria": ["AC-007"], "completed": false }
+        { "id": "T2.1", "title": "Build the authorization URL with state and PKCE", "description": "Emit response_type=code, scopes, redirect URI, a CSPRNG state, and code_challenge with S256. No code path may omit PKCE.", "linkedRequirements": ["FR-002", "FR-003"], "linkedAcceptanceCriteria": ["AC-001", "AC-002", "AC-003"], "completed": true },
+        { "id": "T2.2", "title": "Exchange the code for tokens", "description": "Post code and verifier to the token endpoint; return a typed response with absolute expiry computed from the injected clock.", "linkedRequirements": ["FR-004"], "linkedAcceptanceCriteria": ["AC-004"], "completed": true },
+        { "id": "T2.3", "title": "Refresh once on 401 and persist through the store", "description": "At most one refresh per request; save the refreshed record; a second 401 fails without another attempt.", "linkedRequirements": ["FR-006"], "linkedAcceptanceCriteria": ["AC-006"], "completed": true },
+        { "id": "T2.4", "title": "Revoke a token and delete the record", "description": "Call the revocation endpoint once and remove the record through the TokenStore.", "linkedRequirements": ["FR-007"], "linkedAcceptanceCriteria": ["AC-007"], "completed": true }
       ]
     },
     {
@@ -27,13 +27,13 @@
       "name": "Hardening and integration",
       "dependencies": ["P2"],
       "tasks": [
-        { "id": "T3.1", "title": "Map Google errors into WirekitError", "description": "Map error and error_description to Auth for credential failures and Api for provider-side failures, preserving the provider code.", "linkedRequirements": ["FR-005"], "linkedAcceptanceCriteria": ["AC-005"], "completed": false },
-        { "id": "T3.2", "title": "Validate untrusted input", "description": "Error bodies, redirect parameters, and scope strings produce typed errors; bound the body before decoding; no panic path.", "linkedRequirements": ["NFR-004"], "linkedAcceptanceCriteria": ["AC-005", "AC-009"], "completed": false },
-        { "id": "T3.3", "title": "Redact secrets and scope client state", "description": "Secret, access token, and refresh token render ***; no Serialize on those types; no global cache; credentials only from construction.", "linkedRequirements": ["FR-010", "NFR-001", "NFR-002"], "linkedAcceptanceCriteria": ["AC-008", "AC-006"], "completed": false },
-        { "id": "T3.4", "title": "Enforce HTTPS and the endpoint override", "description": "Reject a non-HTTPS token endpoint unless it is loopback and explicitly allowed.", "linkedRequirements": ["FR-009"], "linkedAcceptanceCriteria": ["AC-001"], "completed": false },
-        { "id": "T3.5", "title": "Rate-limit the token endpoint", "description": "Charge requests to the shared per-provider bucket with a caller override.", "linkedRequirements": ["NFR-003"], "linkedAcceptanceCriteria": ["AC-006"], "completed": false },
-        { "id": "T3.6", "title": "Emit tracing without values", "description": "Trace authorization, exchange, refresh, revoke, and errors; never record a token, verifier, or secret.", "linkedRequirements": ["FR-011"], "linkedAcceptanceCriteria": ["AC-008"], "completed": false },
-        { "id": "T3.7", "title": "Accept the helper as a google_lsa token source", "description": "google_lsa accepts the helper for refresh and still accepts a static token.", "linkedRequirements": ["FR-012"], "linkedAcceptanceCriteria": ["AC-006"], "completed": false }
+        { "id": "T3.1", "title": "Map Google errors into WirekitError", "description": "Map error and error_description to Auth for credential failures and Api for provider-side failures, preserving the provider code.", "linkedRequirements": ["FR-005"], "linkedAcceptanceCriteria": ["AC-005"], "completed": true },
+        { "id": "T3.2", "title": "Validate untrusted input", "description": "Error bodies, redirect parameters, and scope strings produce typed errors; bound the body before decoding; no panic path.", "linkedRequirements": ["NFR-004"], "linkedAcceptanceCriteria": ["AC-005", "AC-009"], "completed": true },
+        { "id": "T3.3", "title": "Redact secrets and scope client state", "description": "Secret, access token, and refresh token render ***; no Serialize on those types; no global cache; credentials only from construction.", "linkedRequirements": ["FR-010", "NFR-001", "NFR-002"], "linkedAcceptanceCriteria": ["AC-008", "AC-006"], "completed": true },
+        { "id": "T3.4", "title": "Enforce HTTPS and the endpoint override", "description": "Reject a non-HTTPS token endpoint unless it is loopback and explicitly allowed.", "linkedRequirements": ["FR-009"], "linkedAcceptanceCriteria": ["AC-001"], "completed": true },
+        { "id": "T3.5", "title": "Rate-limit the token endpoint", "description": "Charge requests to the shared per-provider bucket with a caller override.", "linkedRequirements": ["NFR-003"], "linkedAcceptanceCriteria": ["AC-006"], "completed": true },
+        { "id": "T3.6", "title": "Emit tracing without values", "description": "Trace authorization, exchange, refresh, revoke, and errors; never record a token, verifier, or secret.", "linkedRequirements": ["FR-011"], "linkedAcceptanceCriteria": ["AC-008"], "completed": true },
+        { "id": "T3.7", "title": "Accept the helper as a google_lsa token source", "description": "google_lsa accepts the helper for refresh and still accepts a static token.", "linkedRequirements": ["FR-012"], "linkedAcceptanceCriteria": ["AC-006"], "completed": true }
       ]
     },
     {
@@ -41,11 +41,11 @@
       "name": "Verification",
       "dependencies": ["P3"],
       "tasks": [
-        { "id": "T4.1", "title": "Run the formatter check", "description": "cargo fmt --all --check passes.", "linkedRequirements": ["NFR-005"], "linkedAcceptanceCriteria": ["AC-009"], "completed": false },
-        { "id": "T4.2", "title": "Run the linter", "description": "cargo clippy -p wirekit --all-features -- -D warnings passes.", "linkedRequirements": ["NFR-005"], "linkedAcceptanceCriteria": ["AC-009"], "completed": false },
-        { "id": "T4.3", "title": "Build the documentation", "description": "cargo doc --all-features --no-deps passes with RUSTDOCFLAGS=-D warnings.", "linkedRequirements": ["NFR-005"], "linkedAcceptanceCriteria": ["AC-009"], "completed": false },
-        { "id": "T4.4", "title": "Compile the feature combinations", "description": "Baseline, google-oauth, and google-lsa each compile on Rust 1.85.", "linkedRequirements": ["NFR-005"], "linkedAcceptanceCriteria": ["AC-009"], "completed": false },
-        { "id": "T4.5", "title": "Run the governance validator", "description": "node .sdrive/scripts/validate-governance.js reports every artifact valid.", "linkedRequirements": ["NFR-005"], "linkedAcceptanceCriteria": ["AC-009"], "completed": false }
+        { "id": "T4.1", "title": "Run the formatter check", "description": "cargo fmt --all --check passes.", "linkedRequirements": ["NFR-005"], "linkedAcceptanceCriteria": ["AC-009"], "completed": false, "resolution": { "kind": "deferred", "reason": "cargo fmt --all --check stops at tests/google-oauth-shared-helper/main.rs:341, an unbalanced brace in a test file that /sdrive:apply is forbidden to edit; rustfmt --check passes on src/google_oauth.rs and src/google_lsa.rs", "at": "2026-10-30" } },
+        { "id": "T4.2", "title": "Run the linter", "description": "cargo clippy -p wirekit --all-features -- -D warnings passes.", "linkedRequirements": ["NFR-005"], "linkedAcceptanceCriteria": ["AC-009"], "completed": true },
+        { "id": "T4.3", "title": "Build the documentation", "description": "cargo doc --all-features --no-deps passes with RUSTDOCFLAGS=-D warnings.", "linkedRequirements": ["NFR-005"], "linkedAcceptanceCriteria": ["AC-009"], "completed": true },
+        { "id": "T4.4", "title": "Compile the feature combinations", "description": "Baseline, google-oauth, and google-lsa each compile on Rust 1.85.", "linkedRequirements": ["NFR-005"], "linkedAcceptanceCriteria": ["AC-009"], "completed": true },
+        { "id": "T4.5", "title": "Run the governance validator", "description": "node .sdrive/scripts/validate-governance.js reports every artifact valid.", "linkedRequirements": ["NFR-005"], "linkedAcceptanceCriteria": ["AC-009"], "completed": true }
       ]
     }
   ]

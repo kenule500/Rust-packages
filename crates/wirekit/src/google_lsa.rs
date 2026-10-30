@@ -200,15 +200,45 @@ impl SearchPage {
     }
 }
 
+/// The helper, the store it reads, and the key it reads under.
+#[cfg(feature = "google-oauth")]
+struct OAuthCredential {
+    oauth: crate::google_oauth::GoogleOAuthClient,
+    store: std::sync::Arc<dyn crate::google_oauth::TokenStore>,
+    key: String,
+}
+
+/// Where a request's bearer token comes from.
+enum Credential {
+    /// A token the caller obtained outside this crate.
+    Static(crate::Secret<String>),
+    /// A token loaded and refreshed through `wirekit::google_oauth`.
+    #[cfg(feature = "google-oauth")]
+    OAuth(Box<OAuthCredential>),
+}
+
 /// A read-only Local Services Ads client.
 ///
-/// One instance carries one tenant's access token; nothing is cached or shared, so
+/// One instance carries one tenant's credential; nothing is cached or shared, so
 /// two tenants cannot observe each other (NFR-002). The token is held in
 /// [`Secret`](crate::Secret), so `Debug` renders `***`.
-#[derive(Debug)]
 pub struct GoogleLsaClient {
     client: WirekitClient,
-    access_token: crate::Secret<String>,
+    credential: Credential,
+}
+
+impl std::fmt::Debug for GoogleLsaClient {
+    fn fmt(&self, formatter: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        let credential = match &self.credential {
+            Credential::Static(_) => "<static token>",
+            #[cfg(feature = "google-oauth")]
+            Credential::OAuth(_) => "<google_oauth source>",
+        };
+        formatter
+            .debug_struct("GoogleLsaClient")
+            .field("credential", &credential)
+            .finish_non_exhaustive()
+    }
 }
 
 impl GoogleLsaClient {
@@ -218,7 +248,44 @@ impl GoogleLsaClient {
     pub fn new(client: WirekitClient, access_token: crate::Secret<String>) -> Self {
         Self {
             client,
-            access_token,
+            credential: Credential::Static(access_token),
+        }
+    }
+
+    /// Build a client whose access token comes from a `google_oauth` helper.
+    ///
+    /// The token is loaded from `store` under `key` and refreshed at most once
+    /// when it is inside the helper's expiry margin (FR-012, CON-212). Callers
+    /// that already hold a token keep using [`new`](Self::new).
+    #[cfg(feature = "google-oauth")]
+    #[must_use]
+    pub fn with_oauth(
+        client: WirekitClient,
+        oauth: crate::google_oauth::GoogleOAuthClient,
+        store: std::sync::Arc<dyn crate::google_oauth::TokenStore>,
+        key: impl Into<String>,
+    ) -> Self {
+        Self {
+            client,
+            credential: Credential::OAuth(Box::new(OAuthCredential {
+                oauth,
+                store,
+                key: key.into(),
+            })),
+        }
+    }
+
+    /// The bearer token for this request, refreshed through the helper when one is
+    /// configured.
+    async fn access_token(&self) -> Result<crate::Secret<String>, WirekitError> {
+        match &self.credential {
+            Credential::Static(token) => Ok(token.clone()),
+            #[cfg(feature = "google-oauth")]
+            Credential::OAuth(source) => source
+                .oauth
+                .token_for(source.store.as_ref(), &source.key)
+                .await
+                .map(|token| token.access_token().clone()),
         }
     }
 
@@ -285,10 +352,11 @@ impl GoogleLsaClient {
             }
         }
 
+        let access_token = self.access_token().await?;
         let spec = RequestSpec::get(url)
             .try_header(
                 "authorization",
-                &format!("Bearer {}", self.access_token.expose()),
+                &format!("Bearer {}", access_token.expose()),
             )?
             .try_header("accept", "application/json")?
             .rate_limit_key("google-lsa");

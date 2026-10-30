@@ -43,6 +43,11 @@ google-lsa = []
 sage-intacct = ["dep:quick-xml"]
 adp = []
 
+# BP-015. The OAuth2 Authorization Code + PKCE helper every Google provider
+# shares. Uses only dependencies the crate already compiles in (rand, sha2,
+# base64, url, serde_json), so it needs no new library.
+google-oauth = []
+
 [dependencies]
 reqwest = { version = "0.12.23", default-features = false, features = [
     "rustls-tls",
@@ -92,6 +97,10 @@ wiremock = "=0.6.3"
 # `tokio` or `tracing` dependencies, so the test harness declares them itself.
 tokio = { version = "1.44.2", features = ["macros", "rt", "time"] }
 tracing = "0.1.41"
+
+[[test]]
+name = "google-oauth-shared-helper"
+required-features = ["google-oauth"]
 
 [[example]]
 name = "noaa"

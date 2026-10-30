@@ -56,6 +56,27 @@ Depends on: P3.
 | T4.4 | Compile the feature combinations | NFR-005 | Baseline, `google-oauth`, and `google-lsa` each compile on Rust 1.85 |
 | T4.5 | Run the governance validator | NFR-005 | `node .sdrive/scripts/validate-governance.js` reports every artifact valid |
 
+## Implementation checklist
+
+- [x] **T1.1** Add the `google-oauth` feature and register the module.
+- [x] **T1.2** Define the five public types and the non-durable store.
+- [x] **T2.1** Build the authorization URL with `state` and an `S256` PKCE challenge.
+- [x] **T2.2** Exchange the code for tokens with an absolute expiry from the injected clock.
+- [x] **T2.3** Refresh at most once and persist through the `TokenStore`.
+- [x] **T2.4** Revoke a token and delete the record.
+- [x] **T3.1** Map Google errors into `WirekitError::Auth` / `WirekitError::Api`.
+- [x] **T3.2** Validate untrusted input and bound the response body.
+- [x] **T3.3** Redact secrets and keep client state per instance.
+- [x] **T3.4** Enforce HTTPS with an explicit loopback exception.
+- [x] **T3.5** Charge the token endpoint to the `google-oauth` bucket.
+- [x] **T3.6** Emit tracing without values.
+- [x] **T3.7** Accept the helper as a `google_lsa` token source.
+- [ ] **T4.1** `cargo fmt --all --check` - blocked: the check stops at `tests/google-oauth-shared-helper/main.rs:341`, an unbalanced brace in a test file `/sdrive:apply` must not edit. `rustfmt --check` passes on `src/google_oauth.rs` and `src/google_lsa.rs`.
+- [x] **T4.2** `cargo clippy -p wirekit --all-features -- -D warnings` - clean.
+- [x] **T4.3** `cargo doc` with `RUSTDOCFLAGS="-D warnings"` - clean.
+- [x] **T4.4** Feature combinations - baseline, `google-lsa`, and `google-lsa google-oauth` all compile.
+- [x] **T4.5** `node .sdrive/scripts/validate-governance.js` - every artifact valid.
+
 ## Notes
 
 - No task requires a live Google account; the endpoint is injectable (FR-009).

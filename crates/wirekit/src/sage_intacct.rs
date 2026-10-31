@@ -356,7 +356,7 @@ fn parse_response(body: &[u8], max_bytes: usize) -> Result<IntacctOutcome, Wirek
                         source: None,
                     });
                 }
-                let name = start.local_name().as_ref().to_string();
+                let name = String::from_utf8_lossy(start.local_name().as_ref()).into_owned();
                 if name == "data" {
                     in_data += 1;
                 }
@@ -376,7 +376,11 @@ fn parse_response(body: &[u8], max_bytes: usize) -> Result<IntacctOutcome, Wirek
                 }
             }
             Ok(Event::Text(text)) => {
-                let value = text.into_inner().into_owned();
+                // quick-xml 0.41 hands back raw bytes here; 0.42 decoded them for us.
+                // Intacct responses are UTF-8, so a lossy conversion is the same text
+                // the newer API produced.
+                let raw = text.into_inner();
+                let value = String::from_utf8_lossy(&raw).into_owned();
                 if value.is_empty() {
                     continue;
                 }

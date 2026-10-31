@@ -74,7 +74,8 @@ does not implement `Serialize` (CON-214).
 | `rand` | library | no_change | Already a dependency; CSPRNG for `state` and verifier |
 | `sha2`, `base64` | library | no_change | `S256` challenge encoding |
 | `url` | library | no_change | URL construction; already a dependency |
-| `serde`, `serde_json` | library | no_change | `TokenResponse` decoding |
+| `serde` | library | no_change | `TokenResponse` decoding; already a dependency |
+| `serde_json` | library | no_change | Token and error body parsing; already a dependency |
 | Google OAuth app registration | external | no_change | Live-use gate only; no task needs it |
 
 No new dependency is introduced.

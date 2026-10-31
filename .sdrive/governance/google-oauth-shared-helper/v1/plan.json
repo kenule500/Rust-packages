@@ -86,7 +86,8 @@
     { "name": "sha2", "type": "library", "action": "no_change", "notes": "SHA-256 for the PKCE S256 challenge; already a dependency." },
     { "name": "base64", "type": "library", "action": "no_change", "notes": "base64url encoding of the challenge; already a dependency." },
     { "name": "url", "type": "library", "action": "no_change", "notes": "URL construction and validation; already a dependency." },
-    { "name": "serde and serde_json", "type": "library", "action": "no_change", "notes": "TokenResponse decoding; already dependencies." },
+    { "name": "serde", "type": "library", "action": "no_change", "notes": "TokenResponse decoding; already a dependency." },
+    { "name": "serde_json", "type": "library", "action": "no_change", "notes": "Token and error body parsing; already a dependency." },
     { "name": "Google OAuth app registration", "type": "external", "action": "no_change", "notes": "Live-use gate only; no task depends on it. Sensitive-scope verification [to be confirmed]." }
   ],
   "risks": [

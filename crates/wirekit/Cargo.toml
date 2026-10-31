@@ -48,6 +48,11 @@ adp = []
 # base64, url, serde_json), so it needs no new library.
 google-oauth = []
 
+# BP-011. Meta Graph messaging for Messenger, Instagram DM, and WhatsApp Cloud.
+# No new dependency: the module reuses the client, retry, rate limit, secret,
+# and HMAC machinery already compiled in.
+meta = []
+
 [dependencies]
 reqwest = { version = "0.12.23", default-features = false, features = [
     "rustls-tls",

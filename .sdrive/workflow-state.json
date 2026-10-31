@@ -326,8 +326,8 @@
       "versions": [
         {
           "id": "v1",
-          "phase": "backlog",
-          "currentStep": "specification",
+          "phase": "ongoing",
+          "currentStep": "implementation",
           "gates": {
             "specification": "approved",
             "planning": "approved",
@@ -353,6 +353,11 @@
               "actor": "kenule500",
               "previousValue": "pending",
               "timestamp": "2026-10-31T12:10:10Z"
+            },
+            {
+              "event": "Implementation started: spec moved from specs/backlog to specs/ongoing; wirekit::meta implemented (compiles, clippy clean); sdrive verify reports 26 matched, 29 missing, 16 extra, so tasks stay uncompleted",
+              "by": "SpecDrive",
+              "timestamp": "2026-10-31T14:08:26Z"
             }
           ]
         }

@@ -77,6 +77,9 @@ pub mod google_lsa;
 #[cfg(feature = "google-oauth")]
 pub mod google_oauth;
 
+#[cfg(feature = "meta")]
+pub mod meta;
+
 #[cfg(feature = "noaa")]
 pub mod noaa;
 

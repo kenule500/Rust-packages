@@ -316,6 +316,47 @@
           ]
         }
       ]
+    },
+    {
+      "name": "meta-graph-provider-module",
+      "branch": "feature/meta-stripe-platform-core",
+      "base": "main",
+      "productItems": ["BP-011"],
+      "currentVersion": "v1",
+      "versions": [
+        {
+          "id": "v1",
+          "phase": "backlog",
+          "currentStep": "specification",
+          "gates": {
+            "specification": "approved",
+            "planning": "approved",
+            "implementation": "pending",
+            "review": "pending"
+          },
+          "history": [
+            {
+              "event": "Proposed from group expression [BP-011, BP-011, BP-013, BP-014, BP-017]; BP-011 shares feature/meta-stripe-platform-core with BP-014 and BP-017, BP-013 gets feature/bp-013-quickbooks",
+              "by": "SpecDrive",
+              "timestamp": "2026-10-31T11:58:26Z"
+            },
+            {
+              "event": "Gate 1 approved: specification and traceability for meta-graph-provider-module",
+              "by": "kenule500",
+              "actor": "kenule500",
+              "previousValue": "pending",
+              "timestamp": "2026-10-31T12:06:03Z"
+            },
+            {
+              "event": "Gate 2 approved: technical plan and execution tasks for meta-graph-provider-module",
+              "by": "kenule500",
+              "actor": "kenule500",
+              "previousValue": "pending",
+              "timestamp": "2026-10-31T12:10:10Z"
+            }
+          ]
+        }
+      ]
     }
   ]
 }

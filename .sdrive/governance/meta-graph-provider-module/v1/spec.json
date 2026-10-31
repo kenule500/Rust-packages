@@ -1,0 +1,121 @@
+{
+  "feature": "meta-graph-provider-module",
+  "title": "Meta Graph provider module",
+  "version": 1,
+  "overview": {
+    "problemStatement": "Developers must hand-roll Graph API calls for Messenger, Instagram DM, and WhatsApp Cloud, each with its own token model, payloads, webhook signature, and rate-limit signalling, so every consumer re-implements the same error mapping and verification.",
+    "proposedSolution": "Add a meta feature-flagged module to wirekit exposing MetaClient, FacebookMessenger, InstagramDm, WhatsAppBusiness, SendMessageRequest, MessageAttachment, and WebhookPayload, with Graph error mapping, usage-header backoff, constant-time webhook verification, and normalised inbound events.",
+    "targetAudience": "Rust developers integrating Meta messaging, including the GIA receptionist, inbox, and social-media agents.",
+    "assumptions": [
+      "Graph API v18.0 remains current for the three surfaces.",
+      "Callers supply the app secret, page token, and WhatsApp phone-number id; the crate never reads the environment.",
+      "Meta app review, page-token permissions, and WhatsApp business verification are [to be confirmed].",
+      "The existing WirekitClient, retry policy, token bucket, Secret type, and WirekitError are reused unchanged.",
+      "No external research was performed beyond the repository catalogue and constitution (CON-704)."
+    ],
+    "outOfScope": [
+      "Conversation state and inbox routing.",
+      "Facebook Login, feed publishing, ads, and Pages management.",
+      "WhatsApp template submission or approval workflows.",
+      "Token acquisition or refresh."
+    ]
+  },
+  "userStories": [
+    {
+      "id": "US-001",
+      "title": "Send a Messenger message",
+      "role": "developer",
+      "want": "to send text or media to a Page-scoped recipient",
+      "benefit": "an application can reply where the customer wrote",
+      "acceptanceCriteria": [
+        { "id": "AC-001", "text": "Given the meta feature and a page token, when send_text runs with a PSID and text, then a POST to /{page-id}/messages carries messaging_type, recipient.id, and the bearer token." },
+        { "id": "AC-002", "text": "Given a SendMessageRequest with an image attachment, when it is sent, then the body carries an image attachment payload and no plain-text field." }
+      ]
+    },
+    {
+      "id": "US-002",
+      "title": "Send an Instagram DM",
+      "role": "developer",
+      "want": "the same send model for Instagram",
+      "benefit": "one client covers both social channels",
+      "acceptanceCriteria": [
+        { "id": "AC-003", "text": "Given an Instagram-scoped token, when send_text runs, then the request targets the Instagram Graph host and reuses the Messenger request shape." }
+      ]
+    },
+    {
+      "id": "US-003",
+      "title": "Send a WhatsApp message or template",
+      "role": "developer",
+      "want": "text and template sends on WhatsApp Cloud",
+      "benefit": "business-initiated messages comply with Meta template rules",
+      "acceptanceCriteria": [
+        { "id": "AC-004", "text": "Given a phone-number id and a template with ordered parameters, when the send runs, then the body carries type template with name, language, and ordered parameters." },
+        { "id": "AC-005", "text": "Given a plain text message inside the open window, when the send runs, then the body carries type text and the recipient wa_id." }
+      ]
+    },
+    {
+      "id": "US-004",
+      "title": "Verify and normalise an inbound webhook",
+      "role": "developer",
+      "want": "signature verification and a normalised event",
+      "benefit": "only authentic payloads reach the application",
+      "acceptanceCriteria": [
+        { "id": "AC-006", "text": "Given a raw body, the app secret, and a correct X-Hub-Signature-256, when verify_and_parse runs, then the HMAC comparison is constant time and the event is returned." },
+        { "id": "AC-007", "text": "Given a wrong or missing signature, when verification runs, then it fails with an authentication error and nothing is parsed." },
+        { "id": "AC-008", "text": "Given a subscribe handshake with hub.challenge, when the helper runs, then the challenge is echoed and a mismatched verify token is rejected." },
+        { "id": "AC-009", "text": "Given an inbound event, when it is normalised, then it exposes the message id as the dedupe key and the surface that produced it." }
+      ]
+    },
+    {
+      "id": "US-005",
+      "title": "Fail safely and predictably",
+      "role": "developer",
+      "want": "consistent Graph error, rate-limit, and secret handling",
+      "benefit": "the module never hides a provider error or leaks a token",
+      "acceptanceCriteria": [
+        { "id": "AC-010", "text": "Given a Graph error with code, error_subcode, and fbtrace_id, when the send fails, then WirekitError::Api exposes all three values." },
+        { "id": "AC-011", "text": "Given a 429 carrying X-Business-Use-Case-Usage, when the request retries, then the policy backs off and the usage value is surfaced." },
+        { "id": "AC-012", "text": "Given a MetaClient holding a page token and app secret, when it is formatted with Debug, then neither secret appears in the output." },
+        { "id": "AC-013", "text": "Given a cleartext http base URL, when the client is built, then construction fails with a validation error." }
+      ]
+    }
+  ],
+  "functionalRequirements": [
+    { "id": "FR-001", "text": "The crate MUST expose an additive, default-off meta feature that enables no other provider feature.", "linkedAcceptanceCriteria": ["AC-001"] },
+    { "id": "FR-002", "text": "MetaClient MUST take caller-supplied app secret and tokens, MUST reject a non-HTTPS base URL, and MUST NOT read the environment.", "linkedAcceptanceCriteria": ["AC-001", "AC-013"] },
+    { "id": "FR-003", "text": "The module MUST provide MetaClient, FacebookMessenger, InstagramDm, WhatsAppBusiness, SendMessageRequest, MessageAttachment, and WebhookPayload.", "linkedAcceptanceCriteria": ["AC-001", "AC-003"] },
+    { "id": "FR-004", "text": "Messenger and Instagram sends MUST reuse one SendMessageRequest covering text and media.", "linkedAcceptanceCriteria": ["AC-002", "AC-003"] },
+    { "id": "FR-005", "text": "WhatsApp sends MUST support text and template message types with ordered parameters.", "linkedAcceptanceCriteria": ["AC-004", "AC-005"] },
+    { "id": "FR-006", "text": "Media upload MUST return an attachment identifier that a subsequent send can reference.", "linkedAcceptanceCriteria": ["AC-002"] },
+    { "id": "FR-007", "text": "Nested Graph errors MUST map to WirekitError::Api and preserve code, subcode, and trace id.", "linkedAcceptanceCriteria": ["AC-010"] },
+    { "id": "FR-008", "text": "429 and 5xx MUST flow through the existing retry policy, and X-Business-Use-Case-Usage MUST be surfaced.", "linkedAcceptanceCriteria": ["AC-011"] },
+    { "id": "FR-009", "text": "Webhook verification MUST use HMAC-SHA256 over raw bytes with a constant-time comparison and MUST fail closed.", "linkedAcceptanceCriteria": ["AC-006", "AC-007"] },
+    { "id": "FR-010", "text": "The subscription handshake MUST echo hub.challenge and reject a mismatched hub.verify_token.", "linkedAcceptanceCriteria": ["AC-008"] },
+    { "id": "FR-011", "text": "Normalised inbound events MUST expose the dedupe key and the originating surface.", "linkedAcceptanceCriteria": ["AC-009"] }
+  ],
+  "nonFunctionalRequirements": [
+    { "id": "NFR-001", "text": "Credentials MUST come from caller config or a secret store and MUST render redacted in Debug (CON-511, CON-519).", "linkedAcceptanceCriteria": ["AC-012"] },
+    { "id": "NFR-002", "text": "Sends MUST be scoped by the page or phone-number identity in the token; a contradicting caller identity MUST be rejected (CON-512).", "linkedAcceptanceCriteria": ["AC-001"] },
+    { "id": "NFR-003", "text": "Provider responses and webhook bodies MUST be validated and bounded before use, with typed errors (CON-515).", "linkedAcceptanceCriteria": ["AC-007"] },
+    { "id": "NFR-004", "text": "All traffic MUST use TLS and a cleartext base URL MUST be rejected (CON-520).", "linkedAcceptanceCriteria": ["AC-013"] },
+    { "id": "NFR-005", "text": "The module MUST compile under forbid(unsafe_code) and deny(missing_docs) like the rest of the crate (CON-201, CON-202).", "linkedAcceptanceCriteria": ["AC-001"] }
+  ],
+  "edgeCases": [
+    { "id": "EC-001", "description": "Usage header close to the limit", "expectedBehavior": "The caller receives the usage value and the retry policy backs off instead of hot-looping." },
+    { "id": "EC-002", "description": "Webhook body above the configured ceiling", "expectedBehavior": "Rejected with a bounds error before parsing." },
+    { "id": "EC-003", "description": "Unknown event type or surface", "expectedBehavior": "Parsed into a typed unsupported variant rather than dropped silently." },
+    { "id": "EC-004", "description": "WhatsApp template parameter count mismatch", "expectedBehavior": "Rejected locally before any network call." }
+  ],
+  "dependencies": [
+    { "name": "reqwest", "type": "library", "notes": "Already compiled in with rustls-tls; reused unchanged." },
+    { "name": "sha2", "type": "library", "notes": "Already present; used for HMAC-SHA256 webhook verification." },
+    { "name": "hmac", "type": "library", "notes": "Already present; constant-time signature comparison." },
+    { "name": "serde_json", "type": "library", "notes": "Already present; request and webhook payload shapes." },
+    { "name": "wirekit::client", "type": "internal", "notes": "Existing WirekitClient, retry policy, and token bucket are reused (no_change)." }
+  ],
+  "risks": [
+    { "id": "RISK-001", "description": "Meta app review and page-token permissions are unconfirmed, so live calls may fail with permission errors.", "mitigation": "Build against the documented shapes and cover behaviour with a local mock, as m5-gated-integrations did." },
+    { "id": "RISK-002", "description": "Graph API version churn changes paths and payloads.", "mitigation": "One documented version constant, asserted per surface in tests." },
+    { "id": "RISK-003", "description": "Instagram and Messenger differ in host and token scope despite a shared payload shape.", "mitigation": "One request type, two hosts, asserted per surface." }
+  ]
+}

@@ -1,0 +1,56 @@
+{
+  "feature": "meta-graph-provider-module",
+  "version": 1,
+  "phases": [
+    {
+      "phaseId": "P1",
+      "name": "Foundation",
+      "dependencies": [],
+      "tasks": [
+        { "id": "T1.1", "title": "Add the meta feature and module wiring", "description": "Add meta = [] to Cargo.toml as an additive default-off feature and declare pub mod meta behind cfg(feature = meta).", "linkedRequirements": ["FR-001", "FR-003"], "linkedAcceptanceCriteria": ["AC-001"], "completed": false },
+        { "id": "T1.2", "title": "Define MetaClient and typed requests", "description": "MetaClient with Secret credentials and base-URL validation, plus SendMessageRequest, MessageAttachment, and WhatsAppTemplate.", "linkedRequirements": ["FR-002", "FR-003", "FR-004"], "linkedAcceptanceCriteria": ["AC-001", "AC-002", "AC-013"], "completed": false }
+      ]
+    },
+    {
+      "phaseId": "P2",
+      "name": "Sends",
+      "dependencies": ["P1"],
+      "tasks": [
+        { "id": "T2.1", "title": "Messenger text and media send", "description": "FacebookMessenger::send_text and send_media posting to /{page-id}/messages with messaging_type and recipient.id.", "linkedRequirements": ["FR-004"], "linkedAcceptanceCriteria": ["AC-001", "AC-002"], "completed": false },
+        { "id": "T2.2", "title": "Instagram DM send", "description": "InstagramDm reusing SendMessageRequest against the Instagram Graph host.", "linkedRequirements": ["FR-003", "FR-004"], "linkedAcceptanceCriteria": ["AC-003"], "completed": false },
+        { "id": "T2.3", "title": "WhatsApp text and template send", "description": "WhatsAppBusiness::send_text and send_template with ordered parameters and a local parameter-count check.", "linkedRequirements": ["FR-005"], "linkedAcceptanceCriteria": ["AC-004", "AC-005"], "completed": false },
+        { "id": "T2.4", "title": "WhatsApp media upload", "description": "upload_media returning an attachment id usable by a subsequent send.", "linkedRequirements": ["FR-006"], "linkedAcceptanceCriteria": ["AC-002"], "completed": false }
+      ]
+    },
+    {
+      "phaseId": "P3",
+      "name": "Webhooks",
+      "dependencies": ["P1"],
+      "tasks": [
+        { "id": "T3.1", "title": "Signature verification and parsing", "description": "HMAC-SHA256 over raw bytes with constant-time comparison, fail closed, and a size-bounded body.", "linkedRequirements": ["FR-009", "NFR-003"], "linkedAcceptanceCriteria": ["AC-006", "AC-007"], "completed": false },
+        { "id": "T3.2", "title": "Subscription handshake", "description": "Echo hub.challenge when hub.mode=subscribe and hub.verify_token matches, reject otherwise, and provide subscribe/unsubscribe calls.", "linkedRequirements": ["FR-010"], "linkedAcceptanceCriteria": ["AC-008"], "completed": false },
+        { "id": "T3.3", "title": "Normalise inbound events", "description": "Map Messenger, Instagram, and WhatsApp payloads into MetaEvent with surface, dedupe key, and an unsupported variant.", "linkedRequirements": ["FR-011"], "linkedAcceptanceCriteria": ["AC-009"], "completed": false }
+      ]
+    },
+    {
+      "phaseId": "P4",
+      "name": "Errors, limits, secrets",
+      "dependencies": ["P2", "P3"],
+      "tasks": [
+        { "id": "T4.1", "title": "Map nested Graph errors", "description": "Flatten error.message, error.code, error.error_subcode, and error.fbtrace_id into WirekitError::Api.", "linkedRequirements": ["FR-007"], "linkedAcceptanceCriteria": ["AC-010"], "completed": false },
+        { "id": "T4.2", "title": "Surface usage and integrate backoff", "description": "Parse X-Business-Use-Case-Usage, expose it on the response type, and let the existing retry policy back off on 429 and 5xx.", "linkedRequirements": ["FR-008"], "linkedAcceptanceCriteria": ["AC-011"], "completed": false },
+        { "id": "T4.3", "title": "Redact credentials", "description": "Hand-written Debug for MetaClient and its config so neither token nor app secret renders.", "linkedRequirements": ["NFR-001"], "linkedAcceptanceCriteria": ["AC-012"], "completed": false },
+        { "id": "T4.4", "title": "Enforce HTTPS and token scope", "description": "Reject cleartext base URLs at construction and reject a caller identity that contradicts the configured page or phone number.", "linkedRequirements": ["NFR-002", "NFR-004"], "linkedAcceptanceCriteria": ["AC-001", "AC-013"], "completed": false }
+      ]
+    },
+    {
+      "phaseId": "P5",
+      "name": "Documentation and verification",
+      "dependencies": ["P2", "P3", "P4"],
+      "tasks": [
+        { "id": "T5.1", "title": "Document the module", "description": "Module-level docs with scope and non-goals, rustdoc on every public item, README provider row and example, and a CHANGELOG entry.", "linkedRequirements": ["NFR-005"], "completed": false },
+        { "id": "T5.2", "title": "Run formatter, linter, docs, and governance checks", "description": "cargo fmt --all --check, cargo clippy --workspace --all-features -- -D warnings, RUSTDOCFLAGS=-D warnings cargo doc --workspace --all-features --no-deps, node .sdrive/scripts/validate-governance.js.", "linkedRequirements": ["NFR-005"], "completed": false }
+      ]
+    }
+  ]
+}

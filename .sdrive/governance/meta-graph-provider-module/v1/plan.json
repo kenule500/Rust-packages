@@ -1,0 +1,91 @@
+{
+  "feature": "meta-graph-provider-module",
+  "version": 1,
+  "architecture": {
+    "approach": "One feature-flagged module, crates/wirekit/src/meta.rs, behind a default-off meta feature, following the existing provider modules. Transport, retry, rate limiting, tracing, and Secret handling are reused unchanged; the feature adds no new dependency and no runtime.",
+    "components": [
+      { "name": "crates/wirekit/src/meta.rs", "action": "create", "description": "MetaClient, FacebookMessenger, InstagramDm, WhatsAppBusiness, SendMessageRequest, MessageAttachment, WhatsAppTemplate, MetaEvent, GraphError, webhook verification and normalisation." },
+      { "name": "crates/wirekit/Cargo.toml", "action": "modify", "description": "Add the additive, default-off meta feature. No new dependency." },
+      { "name": "crates/wirekit/src/lib.rs", "action": "modify", "description": "Declare pub mod meta behind #[cfg(feature = \"meta\")]." },
+      { "name": "wirekit::client", "action": "reuse", "description": "WirekitClient, pooled transport, base URL and TLS enforcement." },
+      { "name": "wirekit::error", "action": "reuse", "description": "WirekitError::Api, Auth, and Decode mapping." },
+      { "name": "wirekit::retry", "action": "reuse", "description": "429 and 5xx backoff policy." },
+      { "name": "wirekit::rate_limit", "action": "reuse", "description": "Per-provider token bucket." },
+      { "name": "wirekit::secret", "action": "reuse", "description": "Secret type and redaction for tokens and the app secret." },
+      { "name": "wirekit::auth", "action": "reuse", "description": "Bearer token header application." },
+      { "name": "wirekit::trace", "action": "reuse", "description": "Request spans." },
+      { "name": "crates/wirekit/README.md", "action": "modify", "description": "Provider table row and a meta example." },
+      { "name": "crates/wirekit/CHANGELOG.md", "action": "modify", "description": "Unreleased entry for the module." }
+    ],
+    "referencedRequirementIds": ["FR-001", "FR-002", "FR-003", "FR-004", "FR-005", "FR-006", "FR-007", "FR-008", "FR-009", "FR-010", "FR-011", "NFR-001", "NFR-002", "NFR-003", "NFR-004", "NFR-005"]
+  },
+  "dataModel": {
+    "entities": [
+      { "name": "MetaClient", "action": "create", "fields": [
+        { "name": "app_secret", "type": "Secret<String>", "action": "add" },
+        { "name": "access_token", "type": "Secret<String>", "action": "add" },
+        { "name": "page_id", "type": "Option<String>", "action": "add" },
+        { "name": "phone_number_id", "type": "Option<String>", "action": "add" },
+        { "name": "api_version", "type": "String", "action": "add" },
+        { "name": "http", "type": "Arc<WirekitClient>", "action": "add" }
+      ] },
+      { "name": "SendMessageRequest", "action": "create", "fields": [
+        { "name": "recipient", "type": "String", "action": "add" },
+        { "name": "text", "type": "Option<String>", "action": "add" },
+        { "name": "attachment", "type": "Option<MessageAttachment>", "action": "add" },
+        { "name": "template", "type": "Option<WhatsAppTemplate>", "action": "add" },
+        { "name": "messaging_type", "type": "String", "action": "add" }
+      ] },
+      { "name": "MessageAttachment", "action": "create", "fields": [
+        { "name": "kind", "type": "AttachmentKind", "action": "add" },
+        { "name": "url", "type": "Option<String>", "action": "add" },
+        { "name": "attachment_id", "type": "Option<String>", "action": "add" }
+      ] },
+      { "name": "WhatsAppTemplate", "action": "create", "fields": [
+        { "name": "name", "type": "String", "action": "add" },
+        { "name": "language", "type": "String", "action": "add" },
+        { "name": "parameters", "type": "Vec<String>", "action": "add" }
+      ] },
+      { "name": "MetaEvent", "action": "create", "fields": [
+        { "name": "surface", "type": "MetaSurface", "action": "add" },
+        { "name": "dedupe_key", "type": "String", "action": "add" },
+        { "name": "sender_id", "type": "String", "action": "add" },
+        { "name": "timestamp", "type": "i64", "action": "add" },
+        { "name": "kind", "type": "EventKind", "action": "add" }
+      ] },
+      { "name": "GraphError", "action": "create", "fields": [
+        { "name": "message", "type": "String", "action": "add" },
+        { "name": "code", "type": "i64", "action": "add" },
+        { "name": "error_subcode", "type": "Option<i64>", "action": "add" },
+        { "name": "fbtrace_id", "type": "Option<String>", "action": "add" }
+      ] }
+    ],
+    "flowDescription": "The caller builds MetaClient from caller-supplied credentials, picks a surface, builds SendMessageRequest, and the module posts through WirekitClient. Failures flatten the nested Graph error into WirekitError::Api. Inbound, the caller passes raw bytes plus X-Hub-Signature-256; the module verifies, parses, and returns MetaEvent."
+  },
+  "apiContracts": [
+    { "method": "POST", "path": "/{page-id}/messages", "action": "create", "authenticationRequired": true, "linkedRequirements": ["FR-003", "FR-004"] },
+    { "method": "POST", "path": "/{ig-user-id}/messages", "action": "create", "authenticationRequired": true, "linkedRequirements": ["FR-003", "FR-004"] },
+    { "method": "POST", "path": "/{phone-number-id}/messages", "action": "create", "authenticationRequired": true, "linkedRequirements": ["FR-005"] },
+    { "method": "POST", "path": "/{phone-number-id}/media", "action": "create", "authenticationRequired": true, "linkedRequirements": ["FR-006"] },
+    { "method": "POST", "path": "/{page-id}/subscribed_apps", "action": "create", "authenticationRequired": true, "linkedRequirements": ["FR-010"] },
+    { "method": "DELETE", "path": "/{page-id}/subscribed_apps", "action": "create", "authenticationRequired": true, "linkedRequirements": ["FR-010"] }
+  ],
+  "securityConsiderations": [
+    { "requirementId": "NFR-001", "description": "Tokens and the app secret are held in Secret and render as *** in Debug; no environment reads (CON-511, CON-519)." },
+    { "requirementId": "NFR-002", "description": "The page or phone-number identity comes from configuration, not the message body, so a caller cannot address another page (CON-512)." },
+    { "requirementId": "NFR-003", "description": "Inbound bodies are size-bounded and parsed into typed events; unknown types become an explicit unsupported variant (CON-515)." },
+    { "requirementId": "NFR-004", "description": "Base URLs are validated as HTTPS at client construction (CON-520)." }
+  ],
+  "dependencies": [
+    { "name": "reqwest", "type": "library", "action": "no_change", "notes": "rustls-tls already compiled in." },
+    { "name": "sha2", "type": "library", "action": "no_change", "notes": "Used for HMAC-SHA256 webhook verification." },
+    { "name": "hmac", "type": "library", "action": "no_change", "notes": "Constant-time signature comparison." },
+    { "name": "serde_json", "type": "library", "action": "no_change", "notes": "Request and webhook payload shapes." },
+    { "name": "wirekit::client", "type": "internal", "action": "no_change", "notes": "Existing pipeline, retry, rate limit, and tracing are reused." }
+  ],
+  "risks": [
+    { "description": "Meta app review and page-token permissions are unconfirmed, so live calls may fail with permission errors.", "mitigation": "Verify against a local mock, as m5-gated-integrations did, and keep the assumption marked [to be confirmed]." },
+    { "description": "Graph API version churn changes paths and payloads.", "mitigation": "Single API_VERSION constant, asserted per surface." },
+    { "description": "Instagram and Messenger differ in host and token scope despite a shared payload shape.", "mitigation": "One request type, two hosts, asserted per surface." }
+  ]
+}

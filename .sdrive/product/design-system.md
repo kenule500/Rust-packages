@@ -66,7 +66,7 @@ Rules:
 - Error messages MUST NOT contain secrets (CON-214).
 - Retry policy is shared (CON-208); a provider MUST NOT invent a second policy.
 
-### `dado`
+### `dado-yaml`
 
 | Code | Meaning |
 |---|---|

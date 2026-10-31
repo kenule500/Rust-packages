@@ -42,14 +42,14 @@ This document maps:
         |                           |                           |
         +---------------------------+---------------------------+
                                     |
-                              dado (foundation)
+                              dado-yaml (foundation)
                        strict YAML, diagnostics, graph,
                        emitter, glob - no I/O
 ```
 
 ### Reading the map
 
-- **`dado`** is the base layer. Most developers will not install it directly; `wirekit` and generators use it.
+- **`dado-yaml`** is the base layer. Most developers will not install it directly; `wirekit` and generators use it.
 - **`wirekit`** is the front door. It carries the provider modules and the shared HTTP model.
 - **Stateful primitives** are opt-in. A single-binary tool can use `wirekit` without a database.
 - **Media and links** are independent of the HTTP client. A studio can use `ffscene` with no network.
@@ -97,7 +97,7 @@ This document maps:
 |  studio-protocol  Preview/program control                        |
 |  rtmp-publish     Egress destinations and health                 |
 |  signedlink       Signed links and attribution                   |
-|  dado             Strict YAML and config tooling                 |
+|  dado-yaml             Strict YAML and config tooling                 |
 +------------------------------------------------------------------+
 |  Provider matrix                                                 |
 |  Provider   Feature      Auth             Status                  |
@@ -173,7 +173,7 @@ README
   |     +-- hookgate
   |     +-- platform-core
   |     +-- media and link crates
-  |     +-- dado
+  |     +-- dado-yaml
   |
   +-- Examples
   |     |

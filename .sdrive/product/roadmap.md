@@ -6,8 +6,8 @@
 
 ## Roadmap principles
 
-1. **Publish something real early.** `dado` and `wirekit` with four providers beats a broad, unverified surface.
-2. **Sequence by dependency, not enthusiasm.** `dado` before `wirekit`; `wirekit` core before providers; substrate before media integrations that need shared IDs.
+1. **Publish something real early.** `dado-yaml` and `wirekit` with four providers beats a broad, unverified surface.
+2. **Sequence by dependency, not enthusiasm.** `dado-yaml` before `wirekit`; `wirekit` core before providers; substrate before media integrations that need shared IDs.
 3. **Keep stateful concerns out of the HTTP client.** `quota-ledger` and `hookgate` ship as separate crates.
 4. **Do not start a milestone before its exit criteria are met.** Thin coverage across 11 crates is worse than two solid crates.
 5. **Treat 1.0 as an audit.** The freeze happens after external usage, not on a calendar date.
@@ -16,7 +16,7 @@
 
 | Milestone | Tentative window | Outcome | Depends on | Exit criteria |
 |---|---|---|---|---|
-| **M0 - Foundation** | Weeks 0-2 | `dado` 0.1.0 published; CI and contributor baseline | - | `dado` on crates.io; CI green; release runbook; CONTRIBUTING and SECURITY |
+| **M0 - Foundation** | Weeks 0-2 | `dado-yaml` 0.1.0 published; CI and contributor baseline | - | `dado-yaml` on crates.io; CI green; release runbook; CONTRIBUTING and SECURITY |
 | **M1 - First publish** | Weeks 3-8 | `wirekit` core + NOAA, Twilio, SendGrid, Slack; 0.1.0 published | M0 | `wirekit` 0.1.0 on crates.io; four features; examples; tests |
 | **M2 - Critical path** | Weeks 9-16 | Meta, EagleView, QuickBooks, Stripe, Google OAuth; 0.2.x published | M1 + provider access | Eight providers + OAuth helper; sandbox tests; access confirmed |
 | **M3 - Integration substrate** | Weeks 12-24 | `platform-core`, `quota-ledger`, `hookgate`, `syncforge` 0.1 | M1; parallel with M2 | Four crates published; one integration example |
@@ -33,28 +33,28 @@ Make the repository safe to publish from. Finish the one crate that already exis
 
 | ID | Item |
 |---|---|
-| BP-001 | Finish `dado` YAML parser; publish `dado` 0.1.0 |
+| BP-001 | Finish `dado-yaml` YAML parser; publish `dado-yaml` 0.1.0 |
 | BP-002 | CI: fmt, clippy, test, docs, MSRV |
 | BP-003 | `CONTRIBUTING.md`, `SECURITY.md`, issue/PR templates |
 | BP-004 | Release checklist and crates.io publishing runbook |
 
 ### Work detail
 
-- **`dado` parser:** implement the YAML 1.2 core subset described in `crates/dado/README.md`; reject unsupported constructs with positioned errors; replace the `D0001` scaffold.
+- **`dado-yaml` parser:** implement the YAML 1.2 core subset described in `crates/dado-yaml/README.md`; reject unsupported constructs with positioned errors; replace the `D0001` scaffold.
 - **CI:** run `cargo fmt --check`, `cargo clippy --workspace --all-features -- -D warnings`, `cargo test --workspace --all-features`, `cargo doc --workspace --all-features --no-deps`, and an MSRV check on 1.85.
 - **Contributor docs:** state the branch policy, the test requirement, the source-citation rule, and how to report a security issue privately.
 - **Release runbook:** metadata checklist, version bump, changelog, `cargo publish --dry-run`, publish order, and rollback guidance.
 
 ### Exit criteria
 
-- [ ] `dado` 0.1.0 is published and installable.
+- [ ] `dado-yaml` 0.1.0 is published and installable.
 - [ ] CI is green on `main`.
 - [ ] `CONTRIBUTING.md` and `SECURITY.md` exist.
 - [ ] A release checklist exists and has been used once.
 
 ### Risks
 
-- The YAML parser is the largest single piece of work in M0. If it slips, split `dado` into a 0.1.0 with the four implemented modules and ship YAML in 0.2.0.
+- The YAML parser is the largest single piece of work in M0. If it slips, split `dado-yaml` into a 0.1.0 with the four implemented modules and ship YAML in 0.2.0.
 - CI credentials for crates.io must be set up before the first publish.
 
 ## M1 - First publish (weeks 3-8)
@@ -256,7 +256,7 @@ Turn a working ecosystem into a trusted one: remaining providers, docs, design p
 
 | Order | Release | Contents |
 |---|---|---|
-| 1 | `dado` 0.1.0 | YAML, diag, graph, emit, glob |
+| 1 | `dado-yaml` 0.1.0 | YAML, diag, graph, emit, glob |
 | 2 | `wirekit` 0.1.0 | Core + Twilio, SendGrid, NOAA, Slack |
 | 3 | `wirekit` 0.2.x | Critical-path providers + Google OAuth |
 | 4 | `platform-core` 0.1.0 | Traits, registry, token store |
@@ -273,7 +273,7 @@ Turn a working ecosystem into a trusted one: remaining providers, docs, design p
 
 | Gate | Question | If no |
 |---|---|---|
-| G0 | Is `dado` publishable and is CI green? | Do not publish `wirekit`; fix the baseline |
+| G0 | Is `dado-yaml` publishable and is CI green? | Do not publish `wirekit`; fix the baseline |
 | G1 | Is `wirekit` 0.1.0 usable by a developer who has never seen the source? | Do not start M2; improve docs and examples |
 | G2 | Is provider access confirmed for each critical-path module? | Ship 0.2.x without the blocked provider; mark `needs discovery` |
 | G3 | Do the substrate crates compose without a framework? | Do not start M4; fix the traits |

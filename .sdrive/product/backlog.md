@@ -47,7 +47,7 @@
 
 | ID | Feature | User value | Priority | Depends on | Status | Confidence / source |
 |---|---|---|---|---|---|---|
-| BP-001 | Finish `dado` YAML parser; publish `dado` 0.1.0 | Rust developers can parse strict YAML with positioned errors and no I/O | P0 | - | backlog | High - `crates/dado/README.md`; user-approved scope |
+| BP-001 | Finish `dado-yaml` YAML parser; publish `dado-yaml` 0.1.0 | Rust developers can parse strict YAML with positioned errors and no I/O | P0 | - | backlog | High - `crates/dado-yaml/README.md`; user-approved scope |
 | BP-002 | CI: fmt, clippy, test, docs, MSRV | Contributors get fast, consistent feedback and the project ships with a quality baseline | P0 | - | backlog | Medium - agent recommendation; no CI exists today |
 | BP-003 | `CONTRIBUTING.md`, `SECURITY.md`, issue/PR templates | Contributors know how to propose, test, and report security issues privately | P1 | - | backlog | Medium - agent recommendation |
 | BP-004 | Release checklist and crates.io publishing runbook | Maintainers can publish repeatably without missing metadata or checks | P0 | - | backlog | Medium - agent recommendation; required before BP-010 |
@@ -55,7 +55,7 @@
 ### M0 notes
 
 - BP-001 is the only item with existing code. The other three create the baseline the rest of the plan depends on.
-- If the YAML parser slips, publish `dado` 0.1.0 with `diag`, `graph`, `emit`, and `glob`, and move YAML to 0.2.0. Record the split before publishing.
+- If the YAML parser slips, publish `dado-yaml` 0.1.0 with `diag`, `graph`, `emit`, and `glob`, and move YAML to 0.2.0. Record the split before publishing.
 - BP-002 must include an MSRV job on Rust 1.85, not just the installed toolchain.
 
 ## M1 - First publish
@@ -165,7 +165,7 @@
 ### Confirmed by the user
 
 - Product scope: public Rust package ecosystem.
-- 6-12 month outcome: publish `dado` + `wirekit` critical path.
+- 6-12 month outcome: publish `dado-yaml` + `wirekit` critical path.
 - Primary users: external Rust developers.
 - Catalogue docs: reference, not the plan.
 - Product promise: one dependency, one model.
@@ -179,7 +179,7 @@
 
 - Crate boundaries, provider list, auth/retry/security rules: `README.md`, `catalogue/00_provider_index.md`, and `catalogue/01_wirekit.md` through `catalogue/37_signedlink.md`.
 - Workspace, MSRV, licence: `Cargo.toml`.
-- `dado` status: `crates/dado/README.md`.
+- `dado-yaml` status: `crates/dado-yaml/README.md`.
 - Governance constraints: `.sdrive/constitution.md`.
 
 ### Agent recommendations
@@ -202,7 +202,7 @@
 
 | Item | Open question |
 |---|---|
-| BP-001 | Split `dado` if YAML slips, or hold the release? |
+| BP-001 | Split `dado-yaml` if YAML slips, or hold the release? |
 | BP-005 | Is `WirekitError` `#[non_exhaustive]` from 0.1? |
 | BP-007 | Which Twilio products are in 0.1: SMS only, or SMS + voice + MFA + lookup? |
 | BP-010 | Is the first publish 0.1.0 or 0.0.x? The plan says 0.1.0. |
@@ -222,7 +222,7 @@
 Run one of these when you are ready to start:
 
 ```
-/sdrive:propose "BP-001 finish dado YAML parser and publish dado 0.1.0"
+/sdrive:propose "BP-001 finish dado-yaml YAML parser and publish dado-yaml 0.1.0"
 /sdrive:propose "BP-005 wirekit core error retry rate limit tracing auth"
 /sdrive:propose "BP-007 Twilio provider module"
 ```

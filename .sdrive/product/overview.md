@@ -73,7 +73,7 @@ The 11 public crates:
 
 | Crate | Job |
 |---|---|
-| `dado` | Strict YAML, diagnostics, dependency graph, code emitter, glob |
+| `dado-yaml` | Strict YAML, diagnostics, dependency graph, code emitter, glob |
 | `wirekit` | Typed HTTP clients, with 26 provider modules behind feature flags |
 | `syncforge` | Offline-first action queue, idempotency, conflict handling |
 | `quota-ledger` | Per-tenant, per-provider quota reservation and ledger |
@@ -90,7 +90,7 @@ The 11 public crates:
 
 ### First public release
 
-`dado` 0.1.0, then `wirekit` 0.1.0 with four providers:
+`dado-yaml` 0.1.0, then `wirekit` 0.1.0 with four providers:
 
 - **NOAA** (no auth, fastest proof)
 - **Twilio** (SMS, voice, MFA, lookup)
@@ -114,7 +114,7 @@ The 11 public crates:
 
 | Goal | Measure |
 |---|---|
-| G1 | Publish `dado` 0.1.0 |
+| G1 | Publish `dado-yaml` 0.1.0 |
 | G2 | Publish `wirekit` 0.1.0 with Twilio, SendGrid, NOAA, Slack |
 | G3 | Publish `wirekit` 0.2.x with Meta, EagleView, QuickBooks, Stripe, and the Google OAuth helper |
 | G4 | Publish all 11 crates at 0.x |
@@ -155,7 +155,7 @@ The 11 public crates:
 These were explicitly chosen in the product-plan interview:
 
 1. The product is the **public Rust package ecosystem**, not the GIA application.
-2. The 6-12 month outcome is to **publish `dado` + `wirekit` on the critical path**.
+2. The 6-12 month outcome is to **publish `dado-yaml` + `wirekit` on the critical path**.
 3. The primary users are **external Rust developers**.
 4. The existing catalogue docs are **reference material**; this plan is written fresh.
 5. The product promise is **"one dependency, one model"**.
@@ -170,7 +170,7 @@ These were explicitly chosen in the product-plan interview:
 These are proposals, not commitments:
 
 - Build the quality baseline in M0 before shipping: CI, tests, release checklist.
-- Publish `dado` before `wirekit`; `wirekit` will consume it.
+- Publish `dado-yaml` before `wirekit`; `wirekit` will consume it.
 - Keep the first publish to four providers; add the critical path in 0.2.
 - Run M2 (providers) and M3 (substrate) in parallel; they share only `wirekit` core.
 - Add a companion crate if `wirekit` feature flags become a release bottleneck.
@@ -192,8 +192,8 @@ These are proposals, not commitments:
 | Fact | Detail |
 |---|---|
 | Workspace | `Cargo.toml`, members `crates/*` |
-| Implemented crates | `dado` 0.1.0 only |
-| `dado` state | Implemented: strict YAML subset, diagnostics, graph, emit, and glob |
+| Implemented crates | `dado-yaml` 0.1.0 only |
+| `dado-yaml` state | Implemented: strict YAML subset, diagnostics, graph, emit, and glob |
 | Documentation | 38 provider/design Markdown files in `catalogue/` plus the root README |
 | Missing referenced doc | `21_Packages_To_Build.md` is cited but absent |
 | Feature specs | `m0-foundation` v1 (in progress) |
@@ -209,7 +209,7 @@ These are proposals, not commitments:
 Packages/                     # repository root
   Cargo.toml                  # workspace, members = crates/*
   crates/
-    dado/                     # foundation, no I/O
+    dado-yaml/                     # foundation, no I/O
     wirekit/                  # HTTP clients, provider modules (planned)
     platform-core/            # traits and registry (planned)
     syncforge/                # offline queue (planned)
@@ -240,7 +240,7 @@ consuming app / adapter crate
 
 Rules that constrain the plan:
 
-- `dado` never opens a socket, reads a URL, spawns a runtime, or writes a file.
+- `dado-yaml` never opens a socket, reads a URL, spawns a runtime, or writes a file.
 - `wirekit` owns HTTP, not quota or webhook state.
 - `platform-core` ships no product vocabulary or OAuth implementation.
 - `mixbus` processes buffers; it does not open audio devices.
@@ -254,9 +254,9 @@ Source: `.sdrive/context/architecture-context.md`.
 
 | Package | Use | Status | Source |
 |---|---|---|---|
-| `serde` | Serialization | **Confirmed** in `dado` | `crates/dado/Cargo.toml` |
-| `winnow` | YAML parsing | **Confirmed** in `dado` | `crates/dado/Cargo.toml` |
-| `indexmap` | Ordered maps | **Confirmed** in `dado` | `crates/dado/Cargo.toml` |
+| `serde` | Serialization | **Confirmed** in `dado-yaml` | `crates/dado-yaml/Cargo.toml` |
+| `winnow` | YAML parsing | **Confirmed** in `dado-yaml` | `crates/dado-yaml/Cargo.toml` |
+| `indexmap` | Ordered maps | **Confirmed** in `dado-yaml` | `crates/dado-yaml/Cargo.toml` |
 | `reqwest` | HTTP client | Proposed | `catalogue/01_wirekit.md` |
 | `tokio` | Async runtime | Proposed | Catalogue async examples |
 | `tracing` | Observability | Proposed | `catalogue/01_wirekit.md` |
@@ -280,7 +280,7 @@ No candidate becomes a dependency without the normal review and approval path. T
 |---|---|
 | Adoption | Three external projects use `wirekit` in production within 12 months |
 | Internal use | GIA runs `wirekit` in production |
-| Releases | `dado` 0.1, `wirekit` 0.1 (4 providers), `wirekit` 0.2 (critical path), all 11 crates at 0.x |
+| Releases | `dado-yaml` 0.1, `wirekit` 0.1 (4 providers), `wirekit` 0.2 (critical path), all 11 crates at 0.x |
 | Stability | 1.0 API freeze after external usage, with a migration guide |
 | Quality | CI green on fmt, clippy, test, docs; every acceptance criterion has a test; no secret leaks |
 | Documentation | One runnable example per provider; provider matrix; error reference; feature-flag table |
@@ -351,7 +351,7 @@ Source for the product facts: `README.md`, `catalogue/00_provider_index.md`, and
 - To turn one approved item into a versioned specification, plan, traceability matrix, and tasks, run:
 
 ```
-/sdrive:propose "BP-001 finish dado YAML parser and publish dado 0.1.0"
+/sdrive:propose "BP-001 finish dado-yaml YAML parser and publish dado-yaml 0.1.0"
 ```
 
 - `/sdrive:propose` owns branching and creates the feature branch. This product plan does not create `.sdrive/specs/backlog/<feature>/`, governance JSON, or workflow-state entries.

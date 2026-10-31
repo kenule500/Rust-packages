@@ -221,10 +221,11 @@ fn redact_state(url: &url::Url) -> String {
         .collect();
 
     let mut redacted = url.clone();
-    redacted
-        .query_pairs_mut()
-        .clear()
-        .extend_pairs(pairs.iter().map(|(key, value)| (key.as_str(), value.as_str())));
+    redacted.query_pairs_mut().clear().extend_pairs(
+        pairs
+            .iter()
+            .map(|(key, value)| (key.as_str(), value.as_str())),
+    );
     redacted.to_string()
 }
 

@@ -62,13 +62,13 @@ in AuthorizationRequest Debug`; no assertion was weakened.
   CON-402 was used instead; the stale config entry should be corrected.
 - The recorded run used the working tree that contains both the production fix
   (`1f80712`, `AuthorizationRequest` `Debug` masking `state`) and the two
-  test-harness repairs above. `test-evidence.json` names `1f80712` for the
-  production code under test; the harness repairs travel with the
-  `specdrive(test):` commit that carries this evidence.
-- `cargo fmt --all --check` could not be re-run after the harness repair because
-  the execution terminal became unavailable; `rustfmt --check` passed on
-  `src/google_oauth.rs` and `src/google_lsa.rs` during apply, and the only
-  formatter blocker was the unbalanced brace, which is now removed.
+  test-harness repairs above. `test-evidence.json` names `b57ed32`, the commit
+  that holds that production code and this test target; the run also included
+  rustfmt-only reformatting, which changes no behaviour.
+- `cargo fmt --all --check` passes. The only blocker was the test target's
+  unbalanced brace; it was removed, `cargo fmt --all` applied, and the ten tests
+  re-ran green afterwards. `rustfmt --check` also passed on `src/google_oauth.rs`
+  and `src/google_lsa.rs` during apply.
 - `sdrive verify` still reports FAIL for a planning artifact unrelated to these
   tests: `plan.json` lists one dependency named `serde and serde_json`, which the
   scanner cannot match against `Cargo.toml`, plus 8 "extra" components that

@@ -71,7 +71,7 @@ Depends on: P3.
 - [x] **T3.5** Charge the token endpoint to the `google-oauth` bucket.
 - [x] **T3.6** Emit tracing without values.
 - [x] **T3.7** Accept the helper as a `google_lsa` token source.
-- [ ] **T4.1** `cargo fmt --all --check` - blocked: the check stops at `tests/google-oauth-shared-helper/main.rs:341`, an unbalanced brace in a test file `/sdrive:apply` must not edit. `rustfmt --check` passes on `src/google_oauth.rs` and `src/google_lsa.rs`.
+- [x] **T4.1** `cargo fmt --all --check` - passes. The blocker was the test target's unbalanced brace; `/sdrive:test` removed it and applied `cargo fmt --all`.
 - [x] **T4.2** `cargo clippy -p wirekit --all-features -- -D warnings` - clean.
 - [x] **T4.3** `cargo doc` with `RUSTDOCFLAGS="-D warnings"` - clean.
 - [x] **T4.4** Feature combinations - baseline, `google-lsa`, and `google-lsa google-oauth` all compile.

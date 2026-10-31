@@ -111,7 +111,9 @@ fn ac_002_each_request_uses_a_fresh_state_and_verifier() {
         "the verifier is not derived from the client secret"
     );
 
-    assert!(client.validate_state(&first, first.state().expose()).is_ok());
+    assert!(client
+        .validate_state(&first, first.state().expose())
+        .is_ok());
     let error = client
         .validate_state(&first, second.state().expose())
         .expect_err("a foreign state must not validate");
@@ -144,7 +146,10 @@ async fn ac_004_exchange_code_returns_a_typed_token_with_absolute_expiry() {
 
     assert_eq!(token.access_token().expose(), "at-1");
     assert_eq!(
-        token.refresh_token().map(Secret::expose).map(String::as_str),
+        token
+            .refresh_token()
+            .map(Secret::expose)
+            .map(String::as_str),
         Some("rt-1")
     );
     assert_eq!(token.scopes(), &[String::from(SCOPE)]);
@@ -172,7 +177,10 @@ async fn ac_005_a_provider_error_becomes_an_auth_error_with_its_code() {
         .await
         .expect_err("a rejected code must not return a token");
 
-    assert!(error.is_auth(), "invalid_grant is an authentication failure");
+    assert!(
+        error.is_auth(),
+        "invalid_grant is an authentication failure"
+    );
     assert_eq!(error.code(), "W2002");
     assert!(error.to_string().contains("Bad Request"));
 }
@@ -185,17 +193,13 @@ async fn ac_006_an_expired_token_is_refreshed_once_through_the_store() {
     // second is the refresh and is valid.
     wiremock::Mock::given(wiremock::matchers::method("POST"))
         .and(wiremock::matchers::path("/token"))
-        .respond_with(
-            wiremock::ResponseTemplate::new(200).set_body_string(token_body(0, true)),
-        )
+        .respond_with(wiremock::ResponseTemplate::new(200).set_body_string(token_body(0, true)))
         .up_to_n_times(1)
         .mount(&server)
         .await;
     wiremock::Mock::given(wiremock::matchers::method("POST"))
         .and(wiremock::matchers::path("/token"))
-        .respond_with(
-            wiremock::ResponseTemplate::new(200).set_body_string(token_body(3600, true)),
-        )
+        .respond_with(wiremock::ResponseTemplate::new(200).set_body_string(token_body(3600, true)))
         .expect(1)
         .mount(&server)
         .await;
@@ -207,7 +211,10 @@ async fn ac_006_an_expired_token_is_refreshed_once_through_the_store() {
         .await
         .expect("the exchange succeeds");
 
-    assert!(expired.is_expired(Duration::from_secs(60)), "the token is stale");
+    assert!(
+        expired.is_expired(Duration::from_secs(60)),
+        "the token is stale"
+    );
 
     let store = MemoryTokenStore::new();
     store.save("acct-1", &expired);
@@ -262,9 +269,7 @@ async fn ac_007_revoke_calls_the_endpoint_once_and_clears_the_store() {
     let server = wiremock::MockServer::start().await;
     wiremock::Mock::given(wiremock::matchers::method("POST"))
         .and(wiremock::matchers::path("/token"))
-        .respond_with(
-            wiremock::ResponseTemplate::new(200).set_body_string(token_body(3600, true)),
-        )
+        .respond_with(wiremock::ResponseTemplate::new(200).set_body_string(token_body(3600, true)))
         .mount(&server)
         .await;
     wiremock::Mock::given(wiremock::matchers::method("POST"))
@@ -307,7 +312,10 @@ async fn ac_008_no_secret_renders_in_debug_or_display() {
     let request = client.authorization_url().expect("a request");
 
     let rendered = format!("{client:?}");
-    assert!(!rendered.contains(SECRET), "the client secret must not render");
+    assert!(
+        !rendered.contains(SECRET),
+        "the client secret must not render"
+    );
     assert!(rendered.contains("***"), "the secret renders redacted");
 
     let rendered = format!("{request:?}");
@@ -319,8 +327,14 @@ async fn ac_008_no_secret_renders_in_debug_or_display() {
         .await
         .expect("the exchange succeeds");
     let rendered = format!("{token:?}");
-    assert!(!rendered.contains("at-1"), "the access token must not render");
-    assert!(!rendered.contains("rt-1"), "the refresh token must not render");
+    assert!(
+        !rendered.contains("at-1"),
+        "the access token must not render"
+    );
+    assert!(
+        !rendered.contains("rt-1"),
+        "the refresh token must not render"
+    );
     assert_eq!(format!("{}", token.access_token()), "***");
 }
 

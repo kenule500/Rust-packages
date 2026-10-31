@@ -20,6 +20,7 @@ enables or disables another.
 | `sendgrid` | `wirekit::sendgrid` | Bearer API key | `https://api.sendgrid.com/v3` |
 | `slack` | `wirekit::slack` | Bot token | `https://slack.com/api` |
 | `google-oauth` | `wirekit::google_oauth` | OAuth2 Authorization Code + PKCE helper | `https://oauth2.googleapis.com` |
+| `meta` | `wirekit::meta` | Page or system-user token; `X-Hub-Signature-256` for webhooks | `https://graph.facebook.com` |
 | `native-tls` | — | Adds the platform TLS backend; rustls is always compiled in | — |
 
 ## Google OAuth
@@ -146,6 +147,45 @@ and `files.upload`. `ok: false` at HTTP 200 becomes `WirekitError::Api`;
 `channel_not_found` and `not_in_channel` are declared non-retryable.
 `verify_request` checks `v0:{timestamp}:{body}` with HMAC-SHA256, hex-encoded,
 and rejects a timestamp outside the allowed skew.
+
+### Meta
+
+The `meta` feature adds `wirekit::meta` for Facebook Messenger, Instagram DM,
+and WhatsApp Cloud. One `MetaClient` holds the app secret, the page or
+system-user token, the page id, the WhatsApp phone-number id, and the Graph
+version; the three surfaces share one `SendMessageRequest`.
+
+```rust,no_run
+# async fn run() -> Result<(), wirekit::WirekitError> {
+use wirekit::meta::MetaClient;
+use wirekit::WirekitClient;
+
+let http = WirekitClient::builder("https://graph.facebook.com")?.build()?;
+let meta = MetaClient::builder(http)
+    .access_token("<page-token>")
+    .app_secret("<app-secret>")
+    .page_id("<page-id>")
+    .build()?;
+
+meta.messenger().send_text("<psid>", "Hello").await?;
+# Ok(())
+# }
+```
+
+Webhooks are verified over the exact received bytes and fail closed:
+
+```rust,no_run
+use wirekit::meta::WebhookPayload;
+
+let payload = WebhookPayload::new("<app-secret>");
+let event = payload.verify_and_parse(raw_body, signature_header)?;
+println!("{} {}", event.dedupe_key, event.sender_id);
+```
+
+`access_token`, `app_secret`, and any rotated token never render: `Debug`
+prints `***` for both secrets. Access is `[to be confirmed]` until Meta
+app review and page-token permissions are approved, so the module is verified
+against a local mock.
 
 ## Security notes
 

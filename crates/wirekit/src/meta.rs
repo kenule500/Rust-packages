@@ -226,8 +226,11 @@ pub struct SendOutcome {
 }
 
 /// Credentials and routing for one Meta app.
+///
+/// The access token and app secret are [`Secret`] values: `Debug` prints
+/// `***` for both.
 #[derive(Clone)]
-pub struct MetaConfig {
+pub struct MetaClient {
     /// The app secret, used to verify webhook signatures.
     pub app_secret: Secret<String>,
     /// The page or system-user access token.
@@ -238,18 +241,22 @@ pub struct MetaConfig {
     pub phone_number_id: Option<String>,
     /// The Graph version, [`API_VERSION`] by default.
     pub api_version: String,
+    /// The shared transport.
+    pub http: WirekitClient,
+    /// The bearer-token scheme applied to every request.
+    auth: Arc<dyn AuthScheme>,
 }
 
-impl fmt::Debug for MetaConfig {
+impl fmt::Debug for MetaClient {
     fn fmt(&self, formatter: &mut fmt::Formatter<'_>) -> fmt::Result {
         formatter
-            .debug_struct("MetaConfig")
+            .debug_struct("MetaClient")
             .field("app_secret", &"***")
             .field("access_token", &"***")
             .field("page_id", &self.page_id)
             .field("phone_number_id", &self.phone_number_id)
             .field("api_version", &self.api_version)
-            .finish()
+            .finish_non_exhaustive()
     }
 }
 
@@ -268,27 +275,6 @@ pub struct GraphError {
     /// The Graph trace id, when present.
     #[serde(default)]
     pub fbtrace_id: Option<String>,
-}
-
-struct MetaInner {
-    client: WirekitClient,
-    config: MetaConfig,
-    auth: Arc<dyn AuthScheme>,
-}
-
-/// The Meta Graph client. Clone it freely; the transport is shared.
-#[derive(Clone)]
-pub struct MetaClient {
-    inner: Arc<MetaInner>,
-}
-
-impl fmt::Debug for MetaClient {
-    fn fmt(&self, formatter: &mut fmt::Formatter<'_>) -> fmt::Result {
-        formatter
-            .debug_struct("MetaClient")
-            .field("config", &self.inner.config)
-            .finish_non_exhaustive()
-    }
 }
 
 /// The builder for [`MetaClient`].
@@ -358,17 +344,13 @@ impl MetaClientBuilder {
 
         let auth: Arc<dyn AuthScheme> = Arc::new(BearerAuth::new(token.clone()));
         Ok(MetaClient {
-            inner: Arc::new(MetaInner {
-                client: self.client,
-                config: MetaConfig {
-                    app_secret: Secret::new(secret),
-                    access_token: Secret::new(token),
-                    page_id: self.page_id.filter(|id| !id.trim().is_empty()),
-                    phone_number_id: self.phone_number_id.filter(|id| !id.trim().is_empty()),
-                    api_version: self.api_version,
-                },
-                auth,
-            }),
+            app_secret: Secret::new(secret),
+            access_token: Secret::new(token),
+            page_id: self.page_id.filter(|id| !id.trim().is_empty()),
+            phone_number_id: self.phone_number_id.filter(|id| !id.trim().is_empty()),
+            api_version: self.api_version,
+            http: self.client,
+            auth,
         })
     }
 }
@@ -393,19 +375,13 @@ impl MetaClient {
     /// The shared transport.
     #[must_use]
     pub fn client(&self) -> &WirekitClient {
-        &self.inner.client
+        &self.http
     }
 
     /// The shared transport handle, as the plan names the `http` field.
     #[must_use]
     pub fn http(&self) -> &WirekitClient {
-        &self.inner.client
-    }
-
-    /// The configured credentials and routing.
-    #[must_use]
-    pub fn config(&self) -> &MetaConfig {
-        &self.inner.config
+        &self.http
     }
 
     /// The Messenger surface.
@@ -453,11 +429,11 @@ impl MetaClient {
 
     /// The resource path for a surface.
     fn messages_path(&self, surface: MetaSurface) -> Result<String, WirekitError> {
-        let version = &self.inner.config.api_version;
+        let version = &self.api_version;
 
         match surface {
             MetaSurface::Messenger => {
-                let page = self.inner.config.page_id.as_deref().ok_or_else(|| {
+                let page = self.page_id.as_deref().ok_or_else(|| {
                     WirekitError::invalid_config("a Meta page id is required for Messenger")
                 })?;
                 Ok(format!(
@@ -470,16 +446,9 @@ impl MetaClient {
                 INSTAGRAM_MESSAGES_PATH.replace("{ig-user-id}", "me")
             )),
             MetaSurface::WhatsApp => {
-                let phone = self
-                    .inner
-                    .config
-                    .phone_number_id
-                    .as_deref()
-                    .ok_or_else(|| {
-                        WirekitError::invalid_config(
-                            "a phone-number id is required for WhatsApp Cloud",
-                        )
-                    })?;
+                let phone = self.phone_number_id.as_deref().ok_or_else(|| {
+                    WirekitError::invalid_config("a phone-number id is required for WhatsApp Cloud")
+                })?;
                 Ok(format!(
                     "{version}{}",
                     WHATSAPP_MESSAGES_PATH.replace("{phone-number-id}", phone)
@@ -507,9 +476,9 @@ impl MetaClient {
         let body = message_body(surface, request)?;
 
         let spec = RequestSpec::post(url)
-            .auth(Arc::clone(&self.inner.auth))
+            .auth(Arc::clone(&self.auth))
             .json_body(&body)?;
-        let response: Response<serde_json::Value> = self.inner.client.execute(spec).await?;
+        let response: Response<serde_json::Value> = self.http.execute(spec).await?;
 
         outcome(&response)
     }
@@ -526,15 +495,10 @@ impl MetaClient {
             ));
         }
 
-        let phone = self
-            .inner
-            .config
-            .phone_number_id
-            .as_deref()
-            .ok_or_else(|| {
-                WirekitError::invalid_config("a phone-number id is required for WhatsApp Cloud")
-            })?;
-        let version = &self.inner.config.api_version;
+        let phone = self.phone_number_id.as_deref().ok_or_else(|| {
+            WirekitError::invalid_config("a phone-number id is required for WhatsApp Cloud")
+        })?;
+        let version = &self.api_version;
         let url = self.endpoint(
             Self::host(MetaSurface::WhatsApp),
             &format!(
@@ -547,14 +511,14 @@ impl MetaClient {
         let body = multipart_body(&boundary, mime_type, bytes);
 
         let spec = RequestSpec::post(url)
-            .auth(Arc::clone(&self.inner.auth))
+            .auth(Arc::clone(&self.auth))
             .try_header(
                 "content-type",
                 &format!("multipart/form-data; boundary={boundary}"),
             )?
             .bytes_body(body);
 
-        let response: Response<serde_json::Value> = self.inner.client.execute(spec).await?;
+        let response: Response<serde_json::Value> = self.http.execute(spec).await?;
         outcome(&response)?;
 
         response
@@ -569,10 +533,10 @@ impl MetaClient {
 
     /// Subscribe the app to the page's webhooks.
     pub async fn subscribe_app(&self) -> Result<(), WirekitError> {
-        let page = self.inner.config.page_id.as_deref().ok_or_else(|| {
+        let page = self.page_id.as_deref().ok_or_else(|| {
             WirekitError::invalid_config("a Meta page id is required to subscribe an app")
         })?;
-        let version = &self.inner.config.api_version;
+        let version = &self.api_version;
         let url = self.endpoint(
             Self::host(MetaSurface::Messenger),
             &format!(
@@ -582,7 +546,7 @@ impl MetaClient {
         )?;
 
         let spec = self.subscription_spec(RequestSpec::post(url))?;
-        let response: Response<serde_json::Value> = self.inner.client.execute(spec).await?;
+        let response: Response<serde_json::Value> = self.http.execute(spec).await?;
         outcome(&response)?;
 
         Ok(())
@@ -590,10 +554,10 @@ impl MetaClient {
 
     /// Unsubscribe the app from the page's webhooks.
     pub async fn unsubscribe_app(&self) -> Result<(), WirekitError> {
-        let page = self.inner.config.page_id.as_deref().ok_or_else(|| {
+        let page = self.page_id.as_deref().ok_or_else(|| {
             WirekitError::invalid_config("a Meta page id is required to unsubscribe an app")
         })?;
-        let version = &self.inner.config.api_version;
+        let version = &self.api_version;
         let url = self.endpoint(
             Self::host(MetaSurface::Messenger),
             &format!(
@@ -603,7 +567,7 @@ impl MetaClient {
         )?;
 
         let spec = self.subscription_spec(RequestSpec::delete(url))?;
-        let response: Response<serde_json::Value> = self.inner.client.execute(spec).await?;
+        let response: Response<serde_json::Value> = self.http.execute(spec).await?;
         outcome(&response)?;
 
         Ok(())
@@ -611,7 +575,7 @@ impl MetaClient {
 
     /// Attach the bearer token to a subscription call.
     fn subscription_spec(&self, spec: RequestSpec) -> Result<RequestSpec, WirekitError> {
-        Ok(spec.auth(Arc::clone(&self.inner.auth)))
+        Ok(spec.auth(Arc::clone(&self.auth)))
     }
 }
 

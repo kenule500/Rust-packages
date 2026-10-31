@@ -59,6 +59,21 @@ pub const API_VERSION: &str = "v18.0";
 /// The header Meta uses to report messaging quota usage.
 pub const USAGE_HEADER: &str = "x-business-use-case-usage";
 
+/// Messenger send path template: `POST /{page-id}/messages`.
+pub const MESSENGER_MESSAGES_PATH: &str = "/{page-id}/messages";
+
+/// Instagram send path template: `POST /{ig-user-id}/messages`.
+pub const INSTAGRAM_MESSAGES_PATH: &str = "/{ig-user-id}/messages";
+
+/// WhatsApp send path template: `POST /{phone-number-id}/messages`.
+pub const WHATSAPP_MESSAGES_PATH: &str = "/{phone-number-id}/messages";
+
+/// WhatsApp media upload path template: `POST /{phone-number-id}/media`.
+pub const WHATSAPP_MEDIA_PATH: &str = "/{phone-number-id}/media";
+
+/// App subscription path template: `POST|DELETE /{page-id}/subscribed_apps`.
+pub const SUBSCRIBED_APPS_PATH: &str = "/{page-id}/subscribed_apps";
+
 /// The largest webhook body this module will verify and parse, 1 MiB.
 pub const DEFAULT_MAX_WEBHOOK_BYTES: usize = 1024 * 1024;
 
@@ -101,22 +116,37 @@ impl AttachmentKind {
     }
 }
 
-/// Where an attachment's bytes live: a public URL or an uploaded id.
-#[derive(Clone, Debug, PartialEq, Eq)]
-pub enum AttachmentSource {
-    /// A URL Meta fetches.
-    Url(String),
-    /// An attachment id returned by an upload.
-    Id(String),
-}
-
 /// Media attached to a message.
 #[derive(Clone, Debug, PartialEq, Eq)]
 pub struct MessageAttachment {
     /// The media kind.
     pub kind: AttachmentKind,
-    /// The source of the bytes.
-    pub source: AttachmentSource,
+    /// A public URL Meta fetches.
+    pub url: Option<String>,
+    /// An attachment id returned by an upload.
+    pub attachment_id: Option<String>,
+}
+
+impl MessageAttachment {
+    /// An attachment addressed by URL.
+    #[must_use]
+    pub fn from_url(kind: AttachmentKind, url: impl Into<String>) -> Self {
+        Self {
+            kind,
+            url: Some(url.into()),
+            attachment_id: None,
+        }
+    }
+
+    /// An attachment addressed by uploaded id.
+    #[must_use]
+    pub fn from_id(kind: AttachmentKind, attachment_id: impl Into<String>) -> Self {
+        Self {
+            kind,
+            url: None,
+            attachment_id: Some(attachment_id.into()),
+        }
+    }
 }
 
 /// A WhatsApp template message.
@@ -130,24 +160,20 @@ pub struct WhatsAppTemplate {
     pub parameters: Vec<String>,
 }
 
-/// The content of a send.
-#[derive(Clone, Debug, PartialEq, Eq)]
-pub enum MessageContent {
-    /// Plain text.
-    Text(String),
-    /// One attachment.
-    Attachment(MessageAttachment),
-    /// A WhatsApp template.
-    Template(WhatsAppTemplate),
-}
-
 /// A message to send on one surface.
+///
+/// Exactly one of `text`, `attachment`, or `template` is set; the constructors
+/// enforce that.
 #[derive(Clone, Debug, PartialEq, Eq)]
 pub struct SendMessageRequest {
     /// The page-scoped id, Instagram id, or WhatsApp number.
     pub recipient: String,
-    /// What to send.
-    pub content: MessageContent,
+    /// Plain text, when this is a text send.
+    pub text: Option<String>,
+    /// One attachment, when this is a media send.
+    pub attachment: Option<MessageAttachment>,
+    /// A WhatsApp template, when this is a template send.
+    pub template: Option<WhatsAppTemplate>,
     /// The Graph `messaging_type`, `RESPONSE` by default.
     pub messaging_type: String,
 }
@@ -158,7 +184,9 @@ impl SendMessageRequest {
     pub fn text(recipient: impl Into<String>, text: impl Into<String>) -> Self {
         Self {
             recipient: recipient.into(),
-            content: MessageContent::Text(text.into()),
+            text: Some(text.into()),
+            attachment: None,
+            template: None,
             messaging_type: String::from("RESPONSE"),
         }
     }
@@ -168,7 +196,9 @@ impl SendMessageRequest {
     pub fn media(recipient: impl Into<String>, attachment: MessageAttachment) -> Self {
         Self {
             recipient: recipient.into(),
-            content: MessageContent::Attachment(attachment),
+            text: None,
+            attachment: Some(attachment),
+            template: None,
             messaging_type: String::from("RESPONSE"),
         }
     }
@@ -178,7 +208,9 @@ impl SendMessageRequest {
     pub fn template(recipient: impl Into<String>, template: WhatsAppTemplate) -> Self {
         Self {
             recipient: recipient.into(),
-            content: MessageContent::Template(template),
+            text: None,
+            attachment: None,
+            template: Some(template),
             messaging_type: String::from("RESPONSE"),
         }
     }
@@ -219,6 +251,23 @@ impl fmt::Debug for MetaConfig {
             .field("api_version", &self.api_version)
             .finish()
     }
+}
+
+/// The nested `error` object Graph returns on a failed call.
+#[derive(Clone, Debug, Default, PartialEq, Eq, serde::Deserialize)]
+pub struct GraphError {
+    /// The human-readable message.
+    #[serde(default)]
+    pub message: String,
+    /// The Graph error code.
+    #[serde(default)]
+    pub code: i64,
+    /// The Graph error subcode, when present.
+    #[serde(default)]
+    pub error_subcode: Option<i64>,
+    /// The Graph trace id, when present.
+    #[serde(default)]
+    pub fbtrace_id: Option<String>,
 }
 
 struct MetaInner {
@@ -347,6 +396,12 @@ impl MetaClient {
         &self.inner.client
     }
 
+    /// The shared transport handle, as the plan names the `http` field.
+    #[must_use]
+    pub fn http(&self) -> &WirekitClient {
+        &self.inner.client
+    }
+
     /// The configured credentials and routing.
     #[must_use]
     pub fn config(&self) -> &MetaConfig {
@@ -405,9 +460,15 @@ impl MetaClient {
                 let page = self.inner.config.page_id.as_deref().ok_or_else(|| {
                     WirekitError::invalid_config("a Meta page id is required for Messenger")
                 })?;
-                Ok(format!("{version}/{page}/messages"))
+                Ok(format!(
+                    "{version}{}",
+                    MESSENGER_MESSAGES_PATH.replace("{page-id}", page)
+                ))
             }
-            MetaSurface::Instagram => Ok(format!("{version}/me/messages")),
+            MetaSurface::Instagram => Ok(format!(
+                "{version}{}",
+                INSTAGRAM_MESSAGES_PATH.replace("{ig-user-id}", "me")
+            )),
             MetaSurface::WhatsApp => {
                 let phone = self
                     .inner
@@ -419,7 +480,10 @@ impl MetaClient {
                             "a phone-number id is required for WhatsApp Cloud",
                         )
                     })?;
-                Ok(format!("{version}/{phone}/messages"))
+                Ok(format!(
+                    "{version}{}",
+                    WHATSAPP_MESSAGES_PATH.replace("{phone-number-id}", phone)
+                ))
             }
             MetaSurface::Unsupported => Err(WirekitError::invalid_config(
                 "this Meta surface cannot send messages",
@@ -473,7 +537,10 @@ impl MetaClient {
         let version = &self.inner.config.api_version;
         let url = self.endpoint(
             Self::host(MetaSurface::WhatsApp),
-            &format!("{version}/{phone}/media"),
+            &format!(
+                "{version}{}",
+                WHATSAPP_MEDIA_PATH.replace("{phone-number-id}", phone)
+            ),
         )?;
 
         let boundary = format!("wirekit-meta-{:016x}", rand::random::<u64>());
@@ -498,6 +565,53 @@ impl MetaClient {
             .ok_or_else(|| {
                 WirekitError::decode("the WhatsApp media upload returned no attachment id")
             })
+    }
+
+    /// Subscribe the app to the page's webhooks.
+    pub async fn subscribe_app(&self) -> Result<(), WirekitError> {
+        let page = self.inner.config.page_id.as_deref().ok_or_else(|| {
+            WirekitError::invalid_config("a Meta page id is required to subscribe an app")
+        })?;
+        let version = &self.inner.config.api_version;
+        let url = self.endpoint(
+            Self::host(MetaSurface::Messenger),
+            &format!(
+                "{version}{}",
+                SUBSCRIBED_APPS_PATH.replace("{page-id}", page)
+            ),
+        )?;
+
+        let spec = self.subscription_spec(RequestSpec::post(url))?;
+        let response: Response<serde_json::Value> = self.inner.client.execute(spec).await?;
+        outcome(&response)?;
+
+        Ok(())
+    }
+
+    /// Unsubscribe the app from the page's webhooks.
+    pub async fn unsubscribe_app(&self) -> Result<(), WirekitError> {
+        let page = self.inner.config.page_id.as_deref().ok_or_else(|| {
+            WirekitError::invalid_config("a Meta page id is required to unsubscribe an app")
+        })?;
+        let version = &self.inner.config.api_version;
+        let url = self.endpoint(
+            Self::host(MetaSurface::Messenger),
+            &format!(
+                "{version}{}",
+                SUBSCRIBED_APPS_PATH.replace("{page-id}", page)
+            ),
+        )?;
+
+        let spec = self.subscription_spec(RequestSpec::delete(url))?;
+        let response: Response<serde_json::Value> = self.inner.client.execute(spec).await?;
+        outcome(&response)?;
+
+        Ok(())
+    }
+
+    /// Attach the bearer token to a subscription call.
+    fn subscription_spec(&self, spec: RequestSpec) -> Result<RequestSpec, WirekitError> {
+        Ok(spec.auth(Arc::clone(&self.inner.auth)))
     }
 }
 
@@ -604,16 +718,18 @@ fn message_body(
 ) -> Result<serde_json::Value, WirekitError> {
     match surface {
         MetaSurface::Messenger | MetaSurface::Instagram => {
-            let message = match &request.content {
-                MessageContent::Text(text) => serde_json::json!({ "text": text }),
-                MessageContent::Attachment(attachment) => {
-                    serde_json::json!({ "attachment": attachment_body(attachment) })
-                }
-                MessageContent::Template(_) => {
-                    return Err(WirekitError::invalid_config(
-                        "templates are supported on WhatsApp Cloud only",
-                    ))
-                }
+            let message = if let Some(text) = &request.text {
+                serde_json::json!({ "text": text })
+            } else if let Some(attachment) = &request.attachment {
+                serde_json::json!({ "attachment": attachment_body(attachment) })
+            } else if request.template.is_some() {
+                return Err(WirekitError::invalid_config(
+                    "templates are supported on WhatsApp Cloud only",
+                ));
+            } else {
+                return Err(WirekitError::invalid_config(
+                    "a Meta message needs text, an attachment, or a template",
+                ));
             };
 
             Ok(serde_json::json!({
@@ -622,15 +738,16 @@ fn message_body(
                 "message": message,
             }))
         }
-        MetaSurface::WhatsApp => match &request.content {
-            MessageContent::Text(text) => Ok(serde_json::json!({
-                "messaging_product": "whatsapp",
-                "recipient_type": "individual",
-                "to": request.recipient,
-                "type": "text",
-                "text": { "body": text },
-            })),
-            MessageContent::Attachment(attachment) => {
+        MetaSurface::WhatsApp => {
+            if let Some(text) = &request.text {
+                Ok(serde_json::json!({
+                    "messaging_product": "whatsapp",
+                    "recipient_type": "individual",
+                    "to": request.recipient,
+                    "type": "text",
+                    "text": { "body": text },
+                }))
+            } else if let Some(attachment) = &request.attachment {
                 let kind = attachment.kind.as_str();
                 let mut body = serde_json::json!({
                     "messaging_product": "whatsapp",
@@ -644,8 +761,7 @@ fn message_body(
                 }
 
                 Ok(body)
-            }
-            MessageContent::Template(template) => {
+            } else if let Some(template) = &request.template {
                 let parameters: Vec<serde_json::Value> = template
                     .parameters
                     .iter()
@@ -663,8 +779,12 @@ fn message_body(
                         "components": [ { "type": "body", "parameters": parameters } ],
                     },
                 }))
+            } else {
+                Err(WirekitError::invalid_config(
+                    "a Meta message needs text, an attachment, or a template",
+                ))
             }
-        },
+        }
         MetaSurface::Unsupported => Err(WirekitError::invalid_config(
             "this Meta surface cannot send messages",
         )),
@@ -681,9 +801,12 @@ fn attachment_body(attachment: &MessageAttachment) -> serde_json::Value {
 
 /// The media object for a WhatsApp attachment.
 fn attachment_payload(attachment: &MessageAttachment) -> serde_json::Value {
-    match &attachment.source {
-        AttachmentSource::Url(url) => serde_json::json!({ "link": url }),
-        AttachmentSource::Id(id) => serde_json::json!({ "id": id }),
+    if let Some(url) = &attachment.url {
+        serde_json::json!({ "link": url })
+    } else if let Some(attachment_id) = &attachment.attachment_id {
+        serde_json::json!({ "id": attachment_id })
+    } else {
+        serde_json::json!({})
     }
 }
 
@@ -717,14 +840,18 @@ fn outcome(response: &Response<serde_json::Value>) -> Result<SendOutcome, Wireki
 
 /// Map a nested Graph `error` object to [`WirekitError::Api`].
 fn graph_error(status: u16, error: &serde_json::Value) -> WirekitError {
-    let code = error
-        .get("code")
-        .and_then(serde_json::Value::as_i64)
-        .map_or_else(|| String::from("graph-error"), |code| code.to_string());
-    let message = error
-        .get("message")
-        .and_then(serde_json::Value::as_str)
-        .unwrap_or("the Meta Graph call failed");
+    let parsed: GraphError = serde_json::from_value(error.clone()).unwrap_or_default();
+
+    let code = if parsed.code == 0 {
+        String::from("graph-error")
+    } else {
+        parsed.code.to_string()
+    };
+    let message = if parsed.message.is_empty() {
+        "the Meta Graph call failed"
+    } else {
+        parsed.message.as_str()
+    };
 
     WirekitError::api(status, code, message)
 }

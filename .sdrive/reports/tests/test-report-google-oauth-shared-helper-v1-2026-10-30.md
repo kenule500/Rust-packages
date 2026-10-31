@@ -69,7 +69,8 @@ in AuthorizationRequest Debug`; no assertion was weakened.
   unbalanced brace; it was removed, `cargo fmt --all` applied, and the ten tests
   re-ran green afterwards. `rustfmt --check` also passed on `src/google_oauth.rs`
   and `src/google_lsa.rs` during apply.
-- `sdrive verify` still reports FAIL for a planning artifact unrelated to these
-  tests: `plan.json` lists one dependency named `serde and serde_json`, which the
-  scanner cannot match against `Cargo.toml`, plus 8 "extra" components that
-  belong to other features. Reported, not worked around.
+- `sdrive verify` returns **WARN**: 38 matched, 0 missing, 8 extra. The earlier
+  `missing` was a plan naming defect — `plan.json` listed both crates in one
+  entry, `serde and serde_json` — and has been split into two entries. The 8
+  extras are other features' modules that the crate-wide scan sees and this plan
+  does not own.

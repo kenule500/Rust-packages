@@ -19,7 +19,20 @@ enables or disables another.
 | `twilio` | `wirekit::twilio` | Basic (auth token or API key) | `https://api.twilio.com/2010-04-01` |
 | `sendgrid` | `wirekit::sendgrid` | Bearer API key | `https://api.sendgrid.com/v3` |
 | `slack` | `wirekit::slack` | Bot token | `https://slack.com/api` |
+| `google-oauth` | `wirekit::google_oauth` | OAuth2 Authorization Code + PKCE helper | `https://oauth2.googleapis.com` |
 | `native-tls` | — | Adds the platform TLS backend; rustls is always compiled in | — |
+
+## Google OAuth
+
+`google-oauth` adds `wirekit::google_oauth`, the Authorization Code + PKCE helper
+every Google module shares. `authorization_url` always generates a verifier, so
+the implicit flow cannot be expressed. The client exchanges a code, refreshes at
+most once, and revokes a token.
+
+The crate stores nothing (CON-108). A token is handed to a `TokenStore` you
+implement; `MemoryTokenStore` is non-durable and intended for tests and
+single-process callers. A durable store must encrypt refresh tokens at rest and
+lock per record so two processes do not refresh the same token concurrently.
 
 ## Why one client
 

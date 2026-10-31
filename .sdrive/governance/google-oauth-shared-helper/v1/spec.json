@@ -1,0 +1,110 @@
+{
+  "feature": "google-oauth-shared-helper",
+  "title": "Google OAuth shared helper - wirekit::google_oauth 0.2.0",
+  "version": 1,
+  "overview": {
+    "problemStatement": "wirekit has no OAuth2 helper. wirekit::google_lsa works but takes a bare access token the caller obtained elsewhere, so every future Google module would re-implement authorization URLs, PKCE, code exchange, refresh, and revocation. That duplication is where the security errors live: an implicit flow slipping in, a missing PKCE verifier, a reused state value, a refresh loop on 401, a token cached past expiry. catalogue/28_google_oauth.md specifies the module and CON-212 already requires Authorization Code + PKCE, but nothing implements it.",
+    "proposedSolution": "Add wirekit::google_oauth behind an additive google-oauth feature: GoogleOAuthClient (client id/secret, redirect URI, scopes), AuthorizationRequest (URL, state, PKCE challenge), TokenResponse (access, refresh, expiry, scope), a TokenStore trait, and RevokeRequest. The module builds authorization URLs, exchanges codes, refreshes access tokens, revokes them, and validates state and PKCE. wirekit performs no I/O and stores nothing (CON-108), so the crate ships the TokenStore trait and an in-memory implementation; durable encrypted persistence is the implementor's documented contract. google_lsa accepts the helper as a token source while keeping a static-token path.",
+    "targetAudience": "Primary: external Rust developers connecting a Google account from a server process who need PKCE, refresh, and revocation correct without re-deriving OAuth. Secondary: maintainers of this workspace, who need one auth path shared by every Google module.",
+    "assumptions": [
+      "wirekit core (BP-005) is on main after m1-first-publish archived; the exact WirekitError::Auth variants available are [to be confirmed].",
+      "One Google Cloud project serves all callers; per-tenant apps are out of scope (catalogue open question 1).",
+      "Google's oauth2.googleapis.com contract is as documented in catalogue/28; no task here uses a live Google account.",
+      "No external research was available; every claim comes from the catalogue, the constitution, and the existing wirekit source."
+    ],
+    "outOfScope": [
+      "Reading, writing, encrypting, or rotating tokens on disk: TokenStore is a trait",
+      "Google Business Profile, Gmail, and LSA notification modules themselves",
+      "Per-tenant Google Cloud projects, app verification, and branding review",
+      "Incremental-consent UX beyond the scope set the caller supplies",
+      "Any implicit-flow support (CON-212 forbids it)",
+      "Application UI, product nouns, and billing (CON-106)",
+      "Test authoring and execution (/sdrive:test owns them)"
+    ]
+  },
+  "userStories": [
+    {
+      "id": "US-001",
+      "title": "Start a Google authorization safely",
+      "role": "developer connecting a Google account",
+      "want": "an authorization URL with state and PKCE",
+      "benefit": "a stolen callback cannot be replayed or forged",
+      "acceptanceCriteria": [
+        { "id": "AC-001", "text": "Given a client id, redirect URI, and scope set, when authorization_url is called, then the URL targets https://oauth2.googleapis.com/o/oauth2/v2/auth with response_type=code, the scopes, the redirect URI, a random state, and code_challenge with code_challenge_method=S256." },
+        { "id": "AC-002", "text": "Given the returned request, when the same client builds another, then state and code_verifier differ, and neither is derived from the client secret." },
+        { "id": "AC-003", "text": "Given a caller asks for the implicit flow, when the request is built, then no such option exists in the API because there is no parameter that omits PKCE." }
+      ]
+    },
+    {
+      "id": "US-002",
+      "title": "Exchange, refresh, and revoke",
+      "role": "developer holding a callback",
+      "want": "code exchange, refresh on expiry, and revocation",
+      "benefit": "I never write OAuth myself",
+      "acceptanceCriteria": [
+        { "id": "AC-004", "text": "Given a valid code and matching verifier, when exchange_code runs, then it POSTs the code and verifier to the token endpoint and returns a typed TokenResponse with access token, optional refresh token, absolute expiry, and scopes." },
+        { "id": "AC-005", "text": "Given the endpoint answers 400 with an error and error_description body, when the exchange fails, then the error is WirekitError::Auth carrying the provider code and no token is returned." },
+        { "id": "AC-006", "text": "Given a stored token past expiry minus the safety margin, when a token is requested, then exactly one refresh occurs, the store is updated, and a second 401 fails without a second attempt." },
+        { "id": "AC-007", "text": "Given a refresh token, when revoke runs, then the revocation endpoint is called once and the store record is removed." }
+      ]
+    },
+    {
+      "id": "US-003",
+      "title": "Keep credentials out of logs and state out of the library",
+      "role": "security reviewer",
+      "want": "the secret and tokens never rendered and no persistence inside the library",
+      "benefit": "the blast radius of a log line or a crash is bounded",
+      "acceptanceCriteria": [
+        { "id": "AC-008", "text": "Given a client, a TokenResponse, and every error path, when Debug, Display, tracing, and error payloads are inspected, then the client secret, access token, and refresh token render ***, and their types do not implement Serialize." },
+        { "id": "AC-009", "text": "Given the crate is compiled, when its dependencies are inspected, then it performs no file, database, environment, or network read or write beyond the OAuth endpoints, and a TokenStore implementation is supplied by the caller." }
+      ]
+    }
+  ],
+  "functionalRequirements": [
+    { "id": "FR-001", "text": "wirekit MUST provide google_oauth::{GoogleOAuthClient, AuthorizationRequest, TokenResponse, TokenStore, RevokeRequest} behind an additive google-oauth feature that is default-off and enables no other feature.", "linkedAcceptanceCriteria": ["AC-001", "AC-009"] },
+    { "id": "FR-002", "text": "authorization_url MUST build a URL against https://oauth2.googleapis.com/o/oauth2/v2/auth carrying response_type=code, the caller's scopes, the redirect URI, a CSPRNG state, and a code_challenge derived from a freshly generated verifier using S256.", "linkedAcceptanceCriteria": ["AC-001", "AC-002"] },
+    { "id": "FR-003", "text": "The API MUST NOT offer a way to omit PKCE or to use the implicit flow; CON-212 is enforced by the type, not by documentation.", "linkedAcceptanceCriteria": ["AC-003"] },
+    { "id": "FR-004", "text": "exchange_code MUST POST the code and verifier to https://oauth2.googleapis.com/token and MUST return a typed TokenResponse whose expiry is absolute, computed from the provider's expires_in and the caller's clock source.", "linkedAcceptanceCriteria": ["AC-004"] },
+    { "id": "FR-005", "text": "The module MUST map Google's error and error_description into WirekitError::Auth for credential and request failures and WirekitError::Api for provider-side failures, preserving the provider code (CON-207).", "linkedAcceptanceCriteria": ["AC-005"] },
+    { "id": "FR-006", "text": "Token acquisition MUST refresh at most once on 401, MUST persist the refreshed token through the TokenStore trait, and MUST fail rather than loop (CON-208).", "linkedAcceptanceCriteria": ["AC-006"] },
+    { "id": "FR-007", "text": "revoke MUST call the revocation endpoint once and MUST remove the record through the TokenStore.", "linkedAcceptanceCriteria": ["AC-007"] },
+    { "id": "FR-008", "text": "TokenStore MUST be a trait with object-safe load, save, and delete operations, and the crate MUST ship an in-memory implementation for tests and single-process callers.", "linkedAcceptanceCriteria": ["AC-009"] },
+    { "id": "FR-009", "text": "The module MUST accept a configurable token endpoint base URL for sandbox and test use, MUST default to the documented Google endpoint, and MUST reject a non-HTTPS override unless it is loopback and explicitly allowed (CON-520).", "linkedAcceptanceCriteria": ["AC-001"] },
+    { "id": "FR-010", "text": "The client secret, access token, and refresh token MUST be held in the wirekit secret type, MUST render *** in Debug, Display, tracing, and errors, and their types MUST NOT implement Serialize (CON-214).", "linkedAcceptanceCriteria": ["AC-008"] },
+    { "id": "FR-011", "text": "The module MUST emit tracing events for authorization, exchange, refresh, revoke, and every error, and MUST NOT record a token, verifier, or secret (CON-211).", "linkedAcceptanceCriteria": ["AC-008"] },
+    { "id": "FR-012", "text": "wirekit::google_lsa MUST accept a GoogleOAuthClient token source instead of a bare token string, and MUST keep working for callers that supply a static token.", "linkedAcceptanceCriteria": ["AC-006"] }
+  ],
+  "nonFunctionalRequirements": [
+    { "id": "NFR-001", "text": "Credentials MUST come from the caller at construction; none may be embedded, defaulted, or read from the environment (CON-511, CON-519).", "linkedAcceptanceCriteria": ["AC-008"] },
+    { "id": "NFR-002", "text": "No global or static token cache; every client owns its own state (CON-109, CON-512).", "linkedAcceptanceCriteria": ["AC-006"] },
+    { "id": "NFR-003", "text": "The token endpoint MUST be rate-limited through the shared bucket with a caller override (CON-209, CON-514).", "linkedAcceptanceCriteria": ["AC-006"] },
+    { "id": "NFR-004", "text": "Every untrusted input - provider error bodies, redirect parameters, scope strings - MUST be validated and MUST produce a typed error rather than a panic (CON-515).", "linkedAcceptanceCriteria": ["AC-005", "AC-009"] },
+    { "id": "NFR-005", "text": "The crate MUST keep forbid(unsafe_code) and deny(missing_docs), MSRV 1.85, edition 2021 (CON-201, CON-202, CON-102).", "linkedAcceptanceCriteria": ["AC-009"] },
+    { "id": "NFR-006", "text": "Security Baseline CON-516 is NOT APPLICABLE - no database, cache, or query surface. CON-513, CON-517, and CON-518 are also not applicable: no server responses, markup, or browser sessions.", "linkedAcceptanceCriteria": ["AC-009"] }
+  ],
+  "edgeCases": [
+    { "id": "EC-001", "description": "Callback state does not match the stored value", "expectedBehavior": "WirekitError::Auth; no exchange attempted." },
+    { "id": "EC-002", "description": "Authorization code replayed", "expectedBehavior": "Provider error surfaced as Auth; the store is not written." },
+    { "id": "EC-003", "description": "Redirect URI mismatch", "expectedBehavior": "Provider error surfaced verbatim, never silently rewritten." },
+    { "id": "EC-004", "description": "Provider omits the refresh token", "expectedBehavior": "Typed error telling the caller to re-authorize; no panic." },
+    { "id": "EC-005", "description": "Two callers refresh the same record concurrently", "expectedBehavior": "At most one network refresh per client; last write wins and is documented." },
+    { "id": "EC-006", "description": "Clock returns a time before the recorded issue time", "expectedBehavior": "Expiry treated as elapsed; one refresh occurs." },
+    { "id": "EC-007", "description": "Non-HTTPS token endpoint override that is not loopback", "expectedBehavior": "Rejected at construction." },
+    { "id": "EC-008", "description": "Provider returns an unrecognised error body", "expectedBehavior": "WirekitError::Api with the status and a redacted message; the body is never echoed." },
+    { "id": "EC-009", "description": "Empty scope set", "expectedBehavior": "Authorization URL still built; the provider response surfaces as Auth, never a silent retry." }
+  ],
+  "dependencies": [
+    { "name": "wirekit core (BP-005)", "type": "internal", "notes": "On main after m1-first-publish; retry, bucket, tracing, secret, error." },
+    { "name": "wirekit secret type and WirekitError", "type": "internal", "notes": "Reused; no second error type." },
+    { "name": "rand, sha2, base64", "type": "library", "notes": "PKCE S256 challenge; rand is already a dependency." },
+    { "name": "url", "type": "library", "notes": "URL construction and validation." },
+    { "name": "serde", "type": "library", "notes": "TokenResponse decoding; already a dependency." },
+    { "name": "Google OAuth app registration", "type": "external", "notes": "Client id from a Google Cloud project; sensitive-scope verification [to be confirmed]." }
+  ],
+  "risks": [
+    { "id": "RISK-001", "description": "Google requires app verification for sensitive scopes, delaying M2 (catalogue/28 open question 3).", "mitigation": "Scopes are caller-supplied; each module requests only its own." },
+    { "id": "RISK-002", "description": "Refresh-token storage is security-critical and lives outside the crate.", "mitigation": "The trait boundary is documented and the in-memory store is marked non-durable." },
+    { "id": "RISK-003", "description": "Changing google_lsa to accept a token source could break callers.", "mitigation": "FR-012 retains the static-token path." },
+    { "id": "RISK-004", "description": "Concurrent refresh storms.", "mitigation": "EC-005 documents single-flight per client; a shared store needs an implementor-level lock." }
+  ]
+}

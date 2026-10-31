@@ -156,6 +156,20 @@ For feature `<feature-name>` and version `<version>`, create these files:
      and continue. Grouping by *access certainty* rather than by theme is what keeps one
      blocked item from deadlocking a whole branch later; many branches per wave is fine,
      many access envelopes per branch is not.
+   - **Group expressions — `[wave1 p2]`, `[wave1]`, `[signup, video call]`.** If the argument
+     is wrapped in `[ ]` it is a *selection*, not one feature. Resolve it with
+     `sdrive group:resolve "<expression>" --json` and **STOP**: show the resolved list with
+     its count, let the user drop or rename items, and continue only after they confirm.
+     Never invent an item the resolver did not return, and never create more features than
+     the user agreed to. A comma separates items; a space filters them (`wave1` is the
+     dependency-derived wave, `pN` is priority, `BP-###` names one item). Then ask the branch
+     question **once** for the whole group — defaulting to the resolver's `branchSuggestion`,
+     never to a sibling's branch — and ask whether the group shares one branch or gets one
+     branch each. That is the user's decision, and both are legitimate. Record the same
+     `branch` and `base` on every feature in the group when they share one; a shared branch
+     merges once, when every feature on it has passed review (CON-611). Then run the
+     per-feature workflow below for EACH feature, stopping after each feature's Gate 1 and
+     Gate 2. Grouping buys one branch decision and one name — not one approval.
    - **Skill readiness before the plan is written.** Inspect `.sdrive/skills/` and compare
      what is installed with the stack this feature actually uses (framework, language, test
      runner, database, cloud or provider SDK). For any technology with no matching skill,

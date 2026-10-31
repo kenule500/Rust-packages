@@ -81,8 +81,9 @@ function findStackingBlocker(state, feature) {
   );
 }
 
-// Read-only verdict. Never writes anything, so it is safe to run over every feature.
-function checkArchivable(root, featureName) {
+// Read-only verdict for ONE feature. Never writes anything, so it is safe to run over every
+// feature. `checkArchivable()` below adds the shared-branch rules on top.
+function checkFeature(root, featureName) {
   const blockers = [];
   const warnings = [];
 
@@ -228,6 +229,63 @@ function checkArchivable(root, featureName) {
   };
 }
 
+// ---------- Shared branches: one branch, one review unit ----------
+//
+// Several features may deliberately work on one branch (a wave). The group is DERIVED from
+// `branch` equality rather than stored, so it cannot drift from the value that actually
+// decides the merge. When a branch is shared, the branch is the review unit: it merges once,
+// and only when every feature on it is ready. Archiving one member early would merge the
+// others' unaudited commits, which is exactly what CON-611 forbids.
+function branchSiblings(state, feature) {
+  if (!state || !feature || !feature.branch) return [];
+
+  return (state.features || []).filter(
+    (other) =>
+      other && other.name !== feature.name && other.branch === feature.branch
+  );
+}
+
+function openSiblings(state, feature) {
+  return branchSiblings(state, feature).filter((other) => {
+    const version = resolveVersion(other);
+    return version && version.phase !== "completed";
+  });
+}
+
+// Public verdict: the feature's own readiness plus the shared-branch rules.
+function checkArchivable(root, featureName) {
+  const verdict = checkFeature(root, featureName);
+
+  if (!verdict.ok || verdict.alreadyFinalized || !verdict.feature) return verdict;
+
+  const siblings = openSiblings(loadState(root), verdict.feature);
+
+  if (siblings.length === 0) return verdict;
+
+  verdict.group = {
+    branch: verdict.feature.branch,
+    features: [verdict.feature.name, ...siblings.map((other) => other.name)]
+  };
+
+  for (const sibling of siblings) {
+    const siblingVerdict = checkFeature(root, sibling.name);
+
+    if (siblingVerdict.alreadyFinalized || siblingVerdict.ok) continue;
+
+    verdict.blockers.push(
+      `Branch "${verdict.feature.branch}" also carries "${sibling.name}", which is not ready to archive, so merging now would ship its unaudited commits (CON-611): ${siblingVerdict.blockers.join(" ")}`
+    );
+  }
+
+  verdict.warnings.push(
+    `Branch "${verdict.feature.branch}" is shared by ${verdict.group.features.length} features (${verdict.group.features.join(", ")}). The branch merges once, when every feature on it is ready; the branch is deleted only after the last one is archived.`
+  );
+
+  verdict.ok = verdict.blockers.length === 0;
+
+  return verdict;
+}
+
 // Perform the closure. Only ever called after checkArchivable() returns ok.
 function finalizeArchive(root, featureName, options = {}) {
   const verdict = checkArchivable(root, featureName);
@@ -333,4 +391,4 @@ function finalizeArchive(root, featureName, options = {}) {
   };
 }
 
-module.exports = { checkArchivable, finalizeArchive };
+module.exports = { checkArchivable, finalizeArchive, branchSiblings };

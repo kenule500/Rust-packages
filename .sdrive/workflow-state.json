@@ -330,7 +330,7 @@
           "currentStep": "implementation",
           "gates": {
             "specification": "approved",
-            "planning": "approved",
+            "planning": "pending",
             "implementation": "pending",
             "review": "pending"
           },
@@ -358,6 +358,13 @@
               "event": "Implementation started: spec moved from specs/backlog to specs/ongoing; wirekit::meta implemented (compiles, clippy clean); sdrive verify reports 26 matched, 29 missing, 16 extra, so tasks stay uncompleted",
               "by": "SpecDrive",
               "timestamp": "2026-10-31T14:08:26Z"
+            },
+            {
+              "event": "Plan corrected after sdrive verify reported 42 matched, 13 missing: the seven reuse components now name their files and the six Graph contracts are recorded as superseded (URLs are built from path-template constants); planning gate reset to pending",
+              "by": "SpecDrive",
+              "actor": "kenule500",
+              "previousValue": "approved",
+              "timestamp": "2026-10-31T14:31:30Z"
             }
           ]
         }

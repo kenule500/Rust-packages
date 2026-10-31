@@ -3885,6 +3885,23 @@ body.drawer-open {
   color: #ffffff;
 }
 
+/* ---- Backlog table: 11 columns (Kind and Batch were added at positions 5-6) -------
+   The nth-child widths above are positional, so adding two columns shifted them by two:
+   "Depends on" inherited 74px and its label overran "Base for". These later rules win on
+   equal specificity, so the positions are correct again without renumbering the block
+   above. If a column is ever added again, this block is the one to update. */
+.table-scroll > .backlog-table {
+  min-width: 1500px;
+}
+
+.backlog-table th:nth-child(5) { width: 90px; }   /* Kind */
+.backlog-table th:nth-child(6) { width: 80px; }   /* Batch */
+.backlog-table th:nth-child(7) { width: 205px; }  /* Depends on */
+.backlog-table th:nth-child(8) { width: 240px; }  /* Base for */
+.backlog-table th:nth-child(9) { width: 74px; }   /* Wave */
+.backlog-table th:nth-child(10) { width: 118px; } /* Status */
+.backlog-table th:nth-child(11) { width: 118px; } /* Details */
+
 /* A batch badge: items that land together on one branch. Deliberately distinct from a
    wave chip, because a wave is a build order and a batch is a merge promise. */
 .batch-chip {

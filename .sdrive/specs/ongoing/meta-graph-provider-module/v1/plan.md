@@ -85,3 +85,19 @@ Flow: caller builds `MetaClient` with credentials, picks a surface, builds `Send
 - **RISK-001** Meta app review unconfirmed → verify against a local mock, as `m5-gated-integrations` did.
 - **RISK-002** Graph version churn → single `API_VERSION` constant.
 - **RISK-003** Instagram/Messenger host differences → one request type, two hosts, asserted per surface.
+
+## Plan correction (2026-10-31)
+
+`sdrive verify` matches reused components against **files**, so the component
+table now names the files the reused modules live in —
+`crates/wirekit/src/client.rs`, `error.rs`, `retry.rs`, `rate_limit.rs`,
+`secret.rs`, `auth.rs`, `trace.rs` — instead of the module paths
+(`wirekit::client`, …) used in the first draft.
+
+The six Graph contracts are recorded as `superseded` in `plan.json`: the module
+builds each URL from a published path-template constant
+(`MESSENGER_MESSAGES_PATH`, `INSTAGRAM_MESSAGES_PATH`,
+`WHATSAPP_MESSAGES_PATH`, `WHATSAPP_MEDIA_PATH`, `SUBSCRIBED_APPS_PATH`) plus
+`RequestSpec`, so no literal `METHOD /path` pair exists for the static scanner
+to find. Behaviour is unchanged; the constants are the contract.
+

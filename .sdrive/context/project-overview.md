@@ -49,9 +49,9 @@ Only one crate exists today:
 
 | Crate | Version | State | Source |
 |---|---|---|---|
-| `dado` | 0.1.0 | Implemented: strict YAML subset, diagnostics, graph, emit, and glob; 38 tests (36 pass, 2 ignored pending publish and tag checks). | `crates/dado/README.md`, `src/yaml.rs` |
+| `dado-yaml` | 0.1.0 | Implemented: strict YAML subset, diagnostics, graph, emit, and glob; 38 tests (36 pass, 2 ignored pending publish and tag checks). | `crates/dado-yaml/README.md`, `src/yaml.rs` |
 
-`dado` is described as "the base layer for config-driven tools: strict YAML,
+`dado-yaml` is described as "the base layer for config-driven tools: strict YAML,
 diagnostics, dependency graphs, code emission, and glob matching", with five
 feature flags and zero dependencies by default.
 
@@ -93,7 +93,7 @@ Source: `README.md` "Status"; `catalogue/00_provider_index.md` "Status".
 | Ignored paths | `target/`, `**/*.rs.bk`, `Cargo.lock`, `.DS_Store` | `.gitignore` |
 | `Cargo.lock` on disk | Present, untracked | `git ls-files Cargo.lock` (empty) |
 | CI configuration | `.github/workflows/ci.yml` | `.github/workflows/ci.yml` |
-| Test files | `crates/dado/tests/m0-foundation/` | `crates/**` |
+| Test files | `crates/dado-yaml/tests/m0-foundation/` | `crates/**` |
 | `rustfmt` / `clippy` config | None found | repository tree |
 | `CONTRIBUTING.md` | Present | `CONTRIBUTING.md` |
 | Tracked files | Cargo workspace at the repository root; provider docs under `catalogue/` | `git ls-files` |

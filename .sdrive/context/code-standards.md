@@ -17,16 +17,16 @@
 | Licence | `MIT OR Apache-2.0` | `Cargo.toml` |
 | Installed toolchain | 1.95.0 | `rustc --version` |
 
-### Crate-level lint attributes (observed in `dado`)
+### Crate-level lint attributes (observed in `dado-yaml`)
 
 ```rust
 #![forbid(unsafe_code)]
 #![deny(missing_docs)]
 ```
 
-Source: `crates/dado/src/lib.rs`.
+Source: `crates/dado-yaml/src/lib.rs`.
 
-### Documentation style (observed in `dado`)
+### Documentation style (observed in `dado-yaml`)
 
 - Every module starts with a `//!` module doc that states its scope and its
   non-goals.
@@ -35,25 +35,25 @@ Source: `crates/dado/src/lib.rs`.
 - The crate-level doc lists the feature-gated modules and the crate's I/O
   boundary.
 
-Source: `crates/dado/src/*.rs`.
+Source: `crates/dado-yaml/src/*.rs`.
 
-### Error style (observed in `dado`)
+### Error style (observed in `dado-yaml`)
 
 - Errors carry a `&'static str` stable code (`E1001`, `D1001`, etc.).
 - Errors implement `core::fmt::Display` and `core::error::Error`.
 - The `yaml` scaffold returns `D0001` rather than guessing at a partial document.
 
-Source: `crates/dado/src/diag.rs`,
-`crates/dado/src/yaml.rs`.
+Source: `crates/dado-yaml/src/diag.rs`,
+`crates/dado-yaml/src/yaml.rs`.
 
-### Feature style (observed in `dado`)
+### Feature style (observed in `dado-yaml`)
 
 - `default = []`.
 - Each module is gated by a named feature.
 - Optional dependencies use `dep:` in the feature list.
 - The crate compiles with zero dependencies when no feature is enabled.
 
-Source: `crates/dado/Cargo.toml`.
+Source: `crates/dado-yaml/Cargo.toml`.
 
 ### Formatting and linting
 
@@ -116,8 +116,8 @@ Source: `crates/dado/Cargo.toml`.
   used for indentation, and duplicate keys are rejected with a positioned error.
 - Unknown constructs are faults, never silent guesses.
 
-Source: `crates/dado/src/yaml.rs`,
-`crates/dado/README.md`.
+Source: `crates/dado-yaml/src/yaml.rs`,
+`crates/dado-yaml/README.md`.
 
 ## Standard Best Practices (from MCP/skills)
 
@@ -141,4 +141,4 @@ Source: `crates/dado/src/yaml.rs`,
   exists today.
 - [to be confirmed] The exact semantics of the `assumption` tag: inferred rules
   are marked, but no project convention for the tag exists yet.
-- [to be confirmed] Whether doc tests are required. `dado` has no examples yet.
+- [to be confirmed] Whether doc tests are required. `dado-yaml` has no examples yet.

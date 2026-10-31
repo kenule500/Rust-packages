@@ -12,7 +12,7 @@
 Packages/                 # repository root; the SpecDrive root
   Cargo.toml              # [workspace] resolver = "2", members = ["crates/*"]
   crates/
-    dado/                 # the only implemented crate
+    dado-yaml/                 # the only implemented crate
   catalogue/              # provider and design Markdown only
     00_provider_index.md  # index of the 26 provider modules
     01_wirekit.md ... 37_signedlink.md
@@ -22,9 +22,9 @@ Packages/                 # repository root; the SpecDrive root
   Source: `Cargo.toml`.
 - Workspace-level package settings (`edition`, `rust-version`, `license`) are
   inherited by every crate. Source: `Cargo.toml` `[workspace.package]`.
-- The only crate today is `dado`, and it inherits all three settings with
+- The only crate today is `dado-yaml`, and it inherits all three settings with
   `edition.workspace = true`, `rust-version.workspace = true`,
-  `license.workspace = true`. Source: `crates/dado/Cargo.toml`.
+  `license.workspace = true`. Source: `crates/dado-yaml/Cargo.toml`.
 
 ### Package boundaries
 
@@ -90,9 +90,9 @@ consuming app / adapter crate
 
 ### Purity and I/O boundaries
 
-- `dado` never opens a socket, reads a URL, spawns a runtime, or writes a file.
-  Callers fetch; `dado` parses. Source: `crates/dado/README.md`,
-  `crates/dado/src/lib.rs`.
+- `dado-yaml` never opens a socket, reads a URL, spawns a runtime, or writes a file.
+  Callers fetch; `dado-yaml` parses. Source: `crates/dado-yaml/README.md`,
+  `crates/dado-yaml/src/lib.rs`.
 - `ffscene` compiles a scene; it does not encode. A separate process runs FFmpeg.
   Source: `catalogue/32_ffscene.md`.
 - `mixbus` processes buffers; it does not open audio devices, decode files, or
@@ -116,19 +116,19 @@ consuming app / adapter crate
 - `signedlink` treats the signature, not the short code, as the authorisation.
   Source: `catalogue/37_signedlink.md`.
 
-### Feature-flag pattern in `dado`
+### Feature-flag pattern in `dado-yaml`
 
 | Feature | Module | Optional dependencies | Source |
 |---|---|---|---|
-| `yaml` | `dado::yaml` | `serde`, `winnow`, `indexmap` | `crates/dado/Cargo.toml` |
-| `diag` | `dado::diag` | none | same |
-| `graph` | `dado::graph` | none | same |
-| `emit` | `dado::emit` | none | same |
-| `glob` | `dado::glob` | none | same |
+| `yaml` | `dado_yaml::yaml` | `serde`, `winnow`, `indexmap` | `crates/dado-yaml/Cargo.toml` |
+| `diag` | `dado_yaml::diag` | none | same |
+| `graph` | `dado_yaml::graph` | none | same |
+| `emit` | `dado_yaml::emit` | none | same |
+| `glob` | `dado_yaml::glob` | none | same |
 
 - `default = []`; every module is opt-in.
 - Optional dependencies are enabled with `dep:` syntax, so they do not leak as
-  implicit features. Source: `crates/dado/Cargo.toml`.
+  implicit features. Source: `crates/dado-yaml/Cargo.toml`.
 
 ## Standard Best Practices (from MCP/skills)
 

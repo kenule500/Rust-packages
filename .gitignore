@@ -4,6 +4,7 @@
 .sdrive/governance/*/*/test-evidence.json
 .sdrive/governance/*/*/verification.json
 .sdrive/governance/*/*/review.json
+.sdrive/reports/tests/raw/
 .sdrive/audit-log.json
 .sdrive/.backups/
 

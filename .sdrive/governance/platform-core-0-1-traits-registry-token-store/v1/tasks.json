@@ -1,0 +1,34 @@
+{
+  "feature": "platform-core-0-1-traits-registry-token-store",
+  "version": 1,
+  "phases": [
+    {
+      "phaseId": "P1",
+      "name": "Crate scaffold and identity",
+      "dependencies": [],
+      "tasks": [
+        { "id": "T1.1", "title": "Create the crate manifest and licence files", "description": "Cargo.toml with registry and memory features default-on and direct dependencies; copy LICENSE-MIT and LICENSE-APACHE.", "linkedRequirements": ["FR-002", "FR-009", "NFR-003"], "linkedAcceptanceCriteria": ["AC-001", "AC-013"], "completed": false },
+        { "id": "T1.2", "title": "Port id.rs and error.rs", "description": "TenantId, ProviderId, ErrorCode, IntegrationError adapted to the current workspace lints.", "linkedRequirements": ["FR-001", "FR-008"], "linkedAcceptanceCriteria": ["AC-002", "AC-012"], "completed": false },
+        { "id": "T1.3", "title": "Port the token module", "description": "Secret, async TokenStore, TokenError, and MemoryTokenStore behind the memory feature.", "linkedRequirements": ["FR-005", "FR-006", "FR-007", "NFR-001", "NFR-002"], "linkedAcceptanceCriteria": ["AC-009", "AC-010", "AC-011", "AC-012"], "completed": false }
+      ]
+    },
+    {
+      "phaseId": "P2",
+      "name": "Capabilities and registry",
+      "dependencies": ["P1"],
+      "tasks": [
+        { "id": "T2.1", "title": "Port capability.rs and provider.rs", "description": "ProvisioningMode, Capability, Provider, ProviderRef, all behind the registry feature.", "linkedRequirements": ["FR-001", "NFR-004"], "linkedAcceptanceCriteria": ["AC-003", "AC-004", "AC-005"], "completed": false },
+        { "id": "T2.2", "title": "Port registry.rs", "description": "Registry with explicit register, get, iter, capabilities and a typed duplicate-id error; no global state.", "linkedRequirements": ["FR-003", "FR-004"], "linkedAcceptanceCriteria": ["AC-006", "AC-007", "AC-008"], "completed": false }
+      ]
+    },
+    {
+      "phaseId": "P3",
+      "name": "Wiring, docs, verification",
+      "dependencies": ["P1", "P2"],
+      "tasks": [
+        { "id": "T3.1", "title": "Port lib.rs and the README", "description": "Lints, feature-gated modules and re-exports, VERSION; README with scope, non-goals, and an example.", "linkedRequirements": ["FR-001", "FR-009", "NFR-005"], "linkedAcceptanceCriteria": ["AC-001", "AC-013"], "completed": false },
+        { "id": "T3.2", "title": "Verify the workspace", "description": "cargo check -p platform-core --no-default-features, fmt, clippy, docs with warnings denied, 1.85 workspace check, and validate-governance.js.", "linkedRequirements": ["FR-002", "NFR-003"], "linkedAcceptanceCriteria": ["AC-001", "AC-013"], "completed": false }
+      ]
+    }
+  ]
+}

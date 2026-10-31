@@ -1,0 +1,109 @@
+{
+  "feature": "platform-core-0-1-traits-registry-token-store",
+  "title": "platform-core 0.1 - traits, registry, token store",
+  "version": 1,
+  "overview": {
+    "problemStatement": "Every multi-provider product reinvents tenant identity, provider identity, capability shape, and token storage, so consumers invent incompatible models and downstream crates such as quota-ledger and hookgate cannot share a tenant.",
+    "proposedSolution": "Port and adapt the existing platform-core crate from feature/m3-substrate: TenantId, ProviderId, ProvisioningMode, Capability, the Provider trait, an explicit Registry, and an async TokenStore with MemoryTokenStore. Standalone trait crate; no OAuth, quota, webhook, or product vocabulary.",
+    "targetAudience": "Rust teams building a multi-tenant product on provider crates, and this project's quota-ledger and hookgate features.",
+    "assumptions": [
+      "A working implementation exists on feature/m3-substrate (14 files, features registry and memory) and is ported rather than redesigned.",
+      "main has no workspace.dependencies, so async-trait, secrecy, thiserror, and uuid are declared directly in the crate manifest.",
+      "The branch tests are not ported; the test agent authors tests against this specification.",
+      "The unmerged m3-substrate/v1 spec covers four crates and is not reused as governance here."
+    ],
+    "outOfScope": [
+      "OAuth flows, token refresh, and provider clients.",
+      "Quota reservation (BP-018) and webhook delivery (BP-020).",
+      "Database or HTTP framework features in 0.1.",
+      "Product nouns and vendor workflow code (CON-106)."
+    ]
+  },
+  "userStories": [
+    {
+      "id": "US-001",
+      "title": "Identify tenants and providers",
+      "role": "service author",
+      "want": "value types for tenant and provider identity",
+      "benefit": "every crate in the stack speaks the same identity model",
+      "acceptanceCriteria": [
+        { "id": "AC-001", "text": "Given the crate built with --no-default-features, when it compiles, then identity, error, and token modules are available without the registry." },
+        { "id": "AC-002", "text": "Given TenantId and ProviderId, when used, then both are cheap value types wrapping Uuid and a static str with Debug, Clone, Copy, Eq, and Hash." },
+        { "id": "AC-003", "text": "Given a provider provisioning path, when ProvisioningMode is inspected, then it distinguishes Api, Partner, Manual, and Unsupported." }
+      ]
+    },
+    {
+      "id": "US-002",
+      "title": "Describe capabilities",
+      "role": "service author",
+      "want": "providers to publish what they can do",
+      "benefit": "a router can reason about capability without knowing the vendor",
+      "acceptanceCriteria": [
+        { "id": "AC-004", "text": "Given a Provider implementation, when capabilities() is called, then it returns a static slice of Capability values pairing an opaque key with a ProvisioningMode." },
+        { "id": "AC-005", "text": "Given a capability key, when it is compared, then the crate treats it as opaque and defines no product vocabulary (CON-106)." }
+      ]
+    },
+    {
+      "id": "US-003",
+      "title": "Register providers explicitly",
+      "role": "service author",
+      "want": "an explicit registry",
+      "benefit": "provider wiring is visible and testable instead of global",
+      "acceptanceCriteria": [
+        { "id": "AC-006", "text": "Given an empty Registry, when a provider is registered, then get, iter, and capabilities return it." },
+        { "id": "AC-007", "text": "Given a registry already holding a provider id, when the same id is registered again, then registration fails with a typed error naming the duplicate id." },
+        { "id": "AC-008", "text": "Given the crate, when its public surface is inspected, then there is no global mutable singleton and no static mut (CON-109)." }
+      ]
+    },
+    {
+      "id": "US-004",
+      "title": "Store tokens behind a contract",
+      "role": "service author",
+      "want": "a token-store trait",
+      "benefit": "storage and key management stay in my adapter",
+      "acceptanceCriteria": [
+        { "id": "AC-009", "text": "Given a TokenStore implementation, when get, put, and revoke are called, then they are async and keyed by the tenant and provider pair." },
+        { "id": "AC-010", "text": "Given the memory feature, when MemoryTokenStore is used, then it satisfies the trait and is absent when the feature is off." },
+        { "id": "AC-011", "text": "Given a stored secret, when it is formatted with Debug, then the value is redacted and no plaintext token appears." },
+        { "id": "AC-012", "text": "Given a token-store failure, when it is returned, then it is a TokenError with a stable message and no secret material." },
+        { "id": "AC-013", "text": "Given the crate, when it is built on Rust 1.85 with all features, then it compiles with forbid(unsafe_code) and deny(missing_docs) and ships the licence files." }
+      ]
+    }
+  ],
+  "functionalRequirements": [
+    { "id": "FR-001", "text": "The crate MUST expose TenantId, ProviderId, ProvisioningMode, Capability, Provider, Registry, TokenStore, TokenError, and Secret per catalogue/31_platform_core.md.", "linkedAcceptanceCriteria": ["AC-001", "AC-002", "AC-004", "AC-009"] },
+    { "id": "FR-002", "text": "Features MUST be additive and default to registry plus memory; a --no-default-features build MUST compile.", "linkedAcceptanceCriteria": ["AC-001", "AC-010"] },
+    { "id": "FR-003", "text": "Registry MUST reject a duplicate provider id with a typed error naming the id.", "linkedAcceptanceCriteria": ["AC-007"] },
+    { "id": "FR-004", "text": "Registration MUST be explicit and the crate MUST NOT expose a global mutable registry.", "linkedAcceptanceCriteria": ["AC-008"] },
+    { "id": "FR-005", "text": "TokenStore MUST be async, keyed by tenant and provider, and cover get, put, and revoke.", "linkedAcceptanceCriteria": ["AC-009"] },
+    { "id": "FR-006", "text": "MemoryTokenStore MUST be gated behind the memory feature.", "linkedAcceptanceCriteria": ["AC-010"] },
+    { "id": "FR-007", "text": "Secrets MUST render redacted in Debug output.", "linkedAcceptanceCriteria": ["AC-011"] },
+    { "id": "FR-008", "text": "Errors MUST carry stable messages with no secret material.", "linkedAcceptanceCriteria": ["AC-012"] },
+    { "id": "FR-009", "text": "The ported crate MUST declare forbid(unsafe_code) and deny(missing_docs) and include the licence files.", "linkedAcceptanceCriteria": ["AC-013"] }
+  ],
+  "nonFunctionalRequirements": [
+    { "id": "NFR-001", "text": "Tenant data MUST be isolated by the tenant and provider key; no API may return another tenant's token (CON-512).", "linkedAcceptanceCriteria": ["AC-009"] },
+    { "id": "NFR-002", "text": "Credentials MUST come from the caller's TokenStore implementation and the crate MUST NOT read the environment (CON-519).", "linkedAcceptanceCriteria": ["AC-012"] },
+    { "id": "NFR-003", "text": "The crate MUST compile on Rust 1.85 with all features (CON-102).", "linkedAcceptanceCriteria": ["AC-013"] },
+    { "id": "NFR-004", "text": "The public surface MUST contain no product vocabulary and no vendor workflow code (CON-106).", "linkedAcceptanceCriteria": ["AC-005"] },
+    { "id": "NFR-005", "text": "Every public item MUST carry rustdoc and every module MUST state scope and non-goals (CON-202, CON-203).", "linkedAcceptanceCriteria": ["AC-013"] }
+  ],
+  "edgeCases": [
+    { "id": "EC-001", "description": "Registering the same provider id twice", "expectedBehavior": "Typed error naming the id; the registry is unchanged." },
+    { "id": "EC-002", "description": "get for an absent tenant and provider pair", "expectedBehavior": "Returns Ok(None); never a fabricated token." },
+    { "id": "EC-003", "description": "Build with --no-default-features", "expectedBehavior": "Identity, error, and token modules compile without the registry." },
+    { "id": "EC-004", "description": "Secret formatted into logs", "expectedBehavior": "Redacted placeholder appears; never the value." }
+  ],
+  "dependencies": [
+    { "name": "async-trait", "type": "library", "notes": "Async TokenStore methods; declared directly because main has no workspace.dependencies." },
+    { "name": "secrecy", "type": "library", "notes": "Redacted Secret wrapper; pin one major." },
+    { "name": "thiserror", "type": "library", "notes": "TokenError and registry errors." },
+    { "name": "uuid", "type": "library", "notes": "TenantId payload." },
+    { "name": "tokio", "type": "library", "notes": "Dev only, for async token-store tests written later by the test agent." }
+  ],
+  "risks": [
+    { "id": "RISK-001", "description": "Porting stale code may drag in APIs that no longer match the workspace, since the branch predates wirekit.", "mitigation": "Port file by file, adapt the manifest, and let the MSRV and clippy jobs prove it." },
+    { "id": "RISK-002", "description": "secrecy's API differs across majors.", "mitigation": "Pin one major and cover redaction with AC-011." },
+    { "id": "RISK-003", "description": "A trait crate invites scope creep into implementations.", "mitigation": "NFR-004 and the out-of-scope list are enforced at review." }
+  ]
+}

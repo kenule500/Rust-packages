@@ -398,6 +398,47 @@
           ]
         }
       ]
+    },
+    {
+      "name": "platform-core-0-1-traits-registry-token-store",
+      "branch": "feature/meta-stripe-platform-core",
+      "base": "main",
+      "productItems": ["BP-017"],
+      "currentVersion": "v1",
+      "versions": [
+        {
+          "id": "v1",
+          "phase": "backlog",
+          "currentStep": "specification",
+          "gates": {
+            "specification": "approved",
+            "planning": "approved",
+            "implementation": "pending",
+            "review": "pending"
+          },
+          "history": [
+            {
+              "event": "Proposed from group expression [BP-011, BP-011, BP-013, BP-014, BP-017]; ports the unmerged platform-core crate from feature/m3-substrate as prior art rather than reusing its m3-substrate/v1 governance",
+              "by": "SpecDrive",
+              "timestamp": "2026-10-31T13:01:24Z"
+            },
+            {
+              "event": "Gate 1 approved: platform-core 0.1 specification and traceability",
+              "by": "kenule500",
+              "actor": "kenule500",
+              "previousValue": "pending",
+              "timestamp": "2026-10-31T13:06:39Z"
+            },
+            {
+              "event": "Gate 2 approved: port plan and tasks for platform-core 0.1",
+              "by": "kenule500",
+              "actor": "kenule500",
+              "previousValue": "pending",
+              "timestamp": "2026-10-31T13:08:36Z"
+            }
+          ]
+        }
+      ]
     }
   ]
 }

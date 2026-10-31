@@ -1,0 +1,68 @@
+{
+  "feature": "platform-core-0-1-traits-registry-token-store",
+  "version": 1,
+  "architecture": {
+    "approach": "Port the existing platform-core crate from feature/m3-substrate file by file into crates/platform-core/, adapting the manifest and any drifted API. The crate is standalone, so members = crates/* picks it up without touching the root manifest. Dependencies are declared directly because the workspace has no workspace.dependencies; tests are excluded and belong to the test agent.",
+    "components": [
+      { "name": "crates/platform-core/Cargo.toml", "action": "create", "description": "Package metadata, registry and memory features (default on), direct dependencies." },
+      { "name": "crates/platform-core/src/lib.rs", "action": "create", "description": "Lints, feature-gated modules, re-exports, VERSION." },
+      { "name": "crates/platform-core/src/id.rs", "action": "create", "description": "TenantId and ProviderId value types." },
+      { "name": "crates/platform-core/src/error.rs", "action": "create", "description": "ErrorCode and IntegrationError." },
+      { "name": "crates/platform-core/src/token.rs", "action": "create", "description": "Secret, async TokenStore, TokenError, MemoryTokenStore behind memory." },
+      { "name": "crates/platform-core/src/capability.rs", "action": "create", "description": "ProvisioningMode and Capability behind registry." },
+      { "name": "crates/platform-core/src/provider.rs", "action": "create", "description": "Provider trait and ProviderRef behind registry." },
+      { "name": "crates/platform-core/src/registry.rs", "action": "create", "description": "Registry with explicit registration and duplicate detection." },
+      { "name": "crates/platform-core/README.md", "action": "create", "description": "Scope, non-goals, and a usage example." },
+      { "name": "crates/platform-core/LICENSE-MIT", "action": "create", "description": "Workspace licence copy." },
+      { "name": "crates/platform-core/LICENSE-APACHE", "action": "create", "description": "Workspace licence copy." },
+      { "name": "Cargo.toml", "action": "reuse", "description": "members = crates/* already includes the new crate; no change required." }
+    ],
+    "referencedRequirementIds": ["FR-001", "FR-002", "FR-003", "FR-004", "FR-005", "FR-006", "FR-007", "FR-008", "FR-009", "NFR-001", "NFR-002", "NFR-003", "NFR-004", "NFR-005"]
+  },
+  "dataModel": {
+    "entities": [
+      { "name": "TenantId", "action": "create", "fields": [{ "name": "0", "type": "Uuid", "action": "add" }] },
+      { "name": "ProviderId", "action": "create", "fields": [{ "name": "0", "type": "&'static str", "action": "add" }] },
+      { "name": "ProvisioningMode", "action": "create", "fields": [
+        { "name": "Api", "type": "variant", "action": "add" },
+        { "name": "Partner", "type": "variant", "action": "add" },
+        { "name": "Manual", "type": "variant", "action": "add" },
+        { "name": "Unsupported", "type": "variant", "action": "add" }
+      ] },
+      { "name": "Capability", "action": "create", "fields": [
+        { "name": "key", "type": "&'static str", "action": "add" },
+        { "name": "mode", "type": "ProvisioningMode", "action": "add" }
+      ] },
+      { "name": "Registry", "action": "create", "fields": [
+        { "name": "providers", "type": "Map<ProviderId, Box<dyn Provider>>", "action": "add" }
+      ] },
+      { "name": "TokenStore", "action": "create", "fields": [
+        { "name": "get", "type": "async fn(&TenantId, &ProviderId) -> Result<Option<Secret>, TokenError>", "action": "add" },
+        { "name": "put", "type": "async fn(&TenantId, &ProviderId, Secret) -> Result<(), TokenError>", "action": "add" },
+        { "name": "revoke", "type": "async fn(&TenantId, &ProviderId) -> Result<(), TokenError>", "action": "add" }
+      ] },
+      { "name": "MemoryTokenStore", "action": "create", "fields": [
+        { "name": "tokens", "type": "HashMap<(TenantId, ProviderId), Secret>", "action": "add" }
+      ] }
+    ],
+    "flowDescription": "The application builds a Registry, registers its Provider values, and supplies a TokenStore implementation. Reads and writes are always keyed by the tenant and provider pair; the crate itself stores nothing outside MemoryTokenStore, which exists for tests."
+  },
+  "apiContracts": [],
+  "securityConsiderations": [
+    { "requirementId": "NFR-001", "description": "Every token operation is keyed by tenant and provider, so a well-behaved implementation cannot serve one tenant another tenant's token (CON-512)." },
+    { "requirementId": "NFR-002", "description": "The crate never reads the environment; MemoryTokenStore is documented as unsuitable for production secrets (CON-519)." },
+    { "requirementId": "NFR-004", "description": "The public surface contains no product vocabulary and no vendor workflow code (CON-106)." }
+  ],
+  "dependencies": [
+    { "name": "async-trait", "type": "library", "action": "add", "notes": "Async trait methods; 1.85-compatible version." },
+    { "name": "secrecy", "type": "library", "action": "add", "notes": "Redacted secret wrapper." },
+    { "name": "thiserror", "type": "library", "action": "add", "notes": "Error derive." },
+    { "name": "uuid", "type": "library", "action": "add", "notes": "TenantId payload." },
+    { "name": "tokio", "type": "library", "action": "add", "notes": "Dev only, for the test agent's async tests." }
+  ],
+  "risks": [
+    { "description": "Stale port may drag in APIs that no longer match the workspace.", "mitigation": "Port file by file; MSRV and clippy jobs prove compatibility." },
+    { "description": "secrecy API drift across majors.", "mitigation": "Pin one major and cover redaction with AC-011." },
+    { "description": "A trait crate invites scope creep into implementations.", "mitigation": "Out-of-scope list and NFR-004 enforced at review." }
+  ]
+}

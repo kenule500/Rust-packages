@@ -1,0 +1,20 @@
+{
+  "feature": "platform-core-0-1-traits-registry-token-store",
+  "version": 1,
+  "rows": [
+    { "requirementId": "FR-001", "acceptanceCriteriaIds": ["AC-001", "AC-002", "AC-004", "AC-009"], "planSection": "P3 Wiring, docs, verification", "taskIds": ["T3.1"], "testIds": [], "status": "not_started" },
+    { "requirementId": "FR-002", "acceptanceCriteriaIds": ["AC-001", "AC-010"], "planSection": "P1 Crate scaffold and identity", "taskIds": ["T1.1", "T3.2"], "testIds": [], "status": "not_started" },
+    { "requirementId": "FR-003", "acceptanceCriteriaIds": ["AC-007"], "planSection": "P2 Capabilities and registry", "taskIds": ["T2.2"], "testIds": [], "status": "not_started" },
+    { "requirementId": "FR-004", "acceptanceCriteriaIds": ["AC-008"], "planSection": "P2 Capabilities and registry", "taskIds": ["T2.2"], "testIds": [], "status": "not_started" },
+    { "requirementId": "FR-005", "acceptanceCriteriaIds": ["AC-009"], "planSection": "P1 Crate scaffold and identity", "taskIds": ["T1.3"], "testIds": [], "status": "not_started" },
+    { "requirementId": "FR-006", "acceptanceCriteriaIds": ["AC-010"], "planSection": "P1 Crate scaffold and identity", "taskIds": ["T1.3"], "testIds": [], "status": "not_started" },
+    { "requirementId": "FR-007", "acceptanceCriteriaIds": ["AC-011"], "planSection": "P1 Crate scaffold and identity", "taskIds": ["T1.3"], "testIds": [], "status": "not_started" },
+    { "requirementId": "FR-008", "acceptanceCriteriaIds": ["AC-012"], "planSection": "P1 Crate scaffold and identity", "taskIds": ["T1.2"], "testIds": [], "status": "not_started" },
+    { "requirementId": "FR-009", "acceptanceCriteriaIds": ["AC-013"], "planSection": "P3 Wiring, docs, verification", "taskIds": ["T1.1", "T3.1"], "testIds": [], "status": "not_started" },
+    { "requirementId": "NFR-001", "acceptanceCriteriaIds": ["AC-009"], "planSection": "P1 Crate scaffold and identity", "taskIds": ["T1.3"], "testIds": [], "status": "not_started" },
+    { "requirementId": "NFR-002", "acceptanceCriteriaIds": ["AC-012"], "planSection": "P1 Crate scaffold and identity", "taskIds": ["T1.3"], "testIds": [], "status": "not_started" },
+    { "requirementId": "NFR-003", "acceptanceCriteriaIds": ["AC-013"], "planSection": "P3 Wiring, docs, verification", "taskIds": ["T3.2"], "testIds": [], "status": "not_started" },
+    { "requirementId": "NFR-004", "acceptanceCriteriaIds": ["AC-005"], "planSection": "P2 Capabilities and registry", "taskIds": ["T2.1"], "testIds": [], "status": "not_started" },
+    { "requirementId": "NFR-005", "acceptanceCriteriaIds": ["AC-013"], "planSection": "P3 Wiring, docs, verification", "taskIds": ["T3.1"], "testIds": [], "status": "not_started" }
+  ]
+}

@@ -262,13 +262,13 @@
       "versions": [
         {
           "id": "v1",
-          "phase": "ongoing",
+          "phase": "completed",
           "currentStep": "implementation",
           "gates": {
             "specification": "approved",
             "planning": "approved",
-            "implementation": "pending",
-            "review": "pending"
+            "implementation": "approved",
+            "review": "approved"
           },
           "history": [
             {
@@ -290,6 +290,28 @@
               "event": "Implementation started: spec moved from backlog to ongoing on feature/google-oauth-shared-helper",
               "by": "SpecDrive",
               "timestamp": "2026-10-30T18:19:17.826Z"
+            },
+            {
+              "event": "implementation_approved",
+              "by": "kenule500",
+              "actor": "kenule500",
+              "previousValue": "pending",
+              "timestamp": "2026-10-31T03:31:47.308Z"
+            },
+            {
+              "event": "review_approved",
+              "by": "kenule500",
+              "actor": "kenule500",
+              "previousValue": "pending",
+              "timestamp": "2026-10-31T03:31:55.199Z"
+            },
+            {
+              "event": "feature_archived",
+              "by": "kenule500",
+              "from": "ongoing",
+              "version": "v1",
+              "mergeCommit": "",
+              "timestamp": "2026-10-31T03:54:16.735Z"
             }
           ]
         }

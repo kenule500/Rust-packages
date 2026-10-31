@@ -16,6 +16,7 @@ const SECRET: &str = "client-secret-do-not-print";
 fn client() -> GoogleOAuthClient {
     let http = WirekitClient::builder("https://oauth2.googleapis.com")
         .expect("an https base URL")
+        .allow_insecure_localhost(true)
         .build()
         .expect("the client builds");
 
@@ -337,5 +338,4 @@ fn ac_009_the_module_performs_no_io_of_its_own() {
     // Persistence is the caller's: the crate ships a trait and one in-memory type.
     let store: Box<dyn TokenStore> = Box::new(MemoryTokenStore::new());
     assert!(store.load("absent").is_none());
-}
 }

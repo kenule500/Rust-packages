@@ -2292,7 +2292,10 @@ const SLASH_DETAILS = {
     does: [
       "Drafts the product overview and positioning",
       "Produces a UI mockup and roadmap",
-      "Breaks the roadmap into a prioritised feature backlog"
+      "Breaks the roadmap into a prioritised feature backlog",
+      "Records each item's Milestone, Priority, Kind and Depends on — waves (w1, w2, …) are derived from the dependencies, so parallel-safe items share a wave",
+      "Groups items that must land together on one branch with a Batch id (b1, b2, …): a wave says what can run in parallel, a batch says what merges at the same moment",
+      "Keeps Kind accurate — build, decision or release — because only a build can pass a coverage gate"
     ],
     produces: [
       ".sdrive/product/overview.md",
@@ -2312,7 +2315,10 @@ const SLASH_DETAILS = {
       "Derives acceptance criteria and a traceability matrix",
       "Produces a technical plan and an ordered task list",
       "Offers a Product ID branch (feature/BP-003) or a readable branch name",
-      "Opens the feature branch, or reuses a worktree prepared by /sdrive:worktree"
+      "Opens the feature branch, or reuses a worktree prepared by /sdrive:worktree",
+      "Accepts a group — [w1 p2], [m5 p1 build], [b1] or [signup, video call] — resolves it against the backlog and shows the list before creating anything",
+      "Asks ONE branch decision for a whole group; [b1] alone always means one branch, merged once when every member passes review",
+      "Still runs Gate 1 and Gate 2 per feature — grouping buys one branch decision and one name, not one approval"
     ],
     produces: [
       ".sdrive/specs/ongoing/<feature>/<version>/spec.md",

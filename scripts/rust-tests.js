@@ -7,6 +7,10 @@
 // wrapper runs the workspace suite, forwards the real output, and appends one
 // Jest-style summary line plus TEST-###/AC-### IDs so the evidence recorder
 // records real counts instead of zeros.
+//
+// Lives outside `.sdrive/` on purpose: `sdrive update` prunes anything under
+// `.sdrive/scripts` that the framework no longer ships, and it deleted this
+// project-local adapter twice.
 const { spawnSync } = require("child_process");
 
 const command = "cargo test --workspace --all-features";

@@ -42,6 +42,10 @@ cargo package --workspace
 cargo audit
 ```
 
+`cargo audit` reads [`audit.toml`](audit.toml). Every ignored advisory must name
+its RUSTSEC ID and the reason, and the entry must be removed once the blocker
+clears.
+
 On PowerShell, set the documentation flag separately:
 
 ```powershell

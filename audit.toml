@@ -1,0 +1,8 @@
+# cargo-audit configuration.
+#
+# One advisory is ignored. Each entry must name the RUSTSEC ID and the reason;
+# remove the entry as soon as the reason no longer holds.
+[advisories]
+ignore = [
+    { id = "RUSTSEC-2026-0387", reason = "crypto-bigint 0.5.5 arrives through p256 0.13, which the sendgrid feature uses only to verify Event Webhook signatures over public keys and payloads - no secret scalar arithmetic happens in this workspace. Every patched release (crypto-bigint >= 0.7.6) declares rust-version 1.87, and the workspace MSRV is 1.85 (Cargo.toml, AC-039): fixing it requires the p256 0.14 / ecdsa 0.17 / elliptic-curve 0.14 line. Re-check when the MSRV moves to 1.87." },
+]

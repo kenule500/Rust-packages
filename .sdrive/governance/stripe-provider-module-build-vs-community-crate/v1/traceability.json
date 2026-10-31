@@ -1,0 +1,14 @@
+{
+  "feature": "stripe-provider-module-build-vs-community-crate",
+  "version": 1,
+  "rows": [
+    { "requirementId": "FR-001", "acceptanceCriteriaIds": ["AC-001"], "planSection": "P1 Publish the decision", "taskIds": ["T1.2"], "testIds": [], "status": "not_started" },
+    { "requirementId": "FR-002", "acceptanceCriteriaIds": ["AC-002"], "planSection": "P1 Publish the decision", "taskIds": ["T1.1", "T1.2"], "testIds": [], "status": "not_started" },
+    { "requirementId": "FR-003", "acceptanceCriteriaIds": ["AC-003"], "planSection": "P1 Publish the decision", "taskIds": ["T1.2"], "testIds": [], "status": "not_started" },
+    { "requirementId": "FR-004", "acceptanceCriteriaIds": ["AC-004"], "planSection": "P1 Publish the decision", "taskIds": ["T1.1", "T1.3"], "testIds": [], "status": "not_started" },
+    { "requirementId": "FR-005", "acceptanceCriteriaIds": ["AC-005"], "planSection": "P1 Publish the decision", "taskIds": ["T1.2"], "testIds": [], "status": "not_started" },
+    { "requirementId": "NFR-001", "acceptanceCriteriaIds": ["AC-001"], "planSection": "P1 Publish the decision", "taskIds": ["T1.2"], "testIds": [], "status": "not_started" },
+    { "requirementId": "NFR-002", "acceptanceCriteriaIds": ["AC-004"], "planSection": "P1 Publish the decision", "taskIds": ["T1.1"], "testIds": [], "status": "not_started" },
+    { "requirementId": "NFR-003", "acceptanceCriteriaIds": ["AC-002"], "planSection": "P1 Publish the decision", "taskIds": ["T1.4"], "testIds": [], "status": "not_started" }
+  ]
+}

@@ -1,0 +1,17 @@
+{
+  "feature": "stripe-provider-module-build-vs-community-crate",
+  "version": 1,
+  "phases": [
+    {
+      "phaseId": "P1",
+      "name": "Publish the decision",
+      "dependencies": [],
+      "tasks": [
+        { "id": "T1.1", "title": "Add the Stripe guidance to the wirekit README", "description": "Payments (Stripe) section: no in-crate module, async-stripe 0.41.0 pinned with licence and MSRV, restricted keys, webhook-events feature.", "linkedRequirements": ["FR-002", "FR-004", "NFR-002"], "linkedAcceptanceCriteria": ["AC-002", "AC-004"], "completed": false },
+        { "id": "T1.2", "title": "Record the decision in the provider index", "description": "Entry naming Option B, recording the rejected build option so CON-105 needs no design file, and listing revisit triggers.", "linkedRequirements": ["FR-001", "FR-002", "FR-003", "FR-005", "NFR-001"], "linkedAcceptanceCriteria": ["AC-001", "AC-002", "AC-003", "AC-005"], "completed": false },
+        { "id": "T1.3", "title": "Cross-reference from the root README", "description": "Pointer from the ecosystem README so it does not imply Stripe support, linking to the wirekit section and the provider index entry.", "linkedRequirements": ["FR-004"], "linkedAcceptanceCriteria": ["AC-004"], "completed": false },
+        { "id": "T1.4", "title": "Verify documentation and governance", "description": "cargo doc with warnings denied, validate-governance.js, and a link check of the three edited Markdown files.", "linkedRequirements": ["NFR-003"], "linkedAcceptanceCriteria": ["AC-002"], "completed": false }
+      ]
+    }
+  ]
+}

@@ -357,6 +357,47 @@
           ]
         }
       ]
+    },
+    {
+      "name": "stripe-provider-module-build-vs-community-crate",
+      "branch": "feature/meta-stripe-platform-core",
+      "base": "main",
+      "productItems": ["BP-014"],
+      "currentVersion": "v1",
+      "versions": [
+        {
+          "id": "v1",
+          "phase": "backlog",
+          "currentStep": "specification",
+          "gates": {
+            "specification": "approved",
+            "planning": "approved",
+            "implementation": "pending",
+            "review": "pending"
+          },
+          "history": [
+            {
+              "event": "Proposed from group expression [BP-011, BP-011, BP-013, BP-014, BP-017] as a build-vs-community-crate decision record on the shared branch",
+              "by": "SpecDrive",
+              "timestamp": "2026-10-31T12:28:53Z"
+            },
+            {
+              "event": "Gate 1 approved: decision record commits to Option B, documenting async-stripe 0.41.0 (MSRV 1.82.0 verified, licence MIT OR Apache-2.0)",
+              "by": "kenule500",
+              "actor": "kenule500",
+              "previousValue": "pending",
+              "timestamp": "2026-10-31T12:32:41Z"
+            },
+            {
+              "event": "Gate 2 approved: documentation-only plan and tasks for the Stripe decision record",
+              "by": "kenule500",
+              "actor": "kenule500",
+              "previousValue": "pending",
+              "timestamp": "2026-10-31T12:47:23Z"
+            }
+          ]
+        }
+      ]
     }
   ]
 }

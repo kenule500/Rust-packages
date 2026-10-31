@@ -1,0 +1,57 @@
+{
+  "feature": "stripe-provider-module-build-vs-community-crate",
+  "title": "Stripe provider - build vs community crate (decision record)",
+  "version": 1,
+  "overview": {
+    "problemStatement": "BP-014 is a decision before it is code: Stripe is absent from the provider catalogue, so developers either build their own client or pick a community crate with unknown maintenance, licence, and MSRV fit, and wirekit 0.2.x scope cannot be fixed without the answer.",
+    "proposedSolution": "A decision record that scores building a stripe module against documenting a community crate on six fixed criteria, with crates.io evidence and dates, a recommendation, and explicit revisit triggers. Gate 1 chose Option B: document async-stripe 0.41.0 (MIT OR Apache-2.0, rust-version 1.82.0, published 2025-04-08). No code, dependency, or catalogue file is added.",
+    "targetAudience": "The maintainer deciding wirekit 0.2.x scope, and Rust developers who need payments.",
+    "assumptions": [
+      "wirekit has no Stripe code today (no stripe module under crates/wirekit/src).",
+      "CON-104 requires providers to ship as wirekit modules; CON-105 requires a catalogue design file first.",
+      "Evidence comes from the crates.io API on 2026-10-31; no further external review was performed (CON-704)."
+    ],
+    "outOfScope": [
+      "Any Stripe implementation, dependency, or catalogue design file.",
+      "Billing domain logic such as invoices, subscription lifecycles, and tax (CON-106)."
+    ]
+  },
+  "userStories": [
+    {
+      "id": "US-001",
+      "title": "Decide with evidence",
+      "role": "maintainer",
+      "want": "both options scored against fixed criteria",
+      "benefit": "0.2.x scope is a recorded decision rather than an assumption",
+      "acceptanceCriteria": [
+        { "id": "AC-001", "text": "Given the decision record, when it is read, then both options are scored against C1..C6 with crates.io evidence and dates." },
+        { "id": "AC-002", "text": "Given Gate 1 approval, when the record is finalised, then it names the chosen option and the approver, with no option left implied." },
+        { "id": "AC-003", "text": "Given the build option is chosen, when the record is finalised, then it states that CON-105 requires a catalogue design file and enumerates the exact surface." },
+        { "id": "AC-004", "text": "Given the community-crate option is chosen, when the record is finalised, then it pins crate name, version, licence, MSRV, and the documentation pointer." },
+        { "id": "AC-005", "text": "Given the record, when the decision later needs revisiting, then the triggers are explicit: async-stripe 1.0 stable, an MSRV change, a Stripe API break, or the crate becoming unmaintained." }
+      ]
+    }
+  ],
+  "functionalRequirements": [
+    { "id": "FR-001", "text": "The record MUST evaluate both options against the six criteria with cited evidence.", "linkedAcceptanceCriteria": ["AC-001"] },
+    { "id": "FR-002", "text": "The record MUST name the chosen option and its rationale after Gate 1 approval.", "linkedAcceptanceCriteria": ["AC-002"] },
+    { "id": "FR-003", "text": "If the build option is chosen, the record MUST require a catalogue design file under CON-105 and enumerate the exact surface.", "linkedAcceptanceCriteria": ["AC-003"] },
+    { "id": "FR-004", "text": "If a community crate is chosen, the record MUST pin name, version, licence, MSRV, and the documentation pointer.", "linkedAcceptanceCriteria": ["AC-004"] },
+    { "id": "FR-005", "text": "The record MUST define revisit triggers for the decision.", "linkedAcceptanceCriteria": ["AC-005"] }
+  ],
+  "nonFunctionalRequirements": [
+    { "id": "NFR-001", "text": "Evidence MUST carry source and date; unknown facts MUST stay marked [to be confirmed] (CON-704).", "linkedAcceptanceCriteria": ["AC-001"] },
+    { "id": "NFR-002", "text": "A chosen community crate MUST be licence-compatible and MUST NOT raise the workspace MSRV without a constitution amendment (CON-102, CON-111).", "linkedAcceptanceCriteria": ["AC-004"] },
+    { "id": "NFR-003", "text": "This record MUST NOT add code, dependencies, or a catalogue file; it is a decision only (CON-103).", "linkedAcceptanceCriteria": ["AC-002"] }
+  ],
+  "edgeCases": [
+    { "id": "EC-001", "description": "async-stripe publishes a stable release whose MSRV exceeds 1.85", "expectedBehavior": "The fallback (Option A) becomes the recommendation." },
+    { "id": "EC-002", "description": "No community crate supports 1.85", "expectedBehavior": "Option A with the narrow surface is the only viable path." },
+    { "id": "EC-003", "description": "Stripe ships a breaking API change that neither option covers", "expectedBehavior": "The revisit trigger fires and the record is reopened." }
+  ],
+  "dependencies": [],
+  "risks": [
+    { "id": "RISK-001", "description": "The recommendation rested on an unverified MSRV for async-stripe 0.41.x.", "mitigation": "Closed at Gate 1: 0.41.0 declares rust-version 1.82.0, so it fits the 1.85 workspace MSRV." },
+    { "id": "RISK-002", "description": "A decision record can decay into a stale opinion.", "mitigation": "Explicit revisit triggers (AC-005)." }
+  ]
+}

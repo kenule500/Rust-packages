@@ -83,10 +83,12 @@ ecdsa = { version = "0.16.9", optional = true, default-features = false, feature
 
 # M5 gated integrations. Both are optional and gate on their own feature, so a
 # build without `angi` or `sage-intacct` carries neither.
-# Licences verified on crates.io: csv 1.4.0 is Unlicense/MIT, quick-xml 0.42.0 is
+# Licences verified on crates.io: csv 1.4.0 is Unlicense/MIT, quick-xml is
 # MIT - both compatible with this crate's MIT OR Apache-2.0.
+# quick-xml is capped at 0.41: 0.42 declares rust-version 1.86, which would break
+# the workspace's 1.85 MSRV (the CI MSRV job builds --all-features).
 csv = { version = "1.4.0", optional = true }
-quick-xml = { version = "0.42.0", optional = true }
+quick-xml = { version = "0.41", optional = true }
 
 [dev-dependencies]
 serde_json = "1.0.140"

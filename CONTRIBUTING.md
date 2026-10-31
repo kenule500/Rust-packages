@@ -36,6 +36,10 @@ RUSTDOCFLAGS="-D warnings" cargo doc --workspace --all-features --no-deps
 
 # Packaging
 cargo package --workspace
+
+# Dependency advisories; install once with
+# `cargo install cargo-audit --locked`
+cargo audit
 ```
 
 On PowerShell, set the documentation flag separately:
@@ -100,6 +104,7 @@ Product work is tracked in [`.sdrive/product/backlog.md`](.sdrive/product/backlo
 - [ ] `RUSTDOCFLAGS="-D warnings" cargo doc --workspace --all-features --no-deps`
       passes.
 - [ ] `cargo package --workspace` passes when packaging or metadata changes.
+- [ ] `cargo audit` reports no vulnerabilities.
 - [ ] New public items have rustdoc and the crate still compiles with
       `#![forbid(unsafe_code)]` and `#![deny(missing_docs)]`.
 - [ ] No secrets, tokens, credentials, or generated build output are committed.

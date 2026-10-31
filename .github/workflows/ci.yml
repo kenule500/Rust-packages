@@ -92,3 +92,17 @@ jobs:
           workspaces: .
       - run: cargo build --workspace --all-features
       - run: cargo test --workspace --all-features
+
+  audit:
+    name: Audit
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: dtolnay/rust-toolchain@stable
+      - uses: taiki-e/install-action@v2
+        with:
+          tool: cargo-audit
+      # The lockfile is gitignored, so the audit scans the same fresh resolve
+      # every other job builds against.
+      - run: cargo generate-lockfile
+      - run: cargo audit

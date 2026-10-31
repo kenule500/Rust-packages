@@ -25,7 +25,7 @@ git status --porcelain
 
 Confirm the release commit is green in GitHub Actions before continuing. The
 workflow must have passed format, clippy, docs, package, the three-OS test
-matrix, and the Rust 1.85 MSRV job.
+matrix, the Rust 1.85 MSRV job, and the dependency audit.
 
 Check that the crate name is still available. A `404` means the name is free:
 

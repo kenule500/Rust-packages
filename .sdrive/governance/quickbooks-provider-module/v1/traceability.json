@@ -1,0 +1,24 @@
+{
+  "feature": "quickbooks-provider-module",
+  "version": 1,
+  "rows": [
+    { "requirementId": "FR-001", "acceptanceCriteriaIds": ["AC-001"], "planSection": "P1 Foundation", "taskIds": ["T1.1"], "testIds": [], "status": "not_started" },
+    { "requirementId": "FR-002", "acceptanceCriteriaIds": ["AC-001"], "planSection": "P1 Foundation", "taskIds": ["T1.2"], "testIds": [], "status": "not_started" },
+    { "requirementId": "FR-003", "acceptanceCriteriaIds": ["AC-004", "AC-006", "AC-009", "AC-011"], "planSection": "P3 Entities", "taskIds": ["T3.1", "T3.2", "T3.3", "T3.4"], "testIds": [], "status": "not_started" },
+    { "requirementId": "FR-004", "acceptanceCriteriaIds": ["AC-002", "AC-003"], "planSection": "P2 OAuth2", "taskIds": ["T2.1"], "testIds": [], "status": "not_started" },
+    { "requirementId": "FR-005", "acceptanceCriteriaIds": ["AC-004", "AC-005"], "planSection": "P3 Entities", "taskIds": ["T3.1"], "testIds": [], "status": "not_started" },
+    { "requirementId": "FR-006", "acceptanceCriteriaIds": ["AC-006", "AC-007", "AC-008"], "planSection": "P3 Entities", "taskIds": ["T3.2"], "testIds": [], "status": "not_started" },
+    { "requirementId": "FR-007", "acceptanceCriteriaIds": ["AC-009", "AC-010"], "planSection": "P3 Entities", "taskIds": ["T3.3"], "testIds": [], "status": "not_started" },
+    { "requirementId": "FR-008", "acceptanceCriteriaIds": ["AC-011"], "planSection": "P3 Entities", "taskIds": ["T3.4"], "testIds": [], "status": "not_started" },
+    { "requirementId": "FR-009", "acceptanceCriteriaIds": ["AC-012", "AC-013"], "planSection": "P4 Webhooks, faults, retries", "taskIds": ["T4.1"], "testIds": [], "status": "not_started" },
+    { "requirementId": "FR-010", "acceptanceCriteriaIds": ["AC-013"], "planSection": "P4 Webhooks, faults, retries", "taskIds": ["T4.1"], "testIds": [], "status": "not_started" },
+    { "requirementId": "FR-011", "acceptanceCriteriaIds": ["AC-014"], "planSection": "P4 Webhooks, faults, retries", "taskIds": ["T4.2"], "testIds": [], "status": "not_started" },
+    { "requirementId": "FR-012", "acceptanceCriteriaIds": ["AC-015", "AC-016"], "planSection": "P4 Webhooks, faults, retries", "taskIds": ["T4.2"], "testIds": [], "status": "not_started" },
+    { "requirementId": "NFR-001", "acceptanceCriteriaIds": ["AC-001"], "planSection": "P1 Foundation", "taskIds": ["T1.2"], "testIds": [], "status": "not_started" },
+    { "requirementId": "NFR-002", "acceptanceCriteriaIds": ["AC-004"], "planSection": "P1 Foundation", "taskIds": ["T1.2"], "testIds": [], "status": "not_started" },
+    { "requirementId": "NFR-003", "acceptanceCriteriaIds": ["AC-010", "AC-012"], "planSection": "P4 Webhooks, faults, retries", "taskIds": ["T4.1"], "testIds": [], "status": "not_started" },
+    { "requirementId": "NFR-004", "acceptanceCriteriaIds": ["AC-001"], "planSection": "P1 Foundation", "taskIds": ["T1.2"], "testIds": [], "status": "not_started" },
+    { "requirementId": "NFR-005", "acceptanceCriteriaIds": ["AC-003"], "planSection": "P2 OAuth2", "taskIds": ["T2.1"], "testIds": [], "status": "not_started" },
+    { "requirementId": "NFR-006", "acceptanceCriteriaIds": ["AC-001"], "planSection": "P5 Docs and verification", "taskIds": ["T5.1", "T5.2"], "testIds": [], "status": "not_started" }
+  ]
+}

@@ -1,0 +1,115 @@
+{
+  "feature": "quickbooks-provider-module",
+  "version": 1,
+  "architecture": {
+    "approach": "One feature-flagged module, crates/wirekit/src/quickbooks.rs, behind a default-off quickbooks feature. It owns the OAuth2 token manager, realm-scoped routing, and Intuit Fault mapping; transport, retry, rate limiting, tracing, and Secret handling are reused unchanged. No new dependency.",
+    "components": [
+      { "name": "crates/wirekit/src/quickbooks.rs", "action": "create", "description": "Client, token manager, Customer/Invoice/Payment/Account/Item entities, webhook verification, fault mapping." },
+      { "name": "crates/wirekit/Cargo.toml", "action": "modify", "description": "Add the additive, default-off quickbooks feature." },
+      { "name": "crates/wirekit/src/lib.rs", "action": "modify", "description": "Declare pub mod quickbooks behind cfg(feature = quickbooks)." },
+      { "name": "wirekit::client", "action": "reuse", "description": "Pooled transport and TLS enforcement." },
+      { "name": "wirekit::auth", "action": "reuse", "description": "Token header application after refresh." },
+      { "name": "wirekit::error", "action": "reuse", "description": "WirekitError Api, Auth, and Decode mapping." },
+      { "name": "wirekit::retry", "action": "reuse", "description": "429 and 5xx handling with Retry-After." },
+      { "name": "wirekit::rate_limit", "action": "reuse", "description": "Per-realm token bucket." },
+      { "name": "wirekit::secret", "action": "reuse", "description": "Credentials, tokens, verifier token." },
+      { "name": "wirekit::trace", "action": "reuse", "description": "Request spans." },
+      { "name": "crates/wirekit/README.md", "action": "modify", "description": "Provider row and example." },
+      { "name": "crates/wirekit/CHANGELOG.md", "action": "modify", "description": "Unreleased entry." }
+    ],
+    "referencedRequirementIds": ["FR-001", "FR-002", "FR-003", "FR-004", "FR-005", "FR-006", "FR-007", "FR-008", "FR-009", "FR-010", "FR-011", "FR-012", "NFR-001", "NFR-002", "NFR-003", "NFR-004", "NFR-005", "NFR-006"]
+  },
+  "dataModel": {
+    "entities": [
+      { "name": "QuickBooksConfig", "action": "create", "fields": [
+        { "name": "client_id", "type": "String", "action": "add" },
+        { "name": "client_secret", "type": "Secret<String>", "action": "add" },
+        { "name": "refresh_token", "type": "Secret<String>", "action": "add" },
+        { "name": "realm_id", "type": "String", "action": "add" },
+        { "name": "verifier_token", "type": "Secret<String>", "action": "add" },
+        { "name": "minor_version", "type": "String", "action": "add" }
+      ] },
+      { "name": "TokenSet", "action": "create", "fields": [
+        { "name": "access_token", "type": "Secret<String>", "action": "add" },
+        { "name": "refresh_token", "type": "Secret<String>", "action": "add" },
+        { "name": "expires_at", "type": "i64", "action": "add" }
+      ] },
+      { "name": "Customer", "action": "create", "fields": [
+        { "name": "id", "type": "String", "action": "add" },
+        { "name": "sync_token", "type": "String", "action": "add" },
+        { "name": "display_name", "type": "String", "action": "add" },
+        { "name": "primary_email", "type": "Option<String>", "action": "add" },
+        { "name": "primary_phone", "type": "Option<String>", "action": "add" }
+      ] },
+      { "name": "Invoice", "action": "create", "fields": [
+        { "name": "id", "type": "String", "action": "add" },
+        { "name": "sync_token", "type": "String", "action": "add" },
+        { "name": "customer_ref", "type": "String", "action": "add" },
+        { "name": "lines", "type": "Vec<InvoiceLine>", "action": "add" },
+        { "name": "balance", "type": "f64", "action": "add" },
+        { "name": "status", "type": "String", "action": "add" }
+      ] },
+      { "name": "InvoiceLine", "action": "create", "fields": [
+        { "name": "amount", "type": "f64", "action": "add" },
+        { "name": "description", "type": "Option<String>", "action": "add" },
+        { "name": "item_ref", "type": "Option<String>", "action": "add" }
+      ] },
+      { "name": "Payment", "action": "create", "fields": [
+        { "name": "id", "type": "String", "action": "add" },
+        { "name": "sync_token", "type": "String", "action": "add" },
+        { "name": "customer_ref", "type": "String", "action": "add" },
+        { "name": "invoice_ref", "type": "String", "action": "add" },
+        { "name": "amount", "type": "f64", "action": "add" }
+      ] },
+      { "name": "Account", "action": "create", "fields": [
+        { "name": "id", "type": "String", "action": "add" },
+        { "name": "name", "type": "String", "action": "add" },
+        { "name": "account_type", "type": "String", "action": "add" },
+        { "name": "current_balance", "type": "Option<f64>", "action": "add" }
+      ] },
+      { "name": "Item", "action": "create", "fields": [
+        { "name": "id", "type": "String", "action": "add" },
+        { "name": "name", "type": "String", "action": "add" },
+        { "name": "type", "type": "String", "action": "add" },
+        { "name": "unit_price", "type": "Option<f64>", "action": "add" }
+      ] },
+      { "name": "IntuitFault", "action": "create", "fields": [
+        { "name": "errors", "type": "Vec<IntuitError>", "action": "add" }
+      ] },
+      { "name": "WebhookNotification", "action": "create", "fields": [
+        { "name": "event_id", "type": "String", "action": "add" },
+        { "name": "realm_id", "type": "String", "action": "add" },
+        { "name": "entities", "type": "Vec<ChangedEntity>", "action": "add" }
+      ] }
+    ],
+    "flowDescription": "The caller builds QuickBooksConfig; the module refreshes or exchanges tokens, then entity calls post to the realm resource path with minorversion. Failures parse the Fault error array into WirekitError::Api. Inbound, raw bytes and intuit-signature are verified and parsed into WebhookNotification."
+  },
+  "apiContracts": [
+    { "method": "POST", "path": "/oauth2/v1/tokens/bearer", "action": "create", "authenticationRequired": true, "linkedRequirements": ["FR-004"] },
+    { "method": "POST", "path": "/v3/company/{realmId}/customer", "action": "create", "authenticationRequired": true, "linkedRequirements": ["FR-005"] },
+    { "method": "POST", "path": "/v3/company/{realmId}/invoice", "action": "create", "authenticationRequired": true, "linkedRequirements": ["FR-006"] },
+    { "method": "POST", "path": "/v3/company/{realmId}/invoice?operation=void", "action": "create", "authenticationRequired": true, "linkedRequirements": ["FR-006"] },
+    { "method": "POST", "path": "/v3/company/{realmId}/invoice/{id}/send", "action": "create", "authenticationRequired": true, "linkedRequirements": ["FR-006"] },
+    { "method": "POST", "path": "/v3/company/{realmId}/payment", "action": "create", "authenticationRequired": true, "linkedRequirements": ["FR-007"] },
+    { "method": "GET", "path": "/v3/company/{realmId}/query", "action": "create", "authenticationRequired": true, "linkedRequirements": ["FR-008"] }
+  ],
+  "securityConsiderations": [
+    { "requirementId": "NFR-001", "description": "Client secret, access token, refresh token, and verifier token are Secret and render redacted (CON-511, CON-519)." },
+    { "requirementId": "NFR-002", "description": "Realm id is fixed in configuration; no call parameter may override it (CON-512)." },
+    { "requirementId": "NFR-003", "description": "Responses and webhook bodies are size-bounded and typed (CON-515)." },
+    { "requirementId": "NFR-004", "description": "Base URL must be HTTPS; cleartext is rejected at construction (CON-520)." },
+    { "requirementId": "NFR-005", "description": "Rotated refresh tokens are surfaced so the caller can persist them (CON-511)." }
+  ],
+  "dependencies": [
+    { "name": "reqwest", "type": "library", "action": "no_change", "notes": "rustls-tls already present." },
+    { "name": "sha2", "type": "library", "action": "no_change", "notes": "HMAC-SHA256 for webhooks." },
+    { "name": "hmac", "type": "library", "action": "no_change", "notes": "Constant-time comparison." },
+    { "name": "serde_json", "type": "library", "action": "no_change", "notes": "Entities and Fault bodies." },
+    { "name": "base64", "type": "library", "action": "no_change", "notes": "Encoding for credentials and signatures." }
+  ],
+  "risks": [
+    { "description": "Intuit access and sandbox credentials are unconfirmed.", "mitigation": "Verify against a local mock of documented shapes; keep the assumption marked [to be confirmed]." },
+    { "description": "Refresh-token rotation is lossy if the caller does not persist the new value.", "mitigation": "Surface the rotated token in TokenSet (NFR-005)." },
+    { "description": "Entity schemas drift with minorversion.", "mitigation": "One constant, asserted in tests." }
+  ]
+}

@@ -316,6 +316,47 @@
           ]
         }
       ]
+    },
+    {
+      "name": "quickbooks-provider-module",
+      "branch": "feature/bp-013-quickbooks",
+      "base": "main",
+      "productItems": ["BP-013"],
+      "currentVersion": "v1",
+      "versions": [
+        {
+          "id": "v1",
+          "phase": "backlog",
+          "currentStep": "specification",
+          "gates": {
+            "specification": "approved",
+            "planning": "approved",
+            "implementation": "pending",
+            "review": "pending"
+          },
+          "history": [
+            {
+              "event": "Proposed from group expression [BP-011, BP-011, BP-013, BP-014, BP-017] on its own branch because BP-013 is gated on Intuit access; scope is the full catalogue surface",
+              "by": "SpecDrive",
+              "timestamp": "2026-10-31T13:13:52Z"
+            },
+            {
+              "event": "Gate 1 approved: QuickBooks provider module specification and traceability",
+              "by": "kenule500",
+              "actor": "kenule500",
+              "previousValue": "pending",
+              "timestamp": "2026-10-31T13:31:41Z"
+            },
+            {
+              "event": "Gate 2 approved: plan and tasks for the QuickBooks provider module",
+              "by": "kenule500",
+              "actor": "kenule500",
+              "previousValue": "pending",
+              "timestamp": "2026-10-31T13:36:50Z"
+            }
+          ]
+        }
+      ]
     }
   ]
 }

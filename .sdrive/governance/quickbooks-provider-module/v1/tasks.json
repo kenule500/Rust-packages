@@ -1,0 +1,52 @@
+{
+  "feature": "quickbooks-provider-module",
+  "version": 1,
+  "phases": [
+    {
+      "phaseId": "P1",
+      "name": "Foundation",
+      "dependencies": [],
+      "tasks": [
+        { "id": "T1.1", "title": "Add the quickbooks feature and wiring", "description": "Additive default-off feature in Cargo.toml and pub mod quickbooks behind cfg.", "linkedRequirements": ["FR-001"], "linkedAcceptanceCriteria": ["AC-001"], "completed": false },
+        { "id": "T1.2", "title": "Define QuickBooksConfig and the client", "description": "Realm id, minor version, Secret credentials, HTTPS-only base URL, Debug redaction.", "linkedRequirements": ["FR-002", "NFR-001", "NFR-002", "NFR-004"], "linkedAcceptanceCriteria": ["AC-001"], "completed": false }
+      ]
+    },
+    {
+      "phaseId": "P2",
+      "name": "OAuth2",
+      "dependencies": ["P1"],
+      "tasks": [
+        { "id": "T2.1", "title": "Token manager", "description": "Refresh before expiry, at most once per request, retry once, surface the rotated refresh token; persistent 401 fails.", "linkedRequirements": ["FR-004", "NFR-005"], "linkedAcceptanceCriteria": ["AC-002", "AC-003"], "completed": false }
+      ]
+    },
+    {
+      "phaseId": "P3",
+      "name": "Entities",
+      "dependencies": ["P2"],
+      "tasks": [
+        { "id": "T3.1", "title": "Customer create and update", "description": "POST to the customer resource with display name and contact fields; update carries Id and SyncToken.", "linkedRequirements": ["FR-003", "FR-005"], "linkedAcceptanceCriteria": ["AC-004", "AC-005"], "completed": false },
+        { "id": "T3.2", "title": "Invoice create, void, send", "description": "Ordered lines with amount, description, item reference; void and send operations.", "linkedRequirements": ["FR-006"], "linkedAcceptanceCriteria": ["AC-006", "AC-007", "AC-008"], "completed": false },
+        { "id": "T3.3", "title": "Payments", "description": "Record a payment against an invoice; surface provider validation faults for over-balance amounts.", "linkedRequirements": ["FR-007"], "linkedAcceptanceCriteria": ["AC-009", "AC-010"], "completed": false },
+        { "id": "T3.4", "title": "Accounts and items", "description": "Query endpoint with a bounded result size returning typed Account and Item entries.", "linkedRequirements": ["FR-008"], "linkedAcceptanceCriteria": ["AC-011"], "completed": false }
+      ]
+    },
+    {
+      "phaseId": "P4",
+      "name": "Webhooks, faults, retries",
+      "dependencies": ["P3"],
+      "tasks": [
+        { "id": "T4.1", "title": "intuit-signature verification and dedupe", "description": "HMAC-SHA256 over raw bytes in constant time, fail closed, duplicate detection by event id.", "linkedRequirements": ["FR-009", "FR-010", "NFR-003"], "linkedAcceptanceCriteria": ["AC-012", "AC-013"], "completed": false },
+        { "id": "T4.2", "title": "Fault mapping, retry policy, idempotency", "description": "Fault errors map to WirekitError::Api preserving codes; honour Retry-After; never retry validation faults; pre-create idempotency check.", "linkedRequirements": ["FR-011", "FR-012"], "linkedAcceptanceCriteria": ["AC-014", "AC-015", "AC-016"], "completed": false }
+      ]
+    },
+    {
+      "phaseId": "P5",
+      "name": "Docs and verification",
+      "dependencies": ["P4"],
+      "tasks": [
+        { "id": "T5.1", "title": "Document the module", "description": "Module docs with scope and non-goals, rustdoc on public items, README row and example, CHANGELOG entry.", "linkedRequirements": ["NFR-006"], "completed": false },
+        { "id": "T5.2", "title": "Run formatter, linter, docs, governance", "description": "cargo fmt --all --check, clippy with -D warnings, docs with -D warnings, validate-governance.js.", "linkedRequirements": ["NFR-006"], "completed": false }
+      ]
+    }
+  ]
+}

@@ -1,4 +1,4 @@
-//! dado — the base layer for config-driven tools.
+//! dado-yaml — the base layer for config-driven tools.
 //!
 //! Five feature-gated modules, no I/O, no runtime, zero dependencies by
 //! default:
@@ -10,7 +10,7 @@
 //! - `glob` — glob compilation and matching
 //!
 //! The crate never opens a socket, never reads a URL, never spawns a
-//! runtime, and never writes a file. Callers fetch; `dado` parses.
+//! runtime, and never writes a file. Callers fetch; `dado-yaml` parses.
 
 #![forbid(unsafe_code)]
 #![deny(missing_docs)]

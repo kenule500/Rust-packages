@@ -4,11 +4,11 @@ This is a manual runbook. A release is cut from a clean `main` after the feature
 branch has been reviewed, tested, and merged. `cargo publish` is irreversible:
 crates.io does not allow deleting or replacing a published version.
 
-Each crate has its own section and its own fixed tag name. Publish `dado` before
+Each crate has its own section and its own fixed tag name. Publish `dado-yaml` before
 `wirekit` when both are being released, because the workspace-level
 `cargo package --workspace` and `cargo publish --dry-run` runs cover both.
 
-The first section releases `dado` 0.1.0 with the tag `dado-v0.1.0`; the second
+The first section releases `dado-yaml` 0.1.0 with the tag `dado-yaml-v0.1.0`; the second
 releases `wirekit` 0.1.0 with the tag `wirekit-v0.1.0`.
 
 ## 1. Pre-flight checks
@@ -30,7 +30,7 @@ matrix, the Rust 1.85 MSRV job, and the dependency audit.
 Check that the crate name is still available. A `404` means the name is free:
 
 ```sh
-curl -s -o /dev/null -w "%{http_code}\n" https://crates.io/api/v1/crates/dado
+curl -s -o /dev/null -w "%{http_code}\n" https://crates.io/api/v1/crates/dado-yaml
 ```
 
 On PowerShell, `curl.exe` avoids the `Invoke-WebRequest` alias. The expected
@@ -43,21 +43,21 @@ Confirm the version and metadata:
 cargo metadata --no-deps --format-version 1
 ```
 
-The `dado` package must report version `0.1.0`, the repository URL, the
+The `dado-yaml` package must report version `0.1.0`, the repository URL, the
 `MIT OR Apache-2.0` license, Rust 1.85, and the `yaml`, `diag`, `graph`, `emit`,
 and `glob` features.
 
 ## 2. Version and changelog
 
-1. Set `version = "0.1.0"` in `crates/dado/Cargo.toml`.
+1. Set `version = "0.1.0"` in `crates/dado-yaml/Cargo.toml`.
 2. Add or update the `0.1.0` section in
-   `crates/dado/CHANGELOG.md`.
-3. Confirm `crates/dado/README.md` describes the current API and builds as published.
+   `crates/dado-yaml/CHANGELOG.md`.
+3. Confirm `crates/dado-yaml/README.md` describes the current API and builds as published.
 4. Commit the release preparation:
 
    ```sh
-   git add crates/dado/Cargo.toml crates/dado/CHANGELOG.md
-   git commit -m "specdrive(release): prepare dado 0.1.0"
+   git add crates/dado-yaml/Cargo.toml crates/dado-yaml/CHANGELOG.md
+   git commit -m "specdrive(release): prepare dado-yaml 0.1.0"
    git push origin main
    ```
 
@@ -69,9 +69,9 @@ bypass required checks.
 From the repository root:
 
 ```sh
-cargo package -p dado --list
+cargo package -p dado-yaml --list
 cargo package --workspace
-cargo publish -p dado --dry-run
+cargo publish -p dado-yaml --dry-run
 ```
 
 The package list must include `Cargo.toml`, `README.md`, `CHANGELOG.md`,
@@ -85,18 +85,18 @@ file, commit it, or paste it into an issue.
 
 ```sh
 export CARGO_REGISTRY_TOKEN="<token supplied by your secret store>"
-cargo publish -p dado
+cargo publish -p dado-yaml
 ```
 
 PowerShell:
 
 ```powershell
 $env:CARGO_REGISTRY_TOKEN = "<token supplied by your secret store>"
-cargo publish -p dado
+cargo publish -p dado-yaml
 ```
 
 `CARGO_REGISTRY_TOKEN` must be a crates.io API token with publish scope for
-`dado`. Store it in GitHub Actions secrets only if a workflow publishes; this
+`dado-yaml`. Store it in GitHub Actions secrets only if a workflow publishes; this
 runbook performs the publish manually.
 
 ## 5. Tag the release
@@ -104,66 +104,66 @@ runbook performs the publish manually.
 After the publish succeeds, tag the exact commit that was published:
 
 ```sh
-git tag -a dado-v0.1.0 -m "dado 0.1.0"
-git push origin dado-v0.1.0
+git tag -a dado-yaml-v0.1.0 -m "dado-yaml 0.1.0"
+git push origin dado-yaml-v0.1.0
 ```
 
-The tag name is fixed: `dado-v0.1.0`. Do not reuse a tag for a different commit.
+The tag name is fixed: `dado-yaml-v0.1.0`. Do not reuse a tag for a different commit.
 
 ## 6. Post-publish verification
 
 ```sh
-cargo search dado --limit 5
-cargo info dado
+cargo search dado-yaml --limit 5
+cargo info dado-yaml
 ```
 
 In a temporary project:
 
 ```sh
-cargo new dado-smoke
-cd dado-smoke
-cargo add dado@0.1.0 --features yaml
+cargo new dado-yaml-smoke
+cd dado-yaml-smoke
+cargo add dado-yaml@0.1.0 --features yaml
 ```
 
 Build a small program that parses a document with
-`dado::yaml::from_str`. The crate must resolve and compile. Confirm the docs.rs
-build for `dado` 0.1.0 succeeds with all features enabled.
+`dado_yaml::yaml::from_str`. The crate must resolve and compile. Confirm the docs.rs
+build for `dado-yaml` 0.1.0 succeeds with all features enabled.
 
 ## 7. Yank or rollback
 
 If a release is broken, yank it rather than trying to replace it:
 
 ```sh
-cargo yank --version 0.1.0 dado
+cargo yank --version 0.1.0 dado-yaml
 ```
 
 Yanking hides the version from new resolutions but does not delete it or break
 existing lockfiles. If the yank was a mistake, undo it:
 
 ```sh
-cargo yank --version 0.1.0 --undo dado
+cargo yank --version 0.1.0 --undo dado-yaml
 ```
 
 Fix the defect and publish a new patch version, for example `0.1.1`. Never
 attempt to overwrite a published version. If the crate name itself is wrong,
 stop and document a new release plan before publishing anything else.
 
-## dado release checklist
+## dado-yaml release checklist
 
 - [ ] `main` is clean and up to date.
 - [ ] CI is green on the release commit.
-- [ ] `https://crates.io/api/v1/crates/dado` returns `404`.
-- [ ] Version is `0.1.0` in `crates/dado/Cargo.toml`.
-- [ ] `crates/dado/CHANGELOG.md` has the `0.1.0` entry.
+- [ ] `https://crates.io/api/v1/crates/dado-yaml` returns `404`.
+- [ ] Version is `0.1.0` in `crates/dado-yaml/Cargo.toml`.
+- [ ] `crates/dado-yaml/CHANGELOG.md` has the `0.1.0` entry.
 - [ ] `cargo fmt --all --check` passes.
 - [ ] `cargo clippy --workspace --all-features -- -D warnings` passes.
 - [ ] `cargo test --workspace --all-features` passes.
 - [ ] Documentation builds with warnings denied.
 - [ ] `cargo package --workspace` succeeds.
-- [ ] `cargo publish -p dado --dry-run` succeeds.
+- [ ] `cargo publish -p dado-yaml --dry-run` succeeds.
 - [ ] `CARGO_REGISTRY_TOKEN` is supplied from the environment or a secret store.
-- [ ] `cargo publish -p dado` succeeds.
-- [ ] Tag `dado-v0.1.0` is pushed.
+- [ ] `cargo publish -p dado-yaml` succeeds.
+- [ ] Tag `dado-yaml-v0.1.0` is pushed.
 - [ ] The crate resolves in a fresh project and the YAML example compiles.
 - [ ] docs.rs builds with all features.
 
@@ -174,7 +174,7 @@ publish if this is blank or failing.
 
 ```text
 Date: 2026-10-20
-Command: cargo publish -p dado --dry-run
+Command: cargo publish -p dado-yaml --dry-run
 Result: Passed on a clean `feature/m0-foundation` tree (packaged 14 files,
         94.0 KiB; upload aborted as expected). Re-run from a clean `main`
         before publishing.
@@ -183,7 +183,7 @@ Result: Passed on a clean `feature/m0-foundation` tree (packaged 14 files,
 # Releasing wirekit
 
 `wirekit` 0.1.0 ships the core plus four provider modules. The release is cut
-from the same clean `main` as `dado`, after the M1 feature branch has been
+from the same clean `main` as `dado-yaml`, after the M1 feature branch has been
 reviewed, tested, and merged. The tag is `wirekit-v0.1.0`.
 
 ## 1. Pre-flight checks

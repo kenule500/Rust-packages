@@ -1,9 +1,9 @@
-# Contributing to dado
+# Contributing to dado-yaml
 
-`dado` is the base layer for config-driven Rust tools: a strict YAML parser,
+`dado-yaml` is the base layer for config-driven Rust tools: a strict YAML parser,
 diagnostics, dependency graphs, code emission, and glob matching. The Cargo
 workspace lives at the repository root, with the published crate at
-[`crates/dado/`](crates/dado/).
+[`crates/dado-yaml/`](crates/dado-yaml/).
 
 ## Prerequisites
 
@@ -56,12 +56,12 @@ cargo doc --workspace --all-features --no-deps
 If you touch the parser, also verify each feature builds independently:
 
 ```sh
-cargo check -p dado --no-default-features
-cargo check -p dado --no-default-features --features yaml
-cargo check -p dado --no-default-features --features diag
-cargo check -p dado --no-default-features --features graph
-cargo check -p dado --no-default-features --features emit
-cargo check -p dado --no-default-features --features glob
+cargo check -p dado-yaml --no-default-features
+cargo check -p dado-yaml --no-default-features --features yaml
+cargo check -p dado-yaml --no-default-features --features diag
+cargo check -p dado-yaml --no-default-features --features graph
+cargo check -p dado-yaml --no-default-features --features emit
+cargo check -p dado-yaml --no-default-features --features glob
 ```
 
 ## Branches and commits

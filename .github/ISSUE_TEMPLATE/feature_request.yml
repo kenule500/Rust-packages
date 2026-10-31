@@ -1,12 +1,12 @@
 name: Feature request
-description: Propose a capability or improvement for dado.
+description: Propose a capability or improvement for dado-yaml.
 title: "[feature]: "
 labels: ["enhancement"]
 body:
   - type: markdown
     attributes:
       value: |
-        Thanks for helping shape dado. Describe the problem first; the proposed
+        Thanks for helping shape dado-yaml. Describe the problem first; the proposed
         API is more useful when it is tied to a concrete use case.
   - type: textarea
     id: problem

@@ -128,5 +128,5 @@ Blueprint. None of the packages is published yet. `wirekit` and `syncforge` are
 specified here; implementation starts after the first design partners validate
 the field workflow. `quota-ledger` and `hookgate` are standalone because they
 own state that `wirekit` must not own. The media and link packages are public
-candidates whose APIs must freeze before publish. `dado` 0.1.0 is implemented
+candidates whose APIs must freeze before publish. `dado-yaml` 0.1.0 is implemented
 and tested; the remaining packages are still blueprints.

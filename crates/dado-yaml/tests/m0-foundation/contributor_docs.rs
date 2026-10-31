@@ -110,10 +110,10 @@ fn ac_025_pull_request_template_requests_summary_links_evidence_and_checklist() 
 fn ac_026_licence_files_exist_and_match_the_declared_dual_licence() {
     let mit_root = read_repo("LICENSE-MIT");
     let apache_root = read_repo("LICENSE-APACHE");
-    let mit_crate = read_repo("crates/dado/LICENSE-MIT");
-    let apache_crate = read_repo("crates/dado/LICENSE-APACHE");
+    let mit_crate = read_repo("crates/dado-yaml/LICENSE-MIT");
+    let apache_crate = read_repo("crates/dado-yaml/LICENSE-APACHE");
     let workspace = read_repo("Cargo.toml");
-    let crate_manifest = read_repo("crates/dado/Cargo.toml");
+    let crate_manifest = read_repo("crates/dado-yaml/Cargo.toml");
 
     assert_contains(&mit_root, "MIT License", "root LICENSE-MIT");
     assert_contains(
@@ -154,15 +154,15 @@ fn ac_027_release_runbook_covers_the_full_manual_release() {
             "## 1. Pre-flight checks",
             "## 2. Version and changelog",
             "## 3. Package and dry-run",
-            "cargo publish -p dado --dry-run",
+            "cargo publish -p dado-yaml --dry-run",
             "## 4. Publish",
             "## 5. Tag the release",
-            "dado-v0.1.0",
+            "dado-yaml-v0.1.0",
             "## 6. Post-publish verification",
-            "cargo add dado@0.1.0 --features yaml",
+            "cargo add dado-yaml@0.1.0 --features yaml",
             "## 7. Yank or rollback",
-            "cargo yank --version 0.1.0 dado",
-            "cargo yank --version 0.1.0 --undo dado",
+            "cargo yank --version 0.1.0 dado-yaml",
+            "cargo yank --version 0.1.0 --undo dado-yaml",
         ],
         "RELEASING.md",
     );

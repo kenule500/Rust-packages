@@ -459,7 +459,7 @@ fn ac_081_each_provider_ships_a_runnable_example() {
 fn ac_082_the_release_runbook_covers_every_step() {
     let doc = common::repo_file("../../RELEASING.md");
 
-    let (dado, wirekit) = doc
+    let (dado_section, wirekit) = doc
         .split_once("# Releasing wirekit")
         .expect("the runbook has a wirekit section");
 
@@ -492,19 +492,19 @@ fn ac_082_the_release_runbook_covers_every_step() {
     assert!(wirekit.contains("docs.rs"));
     assert!(wirekit.contains("## wirekit release checklist"));
     assert!(
-        !wirekit.contains("cargo publish -p dado"),
+        !wirekit.contains("cargo publish -p dado-yaml"),
         "the wirekit section publishes only wirekit"
     );
 
     // Yank and rollback: the runbook states the policy and both commands. The
-    // subsection is shared by both crates and its example names dado, so a
+    // subsection is shared by both crates and its example names dado-yaml, so a
     // wirekit maintainer must substitute the crate name.
     assert!(doc.contains("Yank or rollback"));
     assert!(doc.contains("cargo yank --version 0.1.0"));
     assert!(doc.contains("--undo"));
-    assert!(doc.contains("cargo yank --version 0.1.0 dado"));
+    assert!(doc.contains("cargo yank --version 0.1.0 dado-yaml"));
     assert!(
-        dado.contains("Yank or rollback"),
+        dado_section.contains("Yank or rollback"),
         "the shared yank guidance precedes the wirekit section"
     );
     assert!(

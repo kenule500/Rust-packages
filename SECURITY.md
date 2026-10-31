@@ -22,7 +22,7 @@ vulnerability. Public disclosure before a fix is available puts users at risk.
 
 Include as much of the following as you can:
 
-- The affected `dado` version and enabled features.
+- The affected `dado-yaml` version and enabled features.
 - A minimal reproducer: input YAML, the Rust type being deserialized, and the
   observed result.
 - The expected behavior and why the result is a security problem.
@@ -56,7 +56,7 @@ advisory unless you prefer to remain anonymous.
 
 ## Scope
 
-This policy covers the `dado` crate and the code in this repository, including:
+This policy covers the `dado-yaml` crate and the code in this repository, including:
 
 - The strict YAML parser and serde deserializer.
 - Panics, unbounded recursion, or excessive resource use caused by untrusted
@@ -64,7 +64,7 @@ This policy covers the `dado` crate and the code in this repository, including:
 - Error messages or diagnostics that reveal scalar values or credentials.
 - The CI and release configuration, including credential handling.
 
-`dado` is intentionally I/O-free: it does not open sockets, read URLs, spawn a
+`dado-yaml` is intentionally I/O-free: it does not open sockets, read URLs, spawn a
 runtime, or write files. Vulnerabilities in a caller's HTTP client or storage
 layer are outside this repository's scope, but we will help route reports when
 possible.

@@ -102,6 +102,8 @@ function parseBacklog(markdown) {
         userValue: header.findIndex((cell) => /user value|value|benefit/.test(cell)),
         priority: header.findIndex((cell) => /priority/.test(cell)),
         dependsOn: header.findIndex((cell) => /depends|dependency|dependencies|prerequisite/.test(cell)),
+        kind: header.findIndex((cell) => /^kind$|item kind|work kind/.test(cell)),
+        batch: header.findIndex((cell) => /^batch$|branch batch|bundle/.test(cell)),
         status: header.findIndex((cell) => /^status$|state/.test(cell)),
         confidence: header.findIndex((cell) => /confidence|source/.test(cell))
       };
@@ -125,6 +127,14 @@ function parseBacklog(markdown) {
       priority: valueAt(columns.priority),
       dependsOn: depends.ids,
       externalDependencies: depends.external,
+      // Optional `Kind` column: build | decision | release. A decision has no test to pass
+      // and a release cannot run before the build lands, so `[w2 p1 build]` can exclude both
+      // before a spec exists.
+      kind: (valueAt(columns.kind) || "").toLowerCase(),
+      // Optional `Batch` column (`b1`, `b2`, ...): the items that land together on one
+      // branch. W (wave) is derived from dependencies; B is a promise a human makes, so it
+      // is declared here rather than computed.
+      batch: (valueAt(columns.batch) || "").toLowerCase(),
       status: (valueAt(columns.status) || "backlog").toLowerCase(),
       confidence: valueAt(columns.confidence),
       section

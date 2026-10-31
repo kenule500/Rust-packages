@@ -1078,6 +1078,18 @@ function renderProduct(product, productType) {
           </td>
           <td>${item.milestone ? `<span class="chip">${escapeHtml(item.milestone)}</span>` : "—"}</td>
           <td>${item.priority ? escapeHtml(item.priority) : "—"}</td>
+          <td>${
+            item.kind ? `<span class="chip">${escapeHtml(item.kind)}</span>` : "—"
+          }</td>
+          <td>${
+            item.batch
+              ? `<span class="batch-chip" title="Lands on one branch with the rest of ${escapeHtml(
+                  item.batch
+                )}; the branch merges once when every member passes review">${escapeHtml(
+                  item.batch
+                )}</span>`
+              : "—"
+          }</td>
           <td>
             <div class="dep-list">
               ${dependsOn
@@ -1195,6 +1207,8 @@ function renderProduct(product, productType) {
               <th>Feature</th>
               <th>Milestone</th>
               <th>Priority</th>
+              <th>Kind</th>
+              <th>Batch</th>
               <th>Depends on</th>
               <th>Base for</th>
               <th>Wave</th>
@@ -1213,7 +1227,8 @@ function renderProduct(product, productType) {
           <h3>How to read this table</h3>
           <span>
             <strong>Depends on</strong> = what's first. <strong>Base for</strong> = what's next.
-            <strong>Wave</strong> = what can run together.
+            <strong>Wave</strong> = what can run together. <strong>Batch</strong> = what lands
+            together on one branch.
           </span>
         </div>
 
@@ -1239,6 +1254,24 @@ function renderProduct(product, productType) {
               A simple build order: <code>start</code> = begin now, <code>W1</code> = wait for
               start, <code>W2</code> = wait for W1. <strong>Same wave = work on them at the same
               time.</strong> <code>/sdrive:worktree</code> prepares branches for one ready wave.
+            </p>
+          </div>
+          <div class="backlog-guide-card">
+            <div class="backlog-guide-term">Batch</div>
+            <p>
+              Items that must <strong>land together on one branch</strong>, written as
+              <code>b1</code>, <code>b2</code>. A wave says what can run in parallel; a batch says
+              what merges at the same moment. <code>/sdrive:propose [b1]</code> creates the
+              features and one branch, which merges once when every member passes review — so a
+              batch cannot hold a decision, a release step, or anything waiting on outside access.
+            </p>
+          </div>
+          <div class="backlog-guide-card">
+            <div class="backlog-guide-term">Kind</div>
+            <p>
+              <code>build</code> produces code and tests, <code>decision</code> records a choice,
+              <code>release</code> runs after the build lands. Only a build can pass a coverage
+              gate, which is what <code>[w2 p1 build]</code> selects.
             </p>
           </div>
         </div>
@@ -1401,6 +1434,27 @@ function renderProduct(product, productType) {
                   <dd>How important the item is (P0-P3). It is not the same as the wave.</dd>
                 </div>
                 <div>
+                  <dt>Kind</dt>
+                  <dd>
+                    What sort of work the item is: <code>build</code> (code and tests),
+                    <code>decision</code> (a choice to record, no test can prove it), or
+                    <code>release</code> (a step that runs after the build lands). Only a
+                    <code>build</code> can pass a coverage gate, so a wave is selected with
+                    <code>[w2 p1 build]</code>.
+                  </dd>
+                </div>
+                <div>
+                  <dt>Batch</dt>
+                  <dd>
+                    Items that <strong>land together on one branch</strong>
+                    (<code>b1</code>, <code>b2</code>, …). A wave says what can run in
+                    parallel; a batch says what merges at the same moment. Realise one with
+                    <code>/sdrive:propose [b1]</code> — the branch merges once, when every
+                    member passes review, so a batch refuses a gated item, a non-build item, or
+                    members from two different waves.
+                  </dd>
+                </div>
+                <div>
                   <dt>Status</dt>
                   <dd>
                     The live lifecycle: <code>backlog</code> (not started), <code>ongoing</code>
@@ -1458,7 +1512,7 @@ function renderProduct(product, productType) {
     const slice = paginate(visible, "product-backlog", BACKLOG_PER_PAGE);
     bodyHost.innerHTML = visible.length
       ? slice.items.map(backlogRow).join("")
-      : `<tr><td colspan="9" class="product-empty">No backlog items match these filters.</td></tr>`;
+      : `<tr><td colspan="11" class="product-empty">No backlog items match these filters.</td></tr>`;
     pagerHost.innerHTML = "";
     const pager = renderPager(visible.length, "product-backlog", BACKLOG_PER_PAGE, repaint);
     if (pager) pagerHost.appendChild(pager);

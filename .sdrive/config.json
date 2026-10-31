@@ -6,6 +6,6 @@
     "requireStructuredReview": true
   },
   "test": {
-    "command": "node .sdrive/scripts/rust-tests.js"
+    "command": "node scripts/rust-tests.js"
   }
 }

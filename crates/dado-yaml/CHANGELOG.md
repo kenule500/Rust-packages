@@ -1,13 +1,13 @@
 # Changelog
 
-All notable changes to `dado` are documented in this file.
+All notable changes to `dado-yaml` are documented in this file.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [0.1.0] - 2026-10-20
 
-The first baseline release of `dado`.
+The first baseline release of `dado-yaml`.
 
 ### Added
 
@@ -27,7 +27,7 @@ The first baseline release of `dado`.
 - GitHub Actions CI for formatting, clippy, documentation, packaging, a stable
   Rust test matrix on Ubuntu, Windows, and macOS, and Rust 1.85 MSRV.
 - Contributor, security, issue, and pull request templates, plus the
-  `dado-v0.1.0` release runbook.
+  `dado-yaml-v0.1.0` release runbook.
 
 ### Security
 
@@ -36,4 +36,4 @@ The first baseline release of `dado`.
   keys, tab indentation, and unterminated quotes or flow collections.
 - Error messages name the failing construct without echoing scalar values.
 
-[0.1.0]: https://github.com/kenule500/Rust-packages/releases/tag/dado-v0.1.0
+[0.1.0]: https://github.com/kenule500/Rust-packages/releases/tag/dado-yaml-v0.1.0

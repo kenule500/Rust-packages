@@ -1,4 +1,4 @@
-# dado
+# dado-yaml
 
 **The base layer for config-driven tools.** A strict YAML parser, a diagnostics
 renderer, a dependency graph, a code emitter, and a glob matcher — one crate,
@@ -6,14 +6,14 @@ five feature flags, zero dependencies by default.
 
 ```toml
 [dependencies]
-dado = { version = "0.1.0", features = ["yaml"] }
+dado-yaml = { version = "0.1.0", features = ["yaml"] }
 ```
 
 Enable every module when you need the whole toolkit:
 
 ```toml
 [dependencies]
-dado = { version = "0.1.0", features = ["yaml", "diag", "graph", "emit", "glob"] }
+dado-yaml = { version = "0.1.0", features = ["yaml", "diag", "graph", "emit", "glob"] }
 ```
 
 ## Example
@@ -21,13 +21,13 @@ dado = { version = "0.1.0", features = ["yaml", "diag", "graph", "emit", "glob"]
 ```rust
 use std::collections::BTreeMap;
 
-fn main() -> Result<(), dado::yaml::Error> {
+fn main() -> Result<(), dado_yaml::yaml::Error> {
     let input = "\
 name: gateway
 region: us-east-1
 ";
 
-    let config: BTreeMap<String, String> = dado::yaml::from_str(input)?;
+    let config: BTreeMap<String, String> = dado_yaml::yaml::from_str(input)?;
     assert_eq!(config["name"], "gateway");
 
     Ok(())
@@ -46,14 +46,14 @@ struct Config {
     retries: u32,
 }
 
-let config: Config = dado::yaml::from_str(input)?;
+let config: Config = dado_yaml::yaml::from_str(input)?;
 ```
 
 Errors carry a stable code, a 1-based line and column, and a 0-based byte
 offset, so diagnostics can point at the exact input byte:
 
 ```rust
-match dado::yaml::from_str::<Config>(input) {
+match dado_yaml::yaml::from_str::<Config>(input) {
     Ok(config) => { /* ... */ }
     Err(error) => {
         eprintln!("{} ({}:{})", error, error.line, error.column);
@@ -70,16 +70,16 @@ The error type is independent of the `diag` feature. `diag::Span::new` can use
 
 | Feature | Module | What it does |
 |---|---|---|
-| `yaml` | `dado::yaml` | Strict YAML-1.2-core parsing into `serde` types |
-| `diag` | `dado::diag` | Stable codes, source spans, caret rendering |
-| `graph` | `dado::graph` | Topological order, cycle detection |
-| `emit` | `dado::emit` | Indentation-aware code writer |
-| `glob` | `dado::glob` | `*`, `**`, `?` matching |
+| `yaml` | `dado_yaml::yaml` | Strict YAML-1.2-core parsing into `serde` types |
+| `diag` | `dado_yaml::diag` | Stable codes, source spans, caret rendering |
+| `graph` | `dado_yaml::graph` | Topological order, cycle detection |
+| `emit` | `dado_yaml::emit` | Indentation-aware code writer |
+| `glob` | `dado_yaml::glob` | `*`, `**`, `?` matching |
 
 ## Design rules
 
 - **No I/O, ever.** Bytes in, values out. No sockets, no URLs, no runtime, no
-  file writes. Callers fetch; `dado` parses.
+  file writes. Callers fetch; `dado-yaml` parses.
 - **Zero dependencies by default.** Only `yaml` adds `serde`, `winnow`, and
   `indexmap`.
 - **Strict over permissive.** Unknown constructs are faults with a positioned

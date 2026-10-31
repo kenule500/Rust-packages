@@ -3,7 +3,7 @@
 
 use std::collections::BTreeMap;
 
-use dado::yaml::from_str;
+use dado_yaml::yaml::from_str;
 
 const DUPLICATE_SOURCE: &str = "a: 1\nb: 2\nb: 3\n";
 
@@ -24,7 +24,7 @@ fn ac_011_display_includes_code_message_position_and_offset() {
 #[cfg(feature = "diag")]
 #[test]
 fn ac_012_diag_span_renders_caret_under_failing_construct() {
-    use dado::diag::{render, Diagnostic, Severity, Span};
+    use dado_yaml::diag::{render, Diagnostic, Severity, Span};
 
     let err = from_str::<BTreeMap<String, i64>>(DUPLICATE_SOURCE).unwrap_err();
     let diagnostic = Diagnostic {

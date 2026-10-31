@@ -2,12 +2,12 @@
 
 use std::path::{Path, PathBuf};
 
-/// Repository root, two levels above the `dado` crate directory.
+/// Repository root, two levels above the `dado-yaml` crate directory.
 pub fn repo_root() -> PathBuf {
     Path::new(env!("CARGO_MANIFEST_DIR"))
         .ancestors()
         .nth(2)
-        .expect("dado is nested two levels below the repository root")
+        .expect("dado-yaml is nested two levels below the repository root")
         .to_path_buf()
 }
 
@@ -23,12 +23,12 @@ pub fn read_repo(relative: &str) -> String {
         .unwrap_or_else(|error| panic!("could not read {}: {error}", path.display()))
 }
 
-/// Resolve a path relative to the `dado` crate directory.
+/// Resolve a path relative to the `dado-yaml` crate directory.
 pub fn crate_path(relative: &str) -> PathBuf {
     Path::new(env!("CARGO_MANIFEST_DIR")).join(relative)
 }
 
-/// Read a UTF-8 file relative to the `dado` crate directory.
+/// Read a UTF-8 file relative to the `dado-yaml` crate directory.
 pub fn read_crate(relative: &str) -> String {
     let path = crate_path(relative);
     std::fs::read_to_string(&path)

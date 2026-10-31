@@ -2,7 +2,7 @@
 
 use std::collections::BTreeMap;
 
-use dado::yaml::{from_str, Error};
+use dado_yaml::yaml::{from_str, Error};
 use serde::de::IgnoredAny;
 use serde::Deserialize;
 

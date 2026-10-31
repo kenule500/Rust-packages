@@ -17,7 +17,7 @@ fn ac_028_publish_dry_run_is_documented_and_recorded_as_passing() {
         &doc,
         &[
             "### Dry-run result",
-            "Command: cargo publish -p dado --dry-run",
+            "Command: cargo publish -p dado-yaml --dry-run",
             "Result: Passed",
             "Date: 2026-10-20",
         ],
@@ -26,40 +26,41 @@ fn ac_028_publish_dry_run_is_documented_and_recorded_as_passing() {
 }
 
 #[test]
-#[ignore = "requires dado 0.1.0 to be published on crates.io"]
+#[ignore = "requires dado-yaml 0.1.0 to be published on crates.io"]
 fn ac_029_published_crate_resolves_and_the_yaml_example_compiles() {
     let stamp = SystemTime::now()
         .duration_since(UNIX_EPOCH)
         .expect("system clock is before the Unix epoch")
         .as_nanos();
-    let workspace = std::env::temp_dir().join(format!("dado-ac029-{}-{stamp}", std::process::id()));
+    let workspace =
+        std::env::temp_dir().join(format!("dado-yaml-ac029-{}-{stamp}", std::process::id()));
     std::fs::create_dir_all(&workspace).expect("create smoke-test workspace");
 
     let new_status = Command::new("cargo")
-        .args(["new", "--bin", "dado-smoke"])
+        .args(["new", "--bin", "dado-yaml-smoke"])
         .current_dir(&workspace)
         .status()
         .expect("run cargo new");
     assert!(new_status.success(), "cargo new failed");
 
-    let project = workspace.join("dado-smoke");
+    let project = workspace.join("dado-yaml-smoke");
     let add_status = Command::new("cargo")
-        .args(["add", "dado@0.1.0", "--features", "yaml"])
+        .args(["add", "dado-yaml@0.1.0", "--features", "yaml"])
         .current_dir(&project)
         .status()
         .expect("run cargo add");
-    assert!(add_status.success(), "cargo add dado@0.1.0 failed");
+    assert!(add_status.success(), "cargo add dado-yaml@0.1.0 failed");
 
     std::fs::write(
         project.join("src/main.rs"),
         r#"use std::collections::BTreeMap;
 
-fn main() -> Result<(), dado::yaml::Error> {
+fn main() -> Result<(), dado_yaml::yaml::Error> {
     let input = "\
 name: gateway
 region: us-east-1
 ";
-    let config: BTreeMap<String, String> = dado::yaml::from_str(input)?;
+    let config: BTreeMap<String, String> = dado_yaml::yaml::from_str(input)?;
     assert_eq!(config["name"], "gateway");
     Ok(())
 }
@@ -90,24 +91,28 @@ fn ac_030_changelog_contains_the_0_1_0_release_and_tag_name() {
     assert_contains(&changelog, "### Added", "CHANGELOG.md");
     assert_contains(
         &changelog,
-        "releases/tag/dado-v0.1.0",
+        "releases/tag/dado-yaml-v0.1.0",
         "CHANGELOG.md release link",
     );
-    assert_contains(&releasing, "git tag -a dado-v0.1.0", "RELEASING.md tag");
+    assert_contains(
+        &releasing,
+        "git tag -a dado-yaml-v0.1.0",
+        "RELEASING.md tag",
+    );
 }
 
 #[test]
-#[ignore = "requires the dado-v0.1.0 release tag to exist"]
+#[ignore = "requires the dado-yaml-v0.1.0 release tag to exist"]
 fn ac_030_release_tag_exists() {
     let output = Command::new("git")
-        .args(["tag", "--list", "dado-v0.1.0"])
+        .args(["tag", "--list", "dado-yaml-v0.1.0"])
         .current_dir(repo_root())
         .output()
         .expect("run git tag --list");
     assert!(output.status.success(), "git tag lookup failed");
     assert_eq!(
         String::from_utf8_lossy(&output.stdout).trim(),
-        "dado-v0.1.0",
+        "dado-yaml-v0.1.0",
         "release tag is missing"
     );
 }
@@ -162,7 +167,7 @@ fn ac_032_package_metadata_resolves_to_real_values() {
             "license.workspace = true",
             "rust-version.workspace = true",
         ],
-        "dado Cargo.toml",
+        "dado-yaml Cargo.toml",
     );
     assert_contains_all(
         &workspace,
@@ -206,7 +211,7 @@ fn ac_033_package_contents_include_code_readme_and_licences() {
             "\"LICENSE-APACHE\"",
             "\"src/**\"",
         ],
-        "dado package include list",
+        "dado-yaml package include list",
     );
 }
 

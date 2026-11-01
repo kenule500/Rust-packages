@@ -434,12 +434,12 @@
       "versions": [
         {
           "id": "v1",
-          "phase": "backlog",
-          "currentStep": "specification",
+          "phase": "ongoing",
+          "currentStep": "implementation",
           "gates": {
             "specification": "approved",
             "planning": "approved",
-            "implementation": "pending",
+            "implementation": "approved",
             "review": "pending"
           },
           "history": [
@@ -461,6 +461,13 @@
               "actor": "kenule500",
               "previousValue": "pending",
               "timestamp": "2026-10-31T13:08:36Z"
+            },
+            {
+              "event": "Implementation complete: platform-core ported from feature/m3-substrate (11 files, no tests), manifest declares async-trait, secrecy, thiserror, uuid (v4+v7) and tokio directly, no dependency skill available so docs-only per the rule; check, no-default-features, clippy and rustdoc clean; sdrive verify pass with 0 missing and 19 withdrawn; 7 tasks and 14 traceability rows complete",
+              "by": "kenule500",
+              "actor": "kenule500",
+              "previousValue": "pending",
+              "timestamp": "2026-11-01T00:17:02Z"
             }
           ]
         }

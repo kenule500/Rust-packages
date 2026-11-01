@@ -1,8 +1,8 @@
 # 31 — platform-core
 
 **Package:** `platform-core` (standalone crate)
-**Status:** blueprint, not published
-**Crate type:** library, optional `sqlx`/`axum` features
+**Status:** implemented and tested, not published
+**Crate type:** library, `registry` and `memory` features (both on by default)
 **Licence:** MIT OR Apache-2.0
 
 `platform-core` is the generic, tenant-scoped substrate for a Rust product that

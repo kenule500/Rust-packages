@@ -12,7 +12,7 @@
 | Repository | `Rust-packages` | `git remote -v` |
 | Remote | `https://github.com/kenule500/Rust-packages.git` | `git remote -v` |
 | Default branch | `main` | `git branch -a` |
-| Commit history | One commit, `d3d6a36 first commit` | `git log --oneline` |
+| Commit history | 15 commits on `feature/meta-stripe-platform-core`, 14 ahead of `origin/main` | `git log --oneline` |
 | SpecDrive root | `C:\Users\KENULE-NWINEE\Documents\vscode-projs\Projects\Packages` | `.sdrive/` location |
 | Code root | `Packages/` | `Cargo.toml` |
 | Product name in docs | "GIA Packages" | `README.md` |
@@ -36,7 +36,7 @@ from the app", and "Public crates.io, not app-only".
 |---|---|---|
 | Language | Rust | `Cargo.toml` |
 | Edition | 2021 | `Cargo.toml` `[workspace.package]` |
-| Resolver | 2 | `Cargo.toml` |
+| Resolver | 3 (MSRV-aware) | `Cargo.toml` |
 | MSRV | 1.85 | `Cargo.toml` `rust-version` |
 | Licence | `MIT OR Apache-2.0` | `Cargo.toml` `license` |
 | Workspace members | `crates/*` | `Cargo.toml` |
@@ -45,11 +45,15 @@ from the app", and "Public crates.io, not app-only".
 
 ### Current crates
 
-Only one crate exists today:
+Three crates exist today:
 
 | Crate | Version | State | Source |
 |---|---|---|---|
 | `dado-yaml` | 0.1.0 | Implemented: strict YAML subset, diagnostics, graph, emit, and glob; 38 tests (36 pass, 2 ignored pending publish and tag checks). | `crates/dado-yaml/README.md`, `src/yaml.rs` |
+| `platform-core` | 0.1.0 | Implemented: tenant and provider identity, capabilities, registry, and token-store contract. `registry` and `memory` features, both on by default. | `crates/platform-core/Cargo.toml`, `src/lib.rs` |
+| `wirekit` | 0.1.0 | Implemented: shared HTTP core plus nine provider modules behind additive features (`noaa`, `twilio`, `sendgrid`, `slack`, `google-oauth`, `meta`, `angi`, `google-lsa`, `sage-intacct`). The `adp` feature is declared but has no module. Stripe is documented as the community crate `async-stripe` rather than wrapped. | `crates/wirekit/Cargo.toml`, `src/lib.rs` |
+
+`cargo test --workspace --all-features` passes 175 tests with 0 failures.
 
 `dado-yaml` is described as "the base layer for config-driven tools: strict YAML,
 diagnostics, dependency graphs, code emission, and glob matching", with five
@@ -59,17 +63,19 @@ feature flags and zero dependencies by default.
 
 | Crate | Job | Source |
 |---|---|---|
-| `wirekit` | Typed HTTP clients; 26 provider modules behind feature flags | `catalogue/01_wirekit.md`, `00_provider_index.md` |
 | `syncforge` | Offline-first sync engine | `catalogue/02_syncforge.md` |
 | `quota-ledger` | Per-tenant, per-provider quota reservation and ledger | `catalogue/29_quota.md` |
 | `hookgate` | Inbound webhook edge: verify, dedupe, replay-protect, forward | `catalogue/30_webhook_gateway.md` |
-| `platform-core` | Generic provider traits, registry, token-store trait | `catalogue/31_platform_core.md` |
 | `ffscene` | Scene graph to FFmpeg filter graph | `catalogue/32_ffscene.md` |
 | `mixbus` | Real-time audio mixing graph | `catalogue/33_mixbus.md` |
 | `replay-recorder` | Multi-track capture and replay ring | `catalogue/34_replay_recorder.md` |
 | `studio-protocol` | Preview/program control protocol | `catalogue/35_studio_protocol.md` |
 | `rtmp-publish` | Egress destination model, key redaction, health | `catalogue/36_rtmp_publish.md` |
 | `signedlink` | Signed short links, UTM, expiry, attribution | `catalogue/37_signedlink.md` |
+
+`wirekit` and `platform-core` were on this list and are now implemented; see
+"Current crates" above. The 26 provider modules are `wirekit` feature flags, not
+separate crates. Nine are built; `adp` is declared but has no module.
 
 The published names differ from the working names where crates.io already owns
 them: `quota` -> `quota-ledger`, `webhook-gateway` -> `hookgate`,
@@ -78,8 +84,10 @@ them: `quota` -> `quota-ledger`, `webhook-gateway` -> `hookgate`,
 
 ### Publishing status
 
-- Blueprint. None of the packages is published.
-- `wirekit` and `syncforge` are specified but not implemented.
+- Three crates are implemented and tested; none is published to crates.io.
+- `dado-yaml` 0.1.0, `platform-core` 0.1.0, and `wirekit` 0.1.0 all pass
+  `cargo test --workspace --all-features` (175 passed, 0 failed).
+- `syncforge` is specified but not implemented.
 - The media and link packages are public candidates whose APIs must freeze before
   publish.
 - crates.io names are permanent; availability was checked October 2026.

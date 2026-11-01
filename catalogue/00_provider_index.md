@@ -61,8 +61,8 @@ All are public crates.io candidates; see the [README](README.md).
 **The third-party services: yes.** Twilio, SendGrid, NOAA, EagleView,
 QuickBooks, and the rest are live APIs. GIA does not build them.
 
-**The Rust clients: no, not published by GIA.** `wirekit` and `syncforge` are
-blueprint packages — neither is on crates.io yet.
+**The Rust clients: not published.** `wirekit` 0.1.0 is implemented and tested in
+this repository but is not on crates.io yet. `syncforge` is still a blueprint.
 
 Some providers have community Rust crates — Twilio, SendGrid, Slack, and
 PagerDuty have community work — but there is no unified, maintained client
@@ -116,6 +116,11 @@ the source of truth for field-level behavior.
 
 ## Status
 
-Blueprint. No provider client code, no Cargo files, no generated SDKs. The
-next step is to review the provider docs in priority order, starting with the
-critical path above.
+Implemented and tested, not published. `wirekit` 0.1.0 ships the shared HTTP core
+plus nine provider modules behind additive features: `noaa`, `twilio`, `sendgrid`,
+`slack`, `google-oauth`, `meta`, `angi`, `google-lsa`, and `sage-intacct`. The
+`adp` feature is declared but has no module. `cargo test --workspace
+--all-features` passes 175 tests with 0 failures.
+
+The remaining provider docs in this folder are still design notes for modules that
+have not been built. Review them in the priority order of the critical path above.

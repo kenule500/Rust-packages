@@ -211,6 +211,8 @@ Every feature that touches authentication, user input, or an HTTP surface MUST a
 
 ## 7. AI Agent Rules (CON-7xx)
 - **CON-701:** [Rule text] <!-- source: .sdrive/context/ai-workflow-rules.md -->
+- **CON-714:** An agent MUST NEVER read, print, copy, or edit a credential file — `.env`, `.env.*`, `*.pem`, `*.key`, `*.p12`, `*.pfx`, `id_rsa*`, `credentials.*`, `secrets.*`, `.npmrc`, `.netrc` — and MUST verify configuration by variable NAME (an example file, the config schema, or `process.env` usage) rather than by value. A finding involving a secret MUST cite the variable name and its location, redacted. A leaked value MUST be rotated, never rewritten in place: editing or deleting it does not undo the exposure. <!-- source: SpecDrive Secret Handling Policy -->
+- **CON-715:** An agent MUST run every deterministic step itself rather than instructing the user to run it. `sdrive verify`, `sdrive test`, `sdrive check`, `sdrive validate`, `sdrive next` and similar are scripts; an agent holding a terminal that tells the user to type one has transferred work for no reason. An agent MUST NOT run, and MUST ask the user for: `sdrive approve` (a sign-off recorded as governance), `/sdrive:*` commands it cannot launch (no agent may start another), credential rotation, and any merge decision. When a session ends, the next step MUST be recorded in `.sdrive/handoff.json` via `sdrive next <feature> --write` so it survives the conversation. <!-- source: SpecDrive Agent Autonomy Policy -->
 
 ---
 

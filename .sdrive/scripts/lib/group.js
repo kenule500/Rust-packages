@@ -507,6 +507,112 @@ function topologies(resolved) {
   };
 }
 
+// The branch-topology question `/sdrive:worktree` asks, answered for the set of items that
+// are ready RIGHT NOW rather than for an expression that is already chosen.
+//
+// `topologies()` returns what a selection can do; this returns what a ready set can do, and it
+// is deliberately narrow. Only groupings a user can actually name are offered:
+//
+//   1. every declared batch inside the set (a `Batch` column is a promise, so it is listed first)
+//   2. the whole set on one branch, when it is small enough to merge (`maxFeatures`)
+//   3. one branch per item - always valid, listed last as the safe fallback
+//
+// Arbitrary sub-sets are NOT generated: with six ready items there are 57 non-trivial ones,
+// which is a menu nobody reads, and the user can name any sub-set exactly with `--items`.
+// A grouping that cannot reach archive is never offered as a choice - it is reported in
+// `rejected` with the reason, so the agent can explain why the obvious option is missing
+// instead of inventing one.
+function branchOptions(candidates, options = {}) {
+  const { maxFeatures = 4 } = options;
+  const matched = (candidates || []).filter(Boolean);
+  const idOf = (item) => item.id || item.name;
+  const names = (items) => items.map(idOf).join(", ");
+  const offered = [];
+  const rejected = [];
+
+  // A non-build cannot pass a review gate in ANY topology, so it is never a member. The
+  // wording comes from `topologies()` so the two callers cannot describe the same rule
+  // differently.
+  const { excluded } = topologies({ matched });
+  const excludedIds = new Set(excluded.map((entry) => entry.item));
+  const builds = matched.filter((item) => !excludedIds.has(idOf(item)));
+
+  const consider = (id, label, members, note) => {
+    const verdict = checkBatch({ matched: members }, { maxFeatures });
+    const entry = {
+      id,
+      ok: verdict.ok,
+      label,
+      shared: members.map(idOf),
+      separate: [],
+      note: verdict.ok ? note : "",
+      reasons: verdict.blockers,
+      warnings: verdict.warnings
+    };
+
+    if (verdict.ok) offered.push(entry);
+    else rejected.push(entry);
+  };
+
+  const batches = new Map();
+  for (const item of builds) {
+    if (!item.batch) continue;
+    const members = batches.get(item.batch) || [];
+    members.push(item);
+    batches.set(item.batch, members);
+  }
+
+  for (const [batch, members] of batches) {
+    if (members.length < 2) continue;
+    consider(
+      `batch:${batch}`,
+      `${batch} on one branch (${names(members)})`,
+      members,
+      "The backlog already declares these as one batch, so they land together."
+    );
+  }
+
+  if (builds.length > 1 && builds.length <= maxFeatures) {
+    consider(
+      "shared-all",
+      `One branch for all ${builds.length} ready items (${names(builds)})`,
+      builds,
+      "Merges once, when every member passes review."
+    );
+  } else if (builds.length > maxFeatures) {
+    // Stated rather than omitted: "why can't I put all of them on one branch" deserves an
+    // answer, and the answer is the cap, not the agent's mood.
+    rejected.push({
+      id: "shared-all",
+      ok: false,
+      label: `One branch for all ${builds.length} ready items (${names(builds)})`,
+      shared: builds.map(idOf),
+      separate: [],
+      note: "",
+      reasons: [
+        `${builds.length} features is over the ${maxFeatures}-feature cap for one branch: ${builds.length * 2} approval stops, and one failure freezes all of them.`
+      ],
+      warnings: []
+    });
+  }
+
+  if (builds.length > 1) {
+    offered.push({
+      id: "per-feature",
+      ok: true,
+      label: `One branch per item (${builds.length} branches)`,
+      shared: [],
+      separate: builds.map(idOf),
+      note: "Independent merges: a stalled item blocks nobody.",
+      reasons: [],
+      warnings: []
+    });
+  }
+
+  return { options: offered, rejected, excluded, maxFeatures };
+}
+
+
 // `feature/wave1-p2` from `wave1 p2`; the user can always override it at propose time.
 // Segments are deduped: `[BP-011, BP-011, BP-017]` is the same set as `[BP-011, BP-017]`, and
 // the suggestion should not advertise a duplicate.
@@ -533,5 +639,6 @@ module.exports = {
   checkBatch,
   singleBatch,
   topologies,
+  branchOptions,
   suggestBranchName
 };

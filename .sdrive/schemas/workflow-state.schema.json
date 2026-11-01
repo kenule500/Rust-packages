@@ -106,6 +106,15 @@
             "type": "string",
             "pattern": "^BP-[0-9]{3}$"
           },
+          "items": {
+            "description": "Every Product Plan item this branch carries. One branch can carry several when the user chose a shared topology, and one spec covers all of them.",
+            "type": "array",
+            "items": {
+              "type": "string",
+              "pattern": "^BP-[0-9]{3}$"
+            },
+            "minItems": 1
+          },
           "branch": {
             "type": "string",
             "minLength": 1
@@ -122,6 +131,11 @@
             "type": "string"
           },
           "createdAt": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "updatedAt": {
+            "description": "Last time this record changed. Two worktrees can both write workflow-state.json, so a merge of that file keeps the newest record per branch instead of failing outright.",
             "type": "string",
             "format": "date-time"
           },

@@ -26,6 +26,25 @@
         "requireStructuredReview": {
           "type": "boolean"
         },
+        "requireReviewSecurity": {
+          "type": "boolean"
+        },
+        "requireReviewPerformance": {
+          "type": "boolean"
+        },
+        "allowUnverifiedSecurity": {
+          "type": "boolean"
+        },
+        "allowUnverifiedPerformance": {
+          "type": "boolean"
+        },
+        "requireRedGreen": {
+          "type": "boolean"
+        },
+        "redGreenEnforceFrom": {
+          "type": "string",
+          "format": "date-time"
+        },
         "testCommand": {
           "type": "string"
         },

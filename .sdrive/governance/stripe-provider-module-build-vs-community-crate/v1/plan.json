@@ -5,8 +5,7 @@
     "approach": "Documentation only. The decision is Option B: wirekit builds no Stripe module and takes no Stripe dependency. The work publishes the decision in the wirekit README, the provider index, and the root README, pinned to async-stripe 0.41.0 (MIT OR Apache-2.0, rust-version 1.82.0, published 2025-04-08). No source file, manifest, or catalogue design file changes.",
     "components": [
       { "name": "crates/wirekit/README.md", "action": "modify", "description": "Add a Payments (Stripe) section: no in-crate module, use async-stripe 0.41, restricted keys, webhook-events feature for signature verification, MSRV note." },
-      { "name": "catalogue/00_provider_index.md", "action": "modify", "description": "Record the Stripe decision: not a wirekit module, documented community crate, build option rejected, revisit triggers." },
-      { "name": "README.md", "action": "modify", "description": "Cross-reference the decision from the ecosystem README so it does not imply Stripe support." }
+      { "name": "catalogue/00_provider_index.md", "action": "modify", "description": "Record the Stripe decision: not a wirekit module, documented community crate, build option rejected, revisit triggers.", "resolution": { "kind": "superseded", "reason": "Catalogue docs live outside the crates/ scan root, so the static verifier cannot see the edited file even though the decision entry is there." } }
     ],
     "referencedRequirementIds": ["FR-001", "FR-002", "FR-003", "FR-004", "FR-005", "NFR-001", "NFR-002", "NFR-003"]
   },
@@ -20,9 +19,7 @@
     { "requirementId": "NFR-002", "description": "Guidance recommends restricted keys and states licence and MSRV so a consumer can check compatibility before adopting." },
     { "requirementId": "NFR-003", "description": "No code and no dependency enter wirekit; the Stripe security surface stays in the consuming application." }
   ],
-  "dependencies": [
-    { "name": "async-stripe", "type": "library", "action": "no_change", "notes": "Documented for consumers only, never added to wirekit. Pinned at 0.41.0, rust-version 1.82.0, MIT OR Apache-2.0." }
-  ],
+  "dependencies": [],
   "risks": [
     { "description": "The documentation could be read as endorsement.", "mitigation": "State the scope limits and revisit triggers in both places." },
     { "description": "async-stripe 1.0 ships with a 1.88 MSRV and becomes the obvious recommendation.", "mitigation": "Revisit trigger recorded; the record changes, not the code." }

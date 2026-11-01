@@ -187,6 +187,26 @@ prints `***` for both secrets. Access is `[to be confirmed]` until Meta
 app review and page-token permissions are approved, so the module is verified
 against a local mock.
 
+### Payments (Stripe)
+
+`wirekit` does not wrap Stripe. Its API surface is large and a maintained
+community crate already covers it, so the decision (BP-014) is to document that
+crate instead of duplicating it.
+
+- **Crate:** `async-stripe` `0.41.0` — MIT OR Apache-2.0,
+  `rust-version = "1.82.0"`, published 2025-04-08.
+- **Scope:** add it to your application, not to `wirekit`. `wirekit` keeps its
+  one-model promise for the providers it does ship.
+- **Keys:** use restricted keys, keep the secret key in a secret store, and
+  never commit it (CON-519).
+- **Webhooks:** enable the crate's `webhook-events` feature and verify
+  `Stripe-Signature` over the raw body before trusting an event.
+- **Not documented here:** the `1.0.0-rc` line declares Rust 1.88, above this
+  workspace's MSRV, so it is out of scope until it ships stable.
+
+Revisit when `async-stripe` 1.0 stabilises, the workspace MSRV changes, or the
+crate stops being maintained.
+
 ## Security notes
 
 - All requests use HTTPS. `allow_insecure_localhost(true)` exists only for local

@@ -59,6 +59,12 @@ NOAA, EagleView, QuickBooks, and the rest ship behind wirekit feature flags:
 wirekit = { version = "0.1", features = ["twilio", "sendgrid", "quickbooks"] }
 ```
 
+Stripe is the one exception: it is documented as a community crate
+(`async-stripe` `0.41.0`) rather than a `wirekit` module, because its API is
+large and already well covered elsewhere. See the Stripe section in
+[`crates/wirekit/README.md`](crates/wirekit/README.md) and the decision entry in
+[`catalogue/00_provider_index.md`](catalogue/00_provider_index.md).
+
 Their technical contracts — structs, methods, auth, base URLs, webhooks — are
 the provider docs in `catalogue/`. Their packaging, feature flags, and semver
 live with the `wirekit` crate. The status of each one (third-party API online,

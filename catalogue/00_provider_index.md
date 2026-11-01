@@ -96,10 +96,14 @@ the source of truth for field-level behavior.
 
 ## Open questions across providers
 
-1. **Stripe is missing from the 26.** GIA uses Stripe for payments, and the
-   wirekit examples reference it, but there is no `wirekit::stripe` module.
-   Decide: wrap Stripe, or keep the community crate and remove Stripe from the
-   examples.
+1. **Stripe is missing from the 26 — decided (BP-014).** GIA uses Stripe for
+   payments, and the wirekit examples reference it, but there is no
+   `wirekit::stripe` module. The decision is to document the community crate
+   instead of wrapping it: `async-stripe` `0.41.0`, MIT OR Apache-2.0,
+   `rust-version = "1.82.0"`, published 2025-04-08. The 1.0.0-rc line declares
+   Rust 1.88 and stays out of scope until it ships stable; `stripe-rust` is
+   rejected because it has had no release since 2020-05-17. Revisit when
+   `async-stripe` 1.0 stabilises or the workspace MSRV moves.
 2. **Angi has no public API.** The module is an import/partner helper, not a
    live client. Do not promise an integration that cannot be built.
 3. **Google LSA requires Ads API access.** The client is straightforward; the

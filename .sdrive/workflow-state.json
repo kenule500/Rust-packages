@@ -386,12 +386,12 @@
       "versions": [
         {
           "id": "v1",
-          "phase": "backlog",
-          "currentStep": "specification",
+          "phase": "ongoing",
+          "currentStep": "implementation",
           "gates": {
             "specification": "approved",
             "planning": "approved",
-            "implementation": "pending",
+            "implementation": "approved",
             "review": "pending"
           },
           "history": [
@@ -413,6 +413,13 @@
               "actor": "kenule500",
               "previousValue": "pending",
               "timestamp": "2026-10-31T12:47:23Z"
+            },
+            {
+              "event": "Implementation complete: wirekit README, provider index, and root README document Option B (async-stripe 0.41.0); sdrive verify is pass with 0 missing and 1 withdrawn; all 4 tasks and 8 traceability rows complete",
+              "by": "kenule500",
+              "actor": "kenule500",
+              "previousValue": "pending",
+              "timestamp": "2026-10-31T23:55:43Z"
             }
           ]
         }

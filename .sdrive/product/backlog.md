@@ -47,10 +47,10 @@
 
 | ID | Feature | User value | Priority | Depends on | Status | Confidence / source |
 |---|---|---|---|---|---|---|
-| BP-001 | Finish `dado-yaml` YAML parser; publish `dado-yaml` 0.1.0 | Rust developers can parse strict YAML with positioned errors and no I/O | P0 | - | backlog | High - `crates/dado-yaml/README.md`; user-approved scope |
-| BP-002 | CI: fmt, clippy, test, docs, MSRV | Contributors get fast, consistent feedback and the project ships with a quality baseline | P0 | - | backlog | Medium - agent recommendation; no CI exists today |
-| BP-003 | `CONTRIBUTING.md`, `SECURITY.md`, issue/PR templates | Contributors know how to propose, test, and report security issues privately | P1 | - | backlog | Medium - agent recommendation |
-| BP-004 | Release checklist and crates.io publishing runbook | Maintainers can publish repeatably without missing metadata or checks | P0 | - | backlog | Medium - agent recommendation; required before BP-010 |
+| BP-001 | Finish `dado-yaml` YAML parser; publish `dado-yaml` 0.1.0 | Rust developers can parse strict YAML with positioned errors and no I/O | P0 | - | in progress | High - `crates/dado-yaml/README.md`; user-approved scope |
+| BP-002 | CI: fmt, clippy, test, docs, MSRV | Contributors get fast, consistent feedback and the project ships with a quality baseline | P0 | - | done | Medium - agent recommendation; no CI exists today |
+| BP-003 | `CONTRIBUTING.md`, `SECURITY.md`, issue/PR templates | Contributors know how to propose, test, and report security issues privately | P1 | - | done | Medium - agent recommendation |
+| BP-004 | Release checklist and crates.io publishing runbook | Maintainers can publish repeatably without missing metadata or checks | P0 | - | done | Medium - agent recommendation; required before BP-010 |
 
 ### M0 notes
 
@@ -62,12 +62,12 @@
 
 | ID | Feature | User value | Priority | Depends on | Status | Confidence / source |
 |---|---|---|---|---|---|---|
-| BP-005 | `wirekit` core: error, retry, token bucket, pooled client, tracing, auth | Developers get one client, one error type, one retry policy, one auth layer, and tracing | P0 | BP-001 | backlog | High - `catalogue/01_wirekit.md` |
-| BP-006 | NOAA provider module | Developers can fetch forecasts and alerts with no API key | P0 | BP-005 | backlog | High - `catalogue/07_noaa.md` |
-| BP-007 | Twilio provider module | Developers can send SMS, voice, MFA, and lookup requests through one typed client | P0 | BP-005 | backlog | High - `catalogue/03_twilio.md` |
-| BP-008 | SendGrid provider module | Developers can send transactional email with template and unsubscribe support | P0 | BP-005 | backlog | High - `catalogue/04_sendgrid.md` |
-| BP-009 | Slack provider module | Developers can post notifications and handle Slack's body-level errors correctly | P0 | BP-005 | backlog | High - `catalogue/23_slack.md` |
-| BP-010 | Publish `wirekit` 0.1.0 with four features, examples, docs | External developers can install `wirekit` 0.1.0 and run a provider example | P0 | BP-006, BP-007, BP-008, BP-009 | backlog | High - user-approved first-publish scope |
+| BP-005 | `wirekit` core: error, retry, token bucket, pooled client, tracing, auth | Developers get one client, one error type, one retry policy, one auth layer, and tracing | P0 | BP-001 | done | High - `catalogue/01_wirekit.md` |
+| BP-006 | NOAA provider module | Developers can fetch forecasts and alerts with no API key | P0 | BP-005 | done | High - `catalogue/07_noaa.md` |
+| BP-007 | Twilio provider module | Developers can send SMS, voice, MFA, and lookup requests through one typed client | P0 | BP-005 | done | High - `catalogue/03_twilio.md` |
+| BP-008 | SendGrid provider module | Developers can send transactional email with template and unsubscribe support | P0 | BP-005 | done | High - `catalogue/04_sendgrid.md` |
+| BP-009 | Slack provider module | Developers can post notifications and handle Slack's body-level errors correctly | P0 | BP-005 | done | High - `catalogue/23_slack.md` |
+| BP-010 | Publish `wirekit` 0.1.0 with four features, examples, docs | External developers can install `wirekit` 0.1.0 and run a provider example | P0 | BP-006, BP-007, BP-008, BP-009 | in progress | High - user-approved first-publish scope |
 
 ### M1 notes
 
@@ -79,12 +79,12 @@
 
 | ID | Feature | User value | Priority | Depends on | Status | Confidence / source |
 |---|---|---|---|---|---|---|
-| BP-011 | Meta Graph provider module | Developers can integrate Messenger, Instagram, and WhatsApp under Meta's rules | P1 | BP-005; app review | backlog | Medium - `catalogue/05_meta.md`; access risk |
-| BP-012 | EagleView provider module | Developers can order and poll roof measurements with explicit cost | P1 | BP-005; commercial contract | backlog | Medium - `catalogue/12_eagleview.md`; access risk |
-| BP-013 | QuickBooks provider module | Developers can sync accounting data with refresh and visible failures | P1 | BP-005; OAuth approval | backlog | Medium - `catalogue/13_quickbooks.md`; access risk |
-| BP-014 | Stripe provider module (build vs community crate) | Developers can take payments with a typed client, or use a documented community crate | P1 | BP-005; decision | backlog | Low - not in the 26; `catalogue/00_provider_index.md` open question |
-| BP-015 | Google OAuth shared helper | Developers get one correct PKCE flow and token refresh path for Google APIs | P1 | BP-005 | backlog | High - `catalogue/28_google_oauth.md` |
-| BP-016 | Publish `wirekit` 0.2.x with critical-path providers | External developers can use the critical-path providers in 0.2.x | P1 | BP-011 to BP-015 | backlog | High - user-approved critical path |
+| BP-011 | Meta Graph provider module | Developers can integrate Messenger, Instagram, and WhatsApp under Meta's rules | P1 | BP-005; app review | done | Medium - `catalogue/05_meta.md`; access risk |
+| BP-012 | EagleView provider module | Developers can order and poll roof measurements with explicit cost | P1 | BP-005; commercial contract | done | Medium - `catalogue/12_eagleview.md`; access risk |
+| BP-013 | QuickBooks provider module | Developers can sync accounting data with refresh and visible failures | P1 | BP-005; OAuth approval | done | Medium - `catalogue/13_quickbooks.md`; access risk |
+| BP-014 | Stripe provider module (build vs community crate) | Developers can take payments with a typed client, or use a documented community crate | P1 | BP-005; decision | done | Low - not in the 26; `catalogue/00_provider_index.md` open question |
+| BP-015 | Google OAuth shared helper | Developers get one correct PKCE flow and token refresh path for Google APIs | P1 | BP-005 | done | High - `catalogue/28_google_oauth.md` |
+| BP-016 | Publish `wirekit` 0.2.x with critical-path providers | External developers can use the critical-path providers in 0.2.x | P1 | BP-011 to BP-015 | in progress | High - user-approved critical path |
 
 ### M2 notes
 
@@ -96,7 +96,7 @@
 
 | ID | Feature | User value | Priority | Depends on | Status | Confidence / source |
 |---|---|---|---|---|---|---|
-| BP-017 | `platform-core` 0.1: traits, registry, token store | App developers get tenant/provider identity, capabilities, and a token-store trait without product nouns | P1 | BP-005 | backlog | High - `catalogue/31_platform_core.md` |
+| BP-017 | `platform-core` 0.1: traits, registry, token store | App developers get tenant/provider identity, capabilities, and a token-store trait without product nouns | P1 | BP-005 | done | High - `catalogue/31_platform_core.md` |
 | BP-018 | `quota-ledger` 0.1: core + Postgres backend | Services can reserve and commit provider quota across processes with Postgres | P1 | BP-017 | backlog | High - `catalogue/29_quota.md` |
 | BP-019 | `quota-ledger` Redis backend | Services can use Redis for quota state when Postgres is too heavy | P2 | BP-018 | backlog | Medium - backend choice is open |
 | BP-020 | `hookgate` 0.1: verifiers, dedupe, replay, outbox | Services can verify, dedupe, replay-protect, and forward webhooks without losing events | P1 | BP-017 | backlog | High - `catalogue/30_webhook_gateway.md` |

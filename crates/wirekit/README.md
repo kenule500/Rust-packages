@@ -20,6 +20,7 @@ enables or disables another.
 | `sendgrid` | `wirekit::sendgrid` | Bearer API key | `https://api.sendgrid.com/v3` |
 | `slack` | `wirekit::slack` | Bot token | `https://slack.com/api` |
 | `google-oauth` | `wirekit::google_oauth` | OAuth2 Authorization Code + PKCE helper | `https://oauth2.googleapis.com` |
+| `meta` | `wirekit::meta` | Page or system-user token; `X-Hub-Signature-256` for webhooks | `https://graph.facebook.com` |
 | `native-tls` | — | Adds the platform TLS backend; rustls is always compiled in | — |
 
 ## Google OAuth
@@ -146,6 +147,65 @@ and `files.upload`. `ok: false` at HTTP 200 becomes `WirekitError::Api`;
 `channel_not_found` and `not_in_channel` are declared non-retryable.
 `verify_request` checks `v0:{timestamp}:{body}` with HMAC-SHA256, hex-encoded,
 and rejects a timestamp outside the allowed skew.
+
+### Meta
+
+The `meta` feature adds `wirekit::meta` for Facebook Messenger, Instagram DM,
+and WhatsApp Cloud. One `MetaClient` holds the app secret, the page or
+system-user token, the page id, the WhatsApp phone-number id, and the Graph
+version; the three surfaces share one `SendMessageRequest`.
+
+```rust,no_run
+# async fn run() -> Result<(), wirekit::WirekitError> {
+use wirekit::meta::MetaClient;
+use wirekit::WirekitClient;
+
+let http = WirekitClient::builder("https://graph.facebook.com")?.build()?;
+let meta = MetaClient::builder(http)
+    .access_token("<page-token>")
+    .app_secret("<app-secret>")
+    .page_id("<page-id>")
+    .build()?;
+
+meta.messenger().send_text("<psid>", "Hello").await?;
+# Ok(())
+# }
+```
+
+Webhooks are verified over the exact received bytes and fail closed:
+
+```rust,no_run
+use wirekit::meta::WebhookPayload;
+
+let payload = WebhookPayload::new("<app-secret>");
+let event = payload.verify_and_parse(raw_body, signature_header)?;
+println!("{} {}", event.dedupe_key, event.sender_id);
+```
+
+`access_token`, `app_secret`, and any rotated token never render: `Debug`
+prints `***` for both secrets. Access is `[to be confirmed]` until Meta
+app review and page-token permissions are approved, so the module is verified
+against a local mock.
+
+### Payments (Stripe)
+
+`wirekit` does not wrap Stripe. Its API surface is large and a maintained
+community crate already covers it, so the decision (BP-014) is to document that
+crate instead of duplicating it.
+
+- **Crate:** `async-stripe` `0.41.0` — MIT OR Apache-2.0,
+  `rust-version = "1.82.0"`, published 2025-04-08.
+- **Scope:** add it to your application, not to `wirekit`. `wirekit` keeps its
+  one-model promise for the providers it does ship.
+- **Keys:** use restricted keys, keep the secret key in a secret store, and
+  never commit it (CON-519).
+- **Webhooks:** enable the crate's `webhook-events` feature and verify
+  `Stripe-Signature` over the raw body before trusting an event.
+- **Not documented here:** the `1.0.0-rc` line declares Rust 1.88, above this
+  workspace's MSRV, so it is out of scope until it ships stable.
+
+Revisit when `async-stripe` 1.0 stabilises, the workspace MSRV changes, or the
+crate stops being maintained.
 
 ## Security notes
 

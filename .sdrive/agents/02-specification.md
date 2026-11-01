@@ -170,6 +170,14 @@ For feature `<feature-name>` and version `<version>`, create these files:
      merges once, when every feature on it has passed review (CON-611). Then run the
      per-feature workflow below for EACH feature, stopping after each feature's Gate 1 and
      Gate 2. Grouping buys one branch decision and one name — not one approval.
+   - **Offer only topologies that can finish.** `sdrive group:resolve` returns
+     `topology.options` (each with `ok`) and `topology.excluded`. Build the branch question
+     from the options where `ok` is true — a shared branch for the ungated builds, and/or one
+     branch per item — and report `excluded` as *"not proposed as a feature"* with its reason.
+     NEVER offer a topology marked `ok: false`: a gated member would hold the shared merge
+     until its access exists, and a decision cannot pass a coverage gate in any topology, so
+     offering them is offering a deadlock the user cannot see. If no option is viable, say why
+     and stop instead of inventing one.
    - **Skill readiness before the plan is written.** Inspect `.sdrive/skills/` and compare
      what is installed with the stack this feature actually uses (framework, language, test
      runner, database, cloud or provider SDK). For any technology with no matching skill,

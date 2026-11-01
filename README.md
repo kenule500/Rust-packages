@@ -59,6 +59,12 @@ NOAA, EagleView, QuickBooks, and the rest ship behind wirekit feature flags:
 wirekit = { version = "0.1", features = ["twilio", "sendgrid", "quickbooks"] }
 ```
 
+Stripe is the one exception: it is documented as a community crate
+(`async-stripe` `0.41.0`) rather than a `wirekit` module, because its API is
+large and already well covered elsewhere. See the Stripe section in
+[`crates/wirekit/README.md`](crates/wirekit/README.md) and the decision entry in
+[`catalogue/00_provider_index.md`](catalogue/00_provider_index.md).
+
 Their technical contracts — structs, methods, auth, base URLs, webhooks — are
 the provider docs in `catalogue/`. Their packaging, feature flags, and semver
 live with the `wirekit` crate. The status of each one (third-party API online,
@@ -124,9 +130,18 @@ burden for a package nobody else can use.
 
 ## Status
 
-Blueprint. None of the packages is published yet. `wirekit` and `syncforge` are
-specified here; implementation starts after the first design partners validate
-the field workflow. `quota-ledger` and `hookgate` are standalone because they
-own state that `wirekit` must not own. The media and link packages are public
-candidates whose APIs must freeze before publish. `dado-yaml` 0.1.0 is implemented
-and tested; the remaining packages are still blueprints.
+Three crates are implemented and tested in this workspace; none is published to
+crates.io yet. `dado-yaml` 0.1.0, `platform-core` 0.1.0, and `wirekit` 0.1.0 all
+build, lint, and pass their suites (`cargo test --workspace --all-features`:
+175 passed, 0 failed, plus 2 ignored pending publish and tag checks).
+
+`wirekit` ships the shared HTTP core plus nine provider modules behind additive
+features: `noaa`, `twilio`, `sendgrid`, `slack`, `google-oauth`, `meta`, `angi`,
+`google-lsa`, and `sage-intacct`. The `adp` feature is declared but has no module:
+its documentation could not be obtained, so no client was written. Stripe is
+deliberately not wrapped; see the Payments section in
+[`crates/wirekit/README.md`](crates/wirekit/README.md).
+
+`syncforge`, `quota-ledger`, `hookgate`, `ffscene`, `mixbus`, `replay-recorder`,
+`studio-protocol`, `rtmp-publish`, and `signedlink` remain blueprints. The media
+and link packages are public candidates whose APIs must freeze before publish.

@@ -316,6 +316,195 @@
           ]
         }
       ]
+    },
+    {
+      "name": "meta-graph-provider-module",
+      "branch": "feature/meta-stripe-platform-core",
+      "base": "main",
+      "productItems": [
+        "BP-011"
+      ],
+      "currentVersion": "v1",
+      "versions": [
+        {
+          "id": "v1",
+          "phase": "ongoing",
+          "currentStep": "implementation",
+          "gates": {
+            "specification": "approved",
+            "planning": "approved",
+            "implementation": "approved",
+            "review": "approved"
+          },
+          "history": [
+            {
+              "event": "Proposed from group expression [BP-011, BP-011, BP-013, BP-014, BP-017]; BP-011 shares feature/meta-stripe-platform-core with BP-014 and BP-017, BP-013 gets feature/bp-013-quickbooks",
+              "by": "SpecDrive",
+              "timestamp": "2026-10-31T11:58:26Z"
+            },
+            {
+              "event": "Gate 1 approved: specification and traceability for meta-graph-provider-module",
+              "by": "kenule500",
+              "actor": "kenule500",
+              "previousValue": "pending",
+              "timestamp": "2026-10-31T12:06:03Z"
+            },
+            {
+              "event": "Gate 2 approved: technical plan and execution tasks for meta-graph-provider-module",
+              "by": "kenule500",
+              "actor": "kenule500",
+              "previousValue": "pending",
+              "timestamp": "2026-10-31T12:10:10Z"
+            },
+            {
+              "event": "Implementation started: spec moved from specs/backlog to specs/ongoing; wirekit::meta implemented (compiles, clippy clean); sdrive verify reports 26 matched, 29 missing, 16 extra, so tasks stay uncompleted",
+              "by": "SpecDrive",
+              "timestamp": "2026-10-31T14:08:26Z"
+            },
+            {
+              "event": "Plan corrected after sdrive verify reported 42 matched, 13 missing: the seven reuse components now name their files and the six Graph contracts are recorded as superseded (URLs are built from path-template constants); planning gate reset to pending",
+              "by": "SpecDrive",
+              "actor": "kenule500",
+              "previousValue": "approved",
+              "timestamp": "2026-10-31T14:31:30Z"
+            },
+            {
+              "event": "Gate 2 re-approved after the plan correction and Gate 3 (implementation) approved: sdrive verify is warn with 0 missing and 6 withdrawn, validate-governance passes, all 13 tasks completed and all 16 traceability rows complete",
+              "by": "kenule500",
+              "actor": "kenule500",
+              "previousValue": "pending",
+              "timestamp": "2026-10-31T23:33:39Z"
+            },
+            {
+              "event": "Review PASS recorded by the human reviewer: fmt, clippy -D warnings, docs -D warnings, 188 tests passing and validate-governance all green at 21c9098; verify reports zero missing; cleared for archive",
+              "by": "kenule500",
+              "actor": "kenule500",
+              "previousValue": "pending",
+              "timestamp": "2026-11-01T14:25:00Z"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "stripe-provider-module-build-vs-community-crate",
+      "branch": "feature/meta-stripe-platform-core",
+      "base": "main",
+      "productItems": [
+        "BP-014"
+      ],
+      "currentVersion": "v1",
+      "versions": [
+        {
+          "id": "v1",
+          "phase": "ongoing",
+          "currentStep": "implementation",
+          "gates": {
+            "specification": "approved",
+            "planning": "approved",
+            "implementation": "approved",
+            "review": "approved"
+          },
+          "history": [
+            {
+              "event": "Proposed from group expression [BP-011, BP-011, BP-013, BP-014, BP-017] as a build-vs-community-crate decision record on the shared branch",
+              "by": "SpecDrive",
+              "timestamp": "2026-10-31T12:28:53Z"
+            },
+            {
+              "event": "Gate 1 approved: decision record commits to Option B, documenting async-stripe 0.41.0 (MSRV 1.82.0 verified, licence MIT OR Apache-2.0)",
+              "by": "kenule500",
+              "actor": "kenule500",
+              "previousValue": "pending",
+              "timestamp": "2026-10-31T12:32:41Z"
+            },
+            {
+              "event": "Gate 2 approved: documentation-only plan and tasks for the Stripe decision record",
+              "by": "kenule500",
+              "actor": "kenule500",
+              "previousValue": "pending",
+              "timestamp": "2026-10-31T12:47:23Z"
+            },
+            {
+              "event": "Implementation complete: wirekit README, provider index, and root README document Option B (async-stripe 0.41.0); sdrive verify is pass with 0 missing and 1 withdrawn; all 4 tasks and 8 traceability rows complete",
+              "by": "kenule500",
+              "actor": "kenule500",
+              "previousValue": "pending",
+              "timestamp": "2026-10-31T23:55:43Z"
+            },
+            {
+              "event": "Review PASS recorded by the human reviewer: fmt, clippy -D warnings, docs -D warnings, 188 tests passing and validate-governance all green at 21c9098; verify reports zero missing; cleared for archive",
+              "by": "kenule500",
+              "actor": "kenule500",
+              "previousValue": "pending",
+              "timestamp": "2026-11-01T14:25:00Z"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "platform-core-0-1-traits-registry-token-store",
+      "branch": "feature/meta-stripe-platform-core",
+      "base": "main",
+      "productItems": [
+        "BP-017"
+      ],
+      "currentVersion": "v1",
+      "versions": [
+        {
+          "id": "v1",
+          "phase": "ongoing",
+          "currentStep": "implementation",
+          "gates": {
+            "specification": "approved",
+            "planning": "approved",
+            "implementation": "approved",
+            "review": "approved"
+          },
+          "history": [
+            {
+              "event": "Proposed from group expression [BP-011, BP-011, BP-013, BP-014, BP-017]; ports the unmerged platform-core crate from feature/m3-substrate as prior art rather than reusing its m3-substrate/v1 governance",
+              "by": "SpecDrive",
+              "timestamp": "2026-10-31T13:01:24Z"
+            },
+            {
+              "event": "Gate 1 approved: platform-core 0.1 specification and traceability",
+              "by": "kenule500",
+              "actor": "kenule500",
+              "previousValue": "pending",
+              "timestamp": "2026-10-31T13:06:39Z"
+            },
+            {
+              "event": "Gate 2 approved: port plan and tasks for platform-core 0.1",
+              "by": "kenule500",
+              "actor": "kenule500",
+              "previousValue": "pending",
+              "timestamp": "2026-10-31T13:08:36Z"
+            },
+            {
+              "event": "Implementation complete: platform-core ported from feature/m3-substrate (11 files, no tests), manifest declares async-trait, secrecy, thiserror, uuid (v4+v7) and tokio directly, no dependency skill available so docs-only per the rule; check, no-default-features, clippy and rustdoc clean; sdrive verify pass with 0 missing and 19 withdrawn; 7 tasks and 14 traceability rows complete",
+              "by": "kenule500",
+              "actor": "kenule500",
+              "previousValue": "pending",
+              "timestamp": "2026-11-01T00:17:02Z"
+            },
+            {
+              "event": "Acceptance suite added: 13 tests in crates/platform-core/tests/platform-core-0-1-traits-registry-token-store (one per AC), 13 passed with exit code 0; report written to .sdrive/reports/tests/test-report-platform-core-0-1-traits-registry-token-store-v1-2026-11-01.md, every traceability row carries its TEST-0NN id, sdrive verify pass with 0 missing",
+              "by": "SpecDrive",
+              "actor": "kenule500",
+              "timestamp": "2026-11-01T14:13:10Z"
+            },
+            {
+              "event": "Review PASS recorded by the human reviewer: fmt, clippy -D warnings, docs -D warnings, 188 tests passing and validate-governance all green at 21c9098; verify reports zero missing; cleared for archive",
+              "by": "kenule500",
+              "actor": "kenule500",
+              "previousValue": "pending",
+              "timestamp": "2026-11-01T14:25:00Z"
+            }
+          ]
+        }
+      ]
     }
   ]
 }

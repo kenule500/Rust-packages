@@ -140,7 +140,14 @@ function rowMatchesSelector(row, selector) {
   if (selector.kind === "wave") return waveValue(row) === selector.value;
   if (selector.kind === "milestone") return milestoneNumber(row.milestone) === selector.value;
   if (selector.kind === "priority") return priorityNumber(row.priority) === selector.value;
-  if (selector.kind === "kind") return toKebab(row.kind) === selector.value;
+  if (selector.kind === "kind") {
+    // A row with no `Kind` column is a build. That is the documented default, and it is what
+    // keeps `[w2 p1 build]` usable on a backlog nobody has relabelled - otherwise the filter
+    // would silently exclude every unlabelled row.
+    const kind = toKebab(row.kind) || "build";
+
+    return kind === selector.value;
+  }
   if (selector.kind === "batch") return toKebab(row.batch) === selector.value;
   if (selector.kind === "id") return String(row.id).toUpperCase() === selector.value;
   if (selector.kind === "status") return toKebab(row.status) === selector.value;
@@ -421,9 +428,92 @@ function checkBatch(resolved, options = {}) {
   return { ok: blockers.length === 0, blockers, warnings };
 }
 
+// Which branch topologies can actually finish?
+//
+// The resolver used to hand the agent a set and a verdict, and the agent then invented
+// options — which is how a deadlocked topology ("one shared branch for all four") got
+// offered as a choice. This returns only what can reach archive:
+//
+//   1. a non-build member cannot pass a review gate in ANY topology, so it is never a
+//      feature: it is excluded, with the reason.
+//   2. a gated member (access outside the repository) makes a shared branch unarchivable
+//      until that access exists, so it is only offered on its own branch.
+//   3. everything else may share a branch, which merges once when every member is ready.
+function topologies(resolved) {
+  const matched = (resolved && resolved.matched) || [];
+  const builds = matched.filter((item) => !item.kind || item.kind === "build");
+  const nonBuilds = matched.filter((item) => item.kind && item.kind !== "build");
+  const gated = builds.filter((item) => item.gated);
+  const clean = builds.filter((item) => !item.gated);
+
+  const names = (items) => items.map((item) => item.id || item.name).join(", ");
+  const options = [];
+
+  if (clean.length >= 2) {
+    options.push({
+      id: "shared-clean",
+      ok: true,
+      label:
+        `One shared branch for ${clean.length} (${names(clean)})` +
+        (gated.length > 0 ? `, and a separate branch for ${names(gated)}` : ""),
+      shared: clean.map((item) => item.id || item.name),
+      separate: gated.map((item) => item.id || item.name),
+      note: "The shared branch merges once, when every member passes review."
+    });
+  }
+
+  if (builds.length > 1) {
+    options.push({
+      id: "shared-all-builds",
+      ok: gated.length === 0,
+      label: `One shared branch for all ${builds.length} builds (${names(builds)})`,
+      reasons:
+        gated.length > 0
+          ? [
+              `${gated.length} gated member(s) (${names(
+                gated
+              )}) would hold the merge until that access is granted.`
+            ]
+          : [],
+      shared: builds.map((item) => item.id || item.name),
+      separate: [],
+      note: "The shared branch merges once, when every member passes review."
+    });
+  }
+
+  if (builds.length > 1) {
+    options.push({
+      id: "per-feature",
+      ok: true,
+      label: `One branch per item (${names(builds)})`,
+      reasons: [],
+      shared: [],
+      separate: builds.map((item) => item.id || item.name),
+      note: "Independent merges: a stalled item blocks nobody."
+    });
+  }
+
+  return {
+    options,
+    // Members for which no topology helps, stated rather than quietly dropped.
+    excluded: nonBuilds.map((item) => ({
+      item: item.id || item.name,
+      kind: item.kind,
+      reason:
+        item.kind === "decision"
+          ? "A decision has no test to pass, so it cannot clear review. Record it in the plan, or give it testable criteria (a decision record that must exist and name the choice)."
+          : "A release step runs after the merge, so it cannot be gated by the merge it belongs to."
+    }))
+  };
+}
+
 // `feature/wave1-p2` from `wave1 p2`; the user can always override it at propose time.
+// Segments are deduped: `[BP-011, BP-011, BP-017]` is the same set as `[BP-011, BP-017]`, and
+// the suggestion should not advertise a duplicate.
 function suggestBranchName(expression) {
-  return toKebab(String(expression || "").replace(/,/g, " ")) || "wave";
+  const unique = [...new Set(splitSegments(expression))];
+
+  return toKebab(unique.join(" ").replace(/,/g, " ")) || "wave";
 }
 
 module.exports = {
@@ -442,5 +532,6 @@ module.exports = {
   checkGroupShareable,
   checkBatch,
   singleBatch,
+  topologies,
   suggestBranchName
 };

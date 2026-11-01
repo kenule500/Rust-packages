@@ -48,6 +48,11 @@ adp = []
 # base64, url, serde_json), so it needs no new library.
 google-oauth = []
 
+# BP-011. Meta Graph messaging for Messenger, Instagram DM, and WhatsApp Cloud.
+# No new dependency: the module reuses the client, retry, rate limit, secret,
+# and HMAC machinery already compiled in.
+meta = []
+
 [dependencies]
 reqwest = { version = "0.12.23", default-features = false, features = [
     "rustls-tls",
@@ -99,6 +104,9 @@ wiremock = "=0.6.3"
 # `tokio` or `tracing` dependencies, so the test harness declares them itself.
 tokio = { version = "1.44.2", features = ["macros", "rt", "time"] }
 tracing = "0.1.41"
+# Webhook tests sign their own payloads; both crates are already dependencies.
+hmac = "0.12.1"
+sha2 = "0.10.9"
 
 [[test]]
 name = "google-oauth-shared-helper"

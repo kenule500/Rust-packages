@@ -1,0 +1,216 @@
+{
+  "feature": "platform-core-0-1-traits-registry-token-store",
+  "version": 1,
+  "rows": [
+    {
+      "requirementId": "FR-001",
+      "acceptanceCriteriaIds": [
+        "AC-001",
+        "AC-002",
+        "AC-004",
+        "AC-009"
+      ],
+      "planSection": "P3 Wiring, docs, verification",
+      "taskIds": [
+        "T3.1"
+      ],
+      "testIds": [
+        "TEST-001",
+        "TEST-002",
+        "TEST-004",
+        "TEST-009"
+      ],
+      "status": "complete"
+    },
+    {
+      "requirementId": "FR-002",
+      "acceptanceCriteriaIds": [
+        "AC-001",
+        "AC-010",
+        "AC-003"
+      ],
+      "planSection": "P1 Crate scaffold and identity",
+      "taskIds": [
+        "T1.1",
+        "T3.2"
+      ],
+      "testIds": [
+        "TEST-001",
+        "TEST-003",
+        "TEST-010"
+      ],
+      "status": "complete"
+    },
+    {
+      "requirementId": "FR-003",
+      "acceptanceCriteriaIds": [
+        "AC-007",
+        "AC-006"
+      ],
+      "planSection": "P2 Capabilities and registry",
+      "taskIds": [
+        "T2.2"
+      ],
+      "testIds": [
+        "TEST-006",
+        "TEST-007"
+      ],
+      "status": "complete"
+    },
+    {
+      "requirementId": "FR-004",
+      "acceptanceCriteriaIds": [
+        "AC-008"
+      ],
+      "planSection": "P2 Capabilities and registry",
+      "taskIds": [
+        "T2.2"
+      ],
+      "testIds": [
+        "TEST-008"
+      ],
+      "status": "complete"
+    },
+    {
+      "requirementId": "FR-005",
+      "acceptanceCriteriaIds": [
+        "AC-009"
+      ],
+      "planSection": "P1 Crate scaffold and identity",
+      "taskIds": [
+        "T1.3"
+      ],
+      "testIds": [
+        "TEST-009"
+      ],
+      "status": "complete"
+    },
+    {
+      "requirementId": "FR-006",
+      "acceptanceCriteriaIds": [
+        "AC-010"
+      ],
+      "planSection": "P1 Crate scaffold and identity",
+      "taskIds": [
+        "T1.3"
+      ],
+      "testIds": [
+        "TEST-010"
+      ],
+      "status": "complete"
+    },
+    {
+      "requirementId": "FR-007",
+      "acceptanceCriteriaIds": [
+        "AC-011"
+      ],
+      "planSection": "P1 Crate scaffold and identity",
+      "taskIds": [
+        "T1.3"
+      ],
+      "testIds": [
+        "TEST-011"
+      ],
+      "status": "complete"
+    },
+    {
+      "requirementId": "FR-008",
+      "acceptanceCriteriaIds": [
+        "AC-012"
+      ],
+      "planSection": "P1 Crate scaffold and identity",
+      "taskIds": [
+        "T1.2"
+      ],
+      "testIds": [
+        "TEST-012"
+      ],
+      "status": "complete"
+    },
+    {
+      "requirementId": "FR-009",
+      "acceptanceCriteriaIds": [
+        "AC-013"
+      ],
+      "planSection": "P3 Wiring, docs, verification",
+      "taskIds": [
+        "T1.1",
+        "T3.1"
+      ],
+      "testIds": [
+        "TEST-013"
+      ],
+      "status": "complete"
+    },
+    {
+      "requirementId": "NFR-001",
+      "acceptanceCriteriaIds": [
+        "AC-009"
+      ],
+      "planSection": "P1 Crate scaffold and identity",
+      "taskIds": [
+        "T1.3"
+      ],
+      "testIds": [
+        "TEST-009"
+      ],
+      "status": "complete"
+    },
+    {
+      "requirementId": "NFR-002",
+      "acceptanceCriteriaIds": [
+        "AC-012"
+      ],
+      "planSection": "P1 Crate scaffold and identity",
+      "taskIds": [
+        "T1.3"
+      ],
+      "testIds": [
+        "TEST-012"
+      ],
+      "status": "complete"
+    },
+    {
+      "requirementId": "NFR-003",
+      "acceptanceCriteriaIds": [
+        "AC-013"
+      ],
+      "planSection": "P3 Wiring, docs, verification",
+      "taskIds": [
+        "T3.2"
+      ],
+      "testIds": [
+        "TEST-013"
+      ],
+      "status": "complete"
+    },
+    {
+      "requirementId": "NFR-004",
+      "acceptanceCriteriaIds": [
+        "AC-005"
+      ],
+      "planSection": "P2 Capabilities and registry",
+      "taskIds": [
+        "T2.1"
+      ],
+      "testIds": [
+        "TEST-005"
+      ],
+      "status": "complete"
+    },
+    {
+      "requirementId": "NFR-005",
+      "acceptanceCriteriaIds": [
+        "AC-013"
+      ],
+      "planSection": "P3 Wiring, docs, verification",
+      "taskIds": [
+        "T3.1"
+      ],
+      "testIds": [
+        "TEST-013"
+      ],
+      "status": "complete"
+    }
+  ]
+}

@@ -270,6 +270,14 @@ impl WirekitError {
             }
         };
 
+        // Intuit wraps provider failures in a `Fault` envelope, so the detail lives
+        // in `Fault.Error[]` rather than at the top level (AC-014).
+        let fault = value
+            .get("Fault")
+            .and_then(|envelope| envelope.get("Error"))
+            .and_then(serde_json::Value::as_array)
+            .and_then(|errors| errors.first());
+
         let code = value
             .get("code")
             .map(value_to_string)
@@ -281,6 +289,11 @@ impl WirekitError {
                     .and_then(|errors| errors.first())
                     .map(value_to_string)
             })
+            .or_else(|| {
+                fault
+                    .and_then(|error| error.get("code"))
+                    .map(value_to_string)
+            })
             .unwrap_or_else(|| format!("http_{status}"));
 
         let message = value
@@ -289,6 +302,11 @@ impl WirekitError {
             .or_else(|| value.get("detail").map(value_to_string))
             .or_else(|| value.get("title").map(value_to_string))
             .or_else(|| value.get("error_description").map(value_to_string))
+            .or_else(|| {
+                fault
+                    .and_then(|error| error.get("Message"))
+                    .map(value_to_string)
+            })
             .unwrap_or_else(|| "provider reported a failure".to_string());
 
         Self::api_with_details(status, code, message, value)

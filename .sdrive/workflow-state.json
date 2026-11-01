@@ -360,6 +360,12 @@
               "actor": "kenule500",
               "previousValue": "pending",
               "timestamp": "2026-11-01T14:20:00Z"
+            },
+            {
+              "event": "Acceptance suite added: 16 tests in crates/wirekit/tests/quickbooks-provider-module (one per AC), 16 passed with exit code 0 and workspace tests plus clippy green; two defects fixed with approval (api_from_body now unwraps Fault.Error[] for AC-014, and the entities carry the Qbo prefix so the archived AC-040 hygiene check passes); report written and every traceability row carries its TEST-0NN id",
+              "by": "SpecDrive",
+              "actor": "kenule500",
+              "timestamp": "2026-11-01T15:05:00Z"
             }
           ]
         }

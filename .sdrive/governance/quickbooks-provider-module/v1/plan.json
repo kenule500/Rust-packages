@@ -146,7 +146,7 @@
         ]
       },
       {
-        "name": "Customer",
+        "name": "QboCustomer",
         "action": "create",
         "fields": [
           {
@@ -177,7 +177,7 @@
         ]
       },
       {
-        "name": "Invoice",
+        "name": "QboInvoice",
         "action": "create",
         "fields": [
           {
@@ -265,7 +265,7 @@
         ]
       },
       {
-        "name": "Account",
+        "name": "QboAccount",
         "action": "create",
         "fields": [
           {

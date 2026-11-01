@@ -110,3 +110,19 @@ Recorded during implementation, with no change to behaviour or to any acceptance
 
 `sdrive verify` after the correction: 67 matched, 0 missing, 7 withdrawn, status `warn`.
 
+## Plan correction (2026-11-01, test phase)
+
+- **Entity names carry the provider prefix.** The archived `m1-first-publish`
+  hygiene criterion (AC-040) forbids the bare application nouns `struct Customer`,
+  `struct Invoice`, and `struct Account` anywhere in `wirekit`; the same test
+  permits a provider-specific name such as `AccountReport`. The entities are
+  therefore `QboCustomer`, `QboInvoice`, and `QboAccount`; `InvoiceLine`,
+  `Payment`, `Item`, and `TokenSet` are unaffected because they are not on the
+  forbidden list. serde keeps the Intuit `PascalCase` wire names, so nothing
+  changes on the wire.
+- **Fault mapping.** `WirekitError::api_from_body` now falls back to
+  `Fault.Error[0].code` and `Fault.Error[0].Message`, which is what AC-014 asks
+  for. The change is additive: it only applies when no top-level code or message
+  is present.
+
+

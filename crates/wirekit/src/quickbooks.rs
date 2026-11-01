@@ -15,7 +15,7 @@
 //!
 //! ```no_run
 //! # async fn run() -> Result<(), wirekit::WirekitError> {
-//! use wirekit::quickbooks::{QuickBooksClient, QuickBooksConfig};
+//! use wirekit::quickbooks::{QboCustomer, QuickBooksClient, QuickBooksConfig};
 //! use wirekit::{Secret, WirekitClient};
 //!
 //! let http = WirekitClient::builder("https://quickbooks.api.intuit.com")?.build()?;
@@ -32,7 +32,7 @@
 //! );
 //!
 //! let customer = books
-//!     .create_customer(&Customer::new("Acme"), None)
+//!     .create_customer(&QboCustomer::new("Acme"), None)
 //!     .await?;
 //! println!("{:?}", customer.id);
 //! # Ok(())
@@ -149,7 +149,7 @@ fn lock<T>(mutex: &Mutex<T>) -> MutexGuard<'_, T> {
 /// A customer record.
 #[derive(Clone, Debug, Default, PartialEq, Eq, Serialize, Deserialize)]
 #[serde(rename_all = "PascalCase")]
-pub struct Customer {
+pub struct QboCustomer {
     /// The QuickBooks id, absent until the record is created.
     #[serde(skip_serializing_if = "Option::is_none", default)]
     pub id: Option<String>,
@@ -170,7 +170,7 @@ pub struct Customer {
     pub primary_phone: Option<serde_json::Value>,
 }
 
-impl Customer {
+impl QboCustomer {
     /// A customer with only a display name.
     #[must_use]
     pub fn new(display_name: impl Into<String>) -> Self {
@@ -198,7 +198,7 @@ pub struct InvoiceLine {
 /// An invoice record.
 #[derive(Clone, Debug, Default, PartialEq, Serialize, Deserialize)]
 #[serde(rename_all = "PascalCase")]
-pub struct Invoice {
+pub struct QboInvoice {
     /// The QuickBooks id, absent until the record is created.
     #[serde(skip_serializing_if = "Option::is_none", default)]
     pub id: Option<String>,
@@ -218,7 +218,7 @@ pub struct Invoice {
     pub status: Option<String>,
 }
 
-impl Invoice {
+impl QboInvoice {
     /// An invoice for one customer with ordered lines.
     #[must_use]
     pub fn new(customer_id: impl Into<String>, lines: Vec<InvoiceLine>) -> Self {
@@ -273,7 +273,7 @@ impl Payment {
 /// An account in the chart of accounts.
 #[derive(Clone, Debug, Default, PartialEq, Serialize, Deserialize)]
 #[serde(rename_all = "PascalCase")]
-pub struct Account {
+pub struct QboAccount {
     /// The QuickBooks id.
     pub id: String,
     /// The account name.
@@ -533,9 +533,9 @@ impl QuickBooksClient {
     /// the existing customer instead of creating a duplicate (AC-016).
     pub async fn create_customer(
         &self,
-        customer: &Customer,
+        customer: &QboCustomer,
         idempotency_key: Option<&str>,
-    ) -> Result<Customer, WirekitError> {
+    ) -> Result<QboCustomer, WirekitError> {
         if idempotency_key.is_some() {
             if let Some(existing) = self.find_customer(&customer.display_name).await? {
                 return Ok(existing);
@@ -547,7 +547,10 @@ impl QuickBooksClient {
     }
 
     /// Update a customer; the record must carry its id and sync token.
-    pub async fn update_customer(&self, customer: &Customer) -> Result<Customer, WirekitError> {
+    pub async fn update_customer(
+        &self,
+        customer: &QboCustomer,
+    ) -> Result<QboCustomer, WirekitError> {
         if customer.id.is_none() || customer.sync_token.is_none() {
             return Err(WirekitError::invalid_config(
                 "a customer update needs both the id and the sync token",
@@ -567,7 +570,7 @@ impl QuickBooksClient {
     pub async fn find_customer(
         &self,
         display_name: &str,
-    ) -> Result<Option<Customer>, WirekitError> {
+    ) -> Result<Option<QboCustomer>, WirekitError> {
         let escaped = display_name.replace('\'', "\\'");
         let sql = format!("select * from Customer where DisplayName = '{escaped}'");
         let page: QueryEnvelope = self.query(&sql).await?;
@@ -575,13 +578,13 @@ impl QuickBooksClient {
     }
 
     /// Create an invoice with its ordered lines.
-    pub async fn create_invoice(&self, invoice: &Invoice) -> Result<Invoice, WirekitError> {
+    pub async fn create_invoice(&self, invoice: &QboInvoice) -> Result<QboInvoice, WirekitError> {
         let envelope: InvoiceEnvelope = self.post(INVOICE_PATH, invoice).await?;
         Ok(envelope.invoice)
     }
 
     /// Void an existing invoice.
-    pub async fn void_invoice(&self, invoice: &Invoice) -> Result<Invoice, WirekitError> {
+    pub async fn void_invoice(&self, invoice: &QboInvoice) -> Result<QboInvoice, WirekitError> {
         let token = self.access_token().await?;
         let url = self.endpoint(INVOICE_VOID_PATH)?;
         let spec = self
@@ -592,7 +595,7 @@ impl QuickBooksClient {
     }
 
     /// Send an invoice to its customer.
-    pub async fn send_invoice(&self, invoice_id: &str) -> Result<Invoice, WirekitError> {
+    pub async fn send_invoice(&self, invoice_id: &str) -> Result<QboInvoice, WirekitError> {
         let token = self.access_token().await?;
         let template = INVOICE_SEND_PATH.replace("{invoice-id}", invoice_id);
         let url = self.endpoint(&template)?;
@@ -610,7 +613,7 @@ impl QuickBooksClient {
     }
 
     /// List accounts, bounded by `max`.
-    pub async fn list_accounts(&self, max: u32) -> Result<Vec<Account>, WirekitError> {
+    pub async fn list_accounts(&self, max: u32) -> Result<Vec<QboAccount>, WirekitError> {
         let sql = format!("select * from Account maxresults {max}");
         let page: QueryEnvelope = self.query(&sql).await?;
         Ok(page.query_response.account)
@@ -730,13 +733,13 @@ impl QuickBooksClient {
 #[derive(Debug, Deserialize)]
 #[serde(rename_all = "PascalCase")]
 struct CustomerEnvelope {
-    customer: Customer,
+    customer: QboCustomer,
 }
 
 #[derive(Debug, Deserialize)]
 #[serde(rename_all = "PascalCase")]
 struct InvoiceEnvelope {
-    invoice: Invoice,
+    invoice: QboInvoice,
 }
 
 #[derive(Debug, Deserialize)]
@@ -749,9 +752,9 @@ struct PaymentEnvelope {
 #[serde(rename_all = "PascalCase")]
 struct QueryResponseBody {
     #[serde(default)]
-    customer: Vec<Customer>,
+    customer: Vec<QboCustomer>,
     #[serde(default)]
-    account: Vec<Account>,
+    account: Vec<QboAccount>,
     #[serde(default)]
     item: Vec<Item>,
 }

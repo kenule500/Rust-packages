@@ -1,7 +1,7 @@
 # Project Constitution
 
-> **Version:** 1.1.0
-> **Last Updated:** 2026-10-20
+> **Version:** 1.2.0
+> **Last Updated:** 2026-11-01
 > **Status:** Active
 
 This document is the single source of truth for all project standards, rules, and constraints. All AI agents and developers MUST adhere to these rules.
@@ -15,19 +15,19 @@ This document is the single source of truth for all project standards, rules, an
 - **CON-105:** A new provider module MUST have a design file following the `03`-`28` pattern before implementation begins. <!-- source: .sdrive/context/architecture-context.md §Provider clients are modules, not crates; catalogue/01_wirekit.md -->
 - **CON-106:** Public crates MUST NOT contain application domain types, billing rules, product UI, or vendor workflow code. Those belong in the consuming application. <!-- source: .sdrive/context/project-overview.md §Purpose; README.md; catalogue/31_platform_core.md -->
 - **CON-107:** Stateful concerns (quota, webhook delivery state, token storage) MUST live in their own crates and MUST NOT be added to `wirekit`. <!-- source: .sdrive/context/architecture-context.md §Why stateful packages are separate; catalogue/29_quota.md; catalogue/30_webhook_gateway.md -->
-- **CON-108:** `dado` MUST remain I/O-free: no sockets, no URLs, no runtime, and no file writes. Callers fetch; `dado` parses. <!-- source: .sdrive/context/architecture-context.md §Purity and I/O boundaries; crates/dado/README.md; crates/dado/src/lib.rs -->
+- **CON-108:** `dado-yaml` MUST remain I/O-free: no sockets, no URLs, no runtime, and no file writes. Callers fetch; `dado-yaml` parses. <!-- source: .sdrive/context/architecture-context.md §Purity and I/O boundaries; crates/dado-yaml/README.md; crates/dado-yaml/src/lib.rs -->
 - **CON-109:** Public crates MUST NOT expose a global mutable singleton. Registration MUST be explicit. <!-- source: .sdrive/context/architecture-context.md §Direction of dependencies; catalogue/31_platform_core.md -->
 - **CON-110:** A public crate MUST NOT depend on a consuming application. Dependencies point from the application to the crate. <!-- source: .sdrive/context/project-overview.md §Purpose; .sdrive/context/architecture-context.md §Direction of dependencies -->
 - **CON-111:** A crate name MUST be checked on crates.io immediately before publication. A published name is permanent and MUST NOT be reused. <!-- source: .sdrive/context/project-overview.md §Publishing status; README.md -->
 
 ## 2. Coding Standards (CON-2xx)
 
-- **CON-201:** Every crate MUST declare `#![forbid(unsafe_code)]`. Any exception MUST be justified in the crate's design document and approved by a constitution amendment. <!-- source: .sdrive/context/code-standards.md §Crate-level lint attributes; crates/dado/src/lib.rs -->
-- **CON-202:** Every crate MUST declare `#![deny(missing_docs)]`, and every public item MUST have a rustdoc comment. <!-- source: .sdrive/context/code-standards.md §Crate-level lint attributes; crates/dado/src/lib.rs -->
-- **CON-203:** Every module MUST start with a `//!` doc comment that states its scope and its non-goals. <!-- source: .sdrive/context/code-standards.md §Documentation style; crates/dado/src/*.rs -->
+- **CON-201:** Every crate MUST declare `#![forbid(unsafe_code)]`. Any exception MUST be justified in the crate's design document and approved by a constitution amendment. <!-- source: .sdrive/context/code-standards.md §Crate-level lint attributes; crates/dado-yaml/src/lib.rs -->
+- **CON-202:** Every crate MUST declare `#![deny(missing_docs)]`, and every public item MUST have a rustdoc comment. <!-- source: .sdrive/context/code-standards.md §Crate-level lint attributes; crates/dado-yaml/src/lib.rs -->
+- **CON-203:** Every module MUST start with a `//!` doc comment that states its scope and its non-goals. <!-- source: .sdrive/context/code-standards.md §Documentation style; crates/dado-yaml/src/*.rs -->
 - **CON-204:** Optional functionality MUST be behind additive Cargo features. Enabling a feature MUST NOT disable another, and the default feature set MUST be documented. <!-- source: .sdrive/context/code-standards.md §Feature style; https://doc.rust-lang.org/cargo/reference/features.html -->
-- **CON-205:** Error types MUST expose a stable code and implement `Display` and `std::error::Error`. A published code MUST NOT be reused with a different meaning. <!-- source: .sdrive/context/code-standards.md §Error style; crates/dado/src/diag.rs; crates/dado/src/yaml.rs -->
-- **CON-206:** Unsupported or unknown input constructs MUST produce a positioned error. They MUST NOT be silently guessed or ignored. <!-- source: .sdrive/context/code-standards.md §YAML contract; crates/dado/src/yaml.rs -->
+- **CON-205:** Error types MUST expose a stable code and implement `Display` and `std::error::Error`. A published code MUST NOT be reused with a different meaning. <!-- source: .sdrive/context/code-standards.md §Error style; crates/dado-yaml/src/diag.rs; crates/dado-yaml/src/yaml.rs -->
+- **CON-206:** Unsupported or unknown input constructs MUST produce a positioned error. They MUST NOT be silently guessed or ignored. <!-- source: .sdrive/context/code-standards.md §YAML contract; crates/dado-yaml/src/yaml.rs -->
 - **CON-207:** Every provider client MUST map failures into the shared `WirekitError` enum. A provider MUST NOT introduce a second error type. <!-- source: .sdrive/context/code-standards.md §Error, retry, and rate-limit contract; catalogue/01_wirekit.md -->
 - **CON-208:** HTTP retries MUST use exponential backoff with jitter, 3 attempts by default, retry on 5xx/429/network errors, honor `Retry-After`, and MUST NOT retry other 4xx. <!-- source: .sdrive/context/code-standards.md §Error, retry, and rate-limit contract; catalogue/01_wirekit.md -->
 - **CON-209:** Rate limiting MUST be a per-provider token bucket with per-provider overrides and tracing metrics. <!-- source: .sdrive/context/code-standards.md §Error, retry, and rate-limit contract; catalogue/01_wirekit.md -->

@@ -612,12 +612,12 @@
       "versions": [
         {
           "id": "v1",
-          "phase": "backlog",
+          "phase": "ongoing",
           "currentStep": "implementation",
           "gates": {
             "specification": "approved",
             "planning": "approved",
-            "implementation": "pending",
+            "implementation": "approved",
             "review": "pending"
           },
           "history": [
@@ -639,6 +639,13 @@
               "actor": "kenule500",
               "previousValue": "pending",
               "timestamp": "2026-11-01T21:07:38Z"
+            },
+            {
+              "event": "Implementation complete: spec moved from specs/backlog to specs/ongoing; wirekit::eagleview implemented (client-credentials token cache, idempotent paid order with cost acknowledgement, order_status, fetch_report, bounded download_pdf, list_reports); check, clippy and rustdoc clean; sdrive verify 50 matched, 0 missing, 6 withdrawn (warn); 12 tasks and 18 traceability rows complete",
+              "by": "kenule500",
+              "actor": "kenule500",
+              "previousValue": "pending",
+              "timestamp": "2026-11-01T21:25:02Z"
             }
           ]
         }

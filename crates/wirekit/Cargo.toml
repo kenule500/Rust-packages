@@ -48,6 +48,12 @@ adp = []
 # base64, url, serde_json), so it needs no new library.
 google-oauth = []
 
+# BP-012. EagleView satellite roof measurement: client-credentials OAuth2, an
+# idempotent paid order, the asynchronous order lifecycle, report fetch, a bounded
+# PDF download, and address-scoped report listing. No new dependency: base64,
+# serde, serde_json, and url are already compiled in.
+eagleview = []
+
 # BP-011. Meta Graph messaging for Messenger, Instagram DM, and WhatsApp Cloud.
 # No new dependency: the module reuses the client, retry, rate limit, secret,
 # and HMAC machinery already compiled in.

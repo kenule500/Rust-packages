@@ -19,6 +19,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   payment recording, account and item queries, OAuth2 refresh before expiry with
   the rotated refresh token surfaced, and `intuit-signature` webhook
   verification with a dedupe key.
+- `eagleview`, an EagleView satellite-measurement module behind the additive
+  `eagleview` feature: client-credentials tokens, an idempotent paid order that
+  refuses to run without an explicit cost acknowledgement, the asynchronous order
+  lifecycle, report fetch, a size-bounded PDF download, and address-scoped report
+  listing.
 
 ## [0.1.0] - 2026-10-20
 

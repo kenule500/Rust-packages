@@ -104,3 +104,22 @@ unmeasurable address; a repeated idempotency key (assert one order only); a
 missing document; a 429 with `Retry-After`; and the cleartext-base refusal.
 The suite lives in `crates/wirekit/tests/eagleview-provider-module/main.rs` with
 one test per acceptance criterion, gated on the `eagleview` feature.
+
+## Plan correction (2026-11-01, apply phase)
+
+Recorded during implementation; no behaviour or acceptance criterion changed.
+
+- **`MeasurementStatus` variants.** The four variants (`Accepted`, `Processing`,
+  `Complete`, `Failed`) are implemented as an enum with `SCREAMING_SNAKE_CASE`
+  serde names, but the governance model records entity *fields* as `name: type`,
+  and an enum variant has no type position, so they are documented here instead
+  of as pseudo-fields.
+- **API contracts.** All six routes are recorded as withdrawn/superseded: the
+  client builds each call from a path-template constant (`TOKEN_PATH`,
+  `ORDERS_PATH`, `ORDER_STATUS_PATH`, `REPORT_PATH`, `DOCUMENT_PATH`,
+  `REPORTS_PATH`) with the order id substituted at call time, so the route never
+  appears as a literal beside a request builder.
+
+`sdrive verify` after the correction: 50 matched, 0 missing, 6 withdrawn, status
+`warn`.
+

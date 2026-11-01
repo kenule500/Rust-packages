@@ -20,6 +20,7 @@ enables or disables another.
 | `sendgrid` | `wirekit::sendgrid` | Bearer API key | `https://api.sendgrid.com/v3` |
 | `slack` | `wirekit::slack` | Bot token | `https://slack.com/api` |
 | `google-oauth` | `wirekit::google_oauth` | OAuth2 Authorization Code + PKCE helper | `https://oauth2.googleapis.com` |
+| `eagleview` | `wirekit::eagleview` | OAuth2 client credentials; paid orders need a cost acknowledgement | `https://api.eagleview.com` |
 | `meta` | `wirekit::meta` | Page or system-user token; `X-Hub-Signature-256` for webhooks | `https://graph.facebook.com` |
 | `quickbooks` | `wirekit::quickbooks` | OAuth2 refresh token; `intuit-signature` for webhooks | `https://quickbooks.api.intuit.com` |
 | `native-tls` | — | Adds the platform TLS backend; rustls is always compiled in | — |
@@ -207,6 +208,24 @@ crate instead of duplicating it.
 
 Revisit when `async-stripe` 1.0 stabilises, the workspace MSRV changes, or the
 crate stops being maintained.
+
+### EagleView
+
+`eagleview` adds `wirekit::eagleview`: satellite roof measurement over the
+order → status → report lifecycle. Two rules are enforced by the module rather
+than trusted to the caller.
+
+- **Cost.** A report is a paid provider call, so `order_measurement` refuses to
+  run unless you pass `cost_acknowledged: true`. Nothing is ordered by accident.
+- **Idempotency.** Every order carries a caller key. Repeating the key with the
+  same address returns the order already created and places no second one;
+  reusing it for a different address is an error, so a retry cannot bill twice.
+
+Poll `order_status` until `MeasurementStatus::Complete`, then `fetch_report` for
+the area, pitch, and segment breakdown, and `download_pdf` for the document —
+validated as `application/pdf` and bounded before it is returned. Access is
+`[to be confirmed]` until the EagleView commercial contract and credentials are
+approved, so the module is verified against a local mock.
 
 ## Security notes
 

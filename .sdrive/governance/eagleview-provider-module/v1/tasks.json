@@ -18,7 +18,7 @@
           "linkedAcceptanceCriteria": [
             "AC-001"
           ],
-          "completed": false
+          "completed": true
         },
         {
           "id": "T1.2",
@@ -35,7 +35,7 @@
             "AC-002",
             "AC-013"
           ],
-          "completed": false
+          "completed": true
         }
       ]
     },
@@ -56,7 +56,7 @@
           "linkedAcceptanceCriteria": [
             "AC-003"
           ],
-          "completed": false
+          "completed": true
         },
         {
           "id": "T2.2",
@@ -68,7 +68,7 @@
           "linkedAcceptanceCriteria": [
             "AC-004"
           ],
-          "completed": false
+          "completed": true
         },
         {
           "id": "T2.3",
@@ -80,7 +80,7 @@
           "linkedAcceptanceCriteria": [
             "AC-005"
           ],
-          "completed": false
+          "completed": true
         }
       ]
     },
@@ -101,7 +101,7 @@
           "linkedAcceptanceCriteria": [
             "AC-006"
           ],
-          "completed": false
+          "completed": true
         },
         {
           "id": "T3.2",
@@ -113,7 +113,7 @@
           "linkedAcceptanceCriteria": [
             "AC-007"
           ],
-          "completed": false
+          "completed": true
         }
       ]
     },
@@ -135,7 +135,7 @@
           "linkedAcceptanceCriteria": [
             "AC-008"
           ],
-          "completed": false
+          "completed": true
         },
         {
           "id": "T4.2",
@@ -148,7 +148,7 @@
           "linkedAcceptanceCriteria": [
             "AC-009"
           ],
-          "completed": false
+          "completed": true
         },
         {
           "id": "T4.3",
@@ -160,7 +160,7 @@
           "linkedAcceptanceCriteria": [
             "AC-010"
           ],
-          "completed": false
+          "completed": true
         }
       ]
     },
@@ -183,7 +183,7 @@
             "AC-011",
             "AC-012"
           ],
-          "completed": false
+          "completed": true
         },
         {
           "id": "T5.2",
@@ -199,7 +199,7 @@
           "linkedAcceptanceCriteria": [
             "AC-013"
           ],
-          "completed": false
+          "completed": true
         }
       ]
     }

@@ -600,6 +600,69 @@
           ]
         }
       ]
+    },
+    {
+      "name": "eagleview-provider-module",
+      "branch": "feature/bp-012-eagleview",
+      "base": "main",
+      "productItems": [
+        "BP-012"
+      ],
+      "currentVersion": "v1",
+      "versions": [
+        {
+          "id": "v1",
+          "phase": "ongoing",
+          "currentStep": "implementation",
+          "gates": {
+            "specification": "approved",
+            "planning": "approved",
+            "implementation": "approved",
+            "review": "approved"
+          },
+          "history": [
+            {
+              "event": "Proposed from BP-012 (EagleView provider module, P1, depends on BP-005 and a commercial contract that is [to be confirmed]) on its own branch because the access envelope is external",
+              "by": "SpecDrive",
+              "timestamp": "2026-11-01T17:12:08Z"
+            },
+            {
+              "event": "Gate 1 approved: eagleview-provider-module specification and traceability (7 stories, 13 ACs, 13 FR, 5 NFR, 4 edge cases); BP-012 commercial access stays [to be confirmed]",
+              "by": "kenule500",
+              "actor": "kenule500",
+              "previousValue": "pending",
+              "timestamp": "2026-11-01T17:20:26Z"
+            },
+            {
+              "event": "Gate 2 approved: eagleview technical plan and 12 tasks across 5 phases; one module, no new dependency, mock-based verification because BP-012 access is [to be confirmed]",
+              "by": "kenule500",
+              "actor": "kenule500",
+              "previousValue": "pending",
+              "timestamp": "2026-11-01T21:07:38Z"
+            },
+            {
+              "event": "Implementation complete: spec moved from specs/backlog to specs/ongoing; wirekit::eagleview implemented (client-credentials token cache, idempotent paid order with cost acknowledgement, order_status, fetch_report, bounded download_pdf, list_reports); check, clippy and rustdoc clean; sdrive verify 50 matched, 0 missing, 6 withdrawn (warn); 12 tasks and 18 traceability rows complete",
+              "by": "kenule500",
+              "actor": "kenule500",
+              "previousValue": "pending",
+              "timestamp": "2026-11-01T21:25:02Z"
+            },
+            {
+              "event": "Acceptance suite added: 13 tests in crates/wirekit/tests/eagleview-provider-module (one per AC), 13 passed with exit code 0; the cost guard and the idempotency replay are asserted by request counts; report written and every traceability row carries its TEST-0NN id",
+              "by": "SpecDrive",
+              "actor": "kenule500",
+              "timestamp": "2026-11-01T21:33:59Z"
+            },
+            {
+              "event": "Review PASS recorded by the human reviewer with findings: fmt, clippy -D warnings, docs -D warnings and the workspace suite green at 3deba12, sdrive test evidence recorded, verify 0 missing, CI 9/9 green; medium finding is the process-local idempotency ledger; cleared for archive",
+              "by": "kenule500",
+              "actor": "kenule500",
+              "previousValue": "pending",
+              "timestamp": "2026-11-01T22:09:21Z"
+            }
+          ]
+        }
+      ]
     }
   ]
 }

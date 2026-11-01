@@ -1,0 +1,332 @@
+{
+  "feature": "eagleview-provider-module",
+  "title": "EagleView provider module",
+  "version": 1,
+  "overview": {
+    "problemStatement": "Roof measurement is an asynchronous, per-report paid provider call, and wirekit has no EagleView module, so every integration re-implements the order lifecycle, polling, PDF download, and its own idempotency; a retried order becomes a duplicate charge, and an unmeasurable address is indistinguishable from a transport error.",
+    "proposedSolution": "Add an eagleview feature-flagged module exposing EagleViewClient, MeasurementRequest, MeasurementOrder, MeasurementReport, RoofSegment, RoofPitch, and RoofArea: client-credentials OAuth2, idempotent ordering, typed status polling, report fetch, bounded PDF download, and report listing, reusing the crate client, retry, rate-limit, secret, and error types.",
+    "targetAudience": "Rust developers producing preliminary roofing estimates, including the estimation agent in a consuming application.",
+    "assumptions": [
+      "Commercial contract, API credentials, and report pricing are [to be confirmed]; the caller already holds approved credentials.",
+      "The lifecycle is asynchronous: order, status, then report. No status webhook is assumed until the contract confirms one.",
+      "Each report costs money; the module never orders without an explicit caller cost acknowledgement.",
+      "Turnaround time is unknown, so the module exposes status rather than blocking.",
+      "No external research beyond the repository catalogue and constitution (CON-704)."
+    ],
+    "outOfScope": [
+      "Webhook verification for order status, until a contract confirms a callback exists (RISK-002).",
+      "Estimate calculation, pricing rules, and report caching; those belong to the consuming product.",
+      "Batch or bulk ordering across addresses.",
+      "Historical coverage guarantees for rural or new-construction addresses (RISK-004)."
+    ]
+  },
+  "userStories": [
+    {
+      "id": "US-001",
+      "title": "Authenticate with client credentials",
+      "role": "developer",
+      "want": "the module to obtain and cache a token",
+      "benefit": "calls do not re-authenticate every time",
+      "acceptanceCriteria": [
+        {
+          "id": "AC-001",
+          "text": "Given a client ID, client secret, and API base, when the client is built, then both credentials are held in Secret and Debug renders no plaintext."
+        },
+        {
+          "id": "AC-002",
+          "text": "Given a cached token that is still valid, when a call is made, then no token request is sent, and an expired or soon-to-expire token is replaced before the call is attempted."
+        }
+      ]
+    },
+    {
+      "id": "US-002",
+      "title": "Order a measurement",
+      "role": "developer",
+      "want": "to order a report",
+      "benefit": "an address becomes measurements",
+      "acceptanceCriteria": [
+        {
+          "id": "AC-003",
+          "text": "Given an address, product, and options, when order_measurement is called, then a POST to the orders resource carries that request and returns an order carrying its provider id and initial status."
+        },
+        {
+          "id": "AC-004",
+          "text": "Given a caller idempotency key already used for the same request, when the order is submitted again, then the existing order is returned and no second order is created."
+        },
+        {
+          "id": "AC-005",
+          "text": "Given no explicit cost acknowledgement, when an order is attempted, then the module refuses locally without calling the provider."
+        }
+      ]
+    },
+    {
+      "id": "US-003",
+      "title": "Poll the order lifecycle",
+      "role": "developer",
+      "want": "typed status",
+      "benefit": "I know whether to wait, use the report, or stop",
+      "acceptanceCriteria": [
+        {
+          "id": "AC-006",
+          "text": "Given an order id, when order_status is called, then the response is mapped into a typed state distinguishing accepted, processing, complete, and failed."
+        },
+        {
+          "id": "AC-007",
+          "text": "Given a failed order, when its status is read, then the failure reason is surfaced and the module does not retry the order."
+        }
+      ]
+    },
+    {
+      "id": "US-004",
+      "title": "Fetch and download the report",
+      "role": "developer",
+      "want": "the measurements",
+      "benefit": "an estimate can be produced",
+      "acceptanceCriteria": [
+        {
+          "id": "AC-008",
+          "text": "Given a complete order, when fetch_report is called, then the report carries the total area, pitch, and the segment breakdown with each segment type, area, and pitch."
+        },
+        {
+          "id": "AC-009",
+          "text": "Given a report with a document, when download_pdf is called, then the bytes are returned with the provider content type validated and the body bounded in size."
+        }
+      ]
+    },
+    {
+      "id": "US-005",
+      "title": "List reports for a property",
+      "role": "developer",
+      "want": "existing reports",
+      "benefit": "the same address is not ordered twice",
+      "acceptanceCriteria": [
+        {
+          "id": "AC-010",
+          "text": "Given an address, when list_reports is called, then the module returns the reports already produced for it, bounded by a caller-supplied limit."
+        }
+      ]
+    },
+    {
+      "id": "US-006",
+      "title": "Distinguish provider failures",
+      "role": "developer",
+      "want": "typed errors",
+      "benefit": "a rejection is never mistaken for a transport fault",
+      "acceptanceCriteria": [
+        {
+          "id": "AC-011",
+          "text": "Given a rejected order, an unmeasurable address, and a processing failure, when each is returned, then the caller can distinguish them by typed error code rather than by message text."
+        },
+        {
+          "id": "AC-012",
+          "text": "Given a 429 or 5xx, when the call is retried, then Retry-After is honoured, and a rejected order is never retried without being changed."
+        }
+      ]
+    },
+    {
+      "id": "US-007",
+      "title": "Safe configuration",
+      "role": "security reviewer",
+      "want": "transport rules enforced",
+      "benefit": "credentials never travel in cleartext",
+      "acceptanceCriteria": [
+        {
+          "id": "AC-013",
+          "text": "Given a non-loopback cleartext base URL, when the client is built, then it is rejected as invalid configuration, and the module reads no environment variables."
+        }
+      ]
+    }
+  ],
+  "functionalRequirements": [
+    {
+      "id": "FR-001",
+      "text": "The crate MUST expose an additive, default-off eagleview feature that enables no other provider.",
+      "linkedAcceptanceCriteria": [
+        "AC-001"
+      ]
+    },
+    {
+      "id": "FR-002",
+      "text": "EagleViewClient MUST hold the client credentials in Secret, cache the access token, and read no environment variables (CON-519).",
+      "linkedAcceptanceCriteria": [
+        "AC-001",
+        "AC-002"
+      ]
+    },
+    {
+      "id": "FR-003",
+      "text": "The module MUST order a measurement with a caller idempotency key and return the provider order id and initial status.",
+      "linkedAcceptanceCriteria": [
+        "AC-003"
+      ]
+    },
+    {
+      "id": "FR-004",
+      "text": "A repeated idempotency key MUST return the existing order instead of creating a second billable order.",
+      "linkedAcceptanceCriteria": [
+        "AC-004"
+      ]
+    },
+    {
+      "id": "FR-005",
+      "text": "The module MUST refuse to order without an explicit caller cost acknowledgement.",
+      "linkedAcceptanceCriteria": [
+        "AC-005"
+      ]
+    },
+    {
+      "id": "FR-006",
+      "text": "Order status MUST map into a typed state covering accepted, processing, complete, and failed.",
+      "linkedAcceptanceCriteria": [
+        "AC-006"
+      ]
+    },
+    {
+      "id": "FR-007",
+      "text": "A failed order MUST surface its reason and MUST NOT be retried.",
+      "linkedAcceptanceCriteria": [
+        "AC-007"
+      ]
+    },
+    {
+      "id": "FR-008",
+      "text": "A report MUST carry total area, pitch, and per-segment type, area, and pitch.",
+      "linkedAcceptanceCriteria": [
+        "AC-008"
+      ]
+    },
+    {
+      "id": "FR-009",
+      "text": "PDF download MUST validate the provider content type and bound the body size before returning bytes.",
+      "linkedAcceptanceCriteria": [
+        "AC-009"
+      ]
+    },
+    {
+      "id": "FR-010",
+      "text": "Report listing MUST be scoped to an address and bounded by a caller-supplied limit.",
+      "linkedAcceptanceCriteria": [
+        "AC-010"
+      ]
+    },
+    {
+      "id": "FR-011",
+      "text": "Rejected orders, unmeasurable addresses, and processing failures MUST be distinguishable by typed error code.",
+      "linkedAcceptanceCriteria": [
+        "AC-011"
+      ]
+    },
+    {
+      "id": "FR-012",
+      "text": "Retries MUST honour Retry-After for 429 and 5xx and MUST NOT retry a rejected order.",
+      "linkedAcceptanceCriteria": [
+        "AC-012"
+      ]
+    },
+    {
+      "id": "FR-013",
+      "text": "A non-loopback cleartext base URL MUST be rejected at construction (CON-520).",
+      "linkedAcceptanceCriteria": [
+        "AC-013"
+      ]
+    }
+  ],
+  "nonFunctionalRequirements": [
+    {
+      "id": "NFR-001",
+      "text": "Credentials and tokens MUST be held in Secret and render redacted (CON-511, CON-519).",
+      "linkedAcceptanceCriteria": [
+        "AC-001"
+      ]
+    },
+    {
+      "id": "NFR-002",
+      "text": "Every response MUST be typed and size-bounded before use (CON-515).",
+      "linkedAcceptanceCriteria": [
+        "AC-009"
+      ]
+    },
+    {
+      "id": "NFR-003",
+      "text": "All traffic MUST use HTTPS; cleartext must be refused at construction (CON-520).",
+      "linkedAcceptanceCriteria": [
+        "AC-013"
+      ]
+    },
+    {
+      "id": "NFR-004",
+      "text": "The module MUST add no runtime dependency.",
+      "linkedAcceptanceCriteria": [
+        "AC-001"
+      ]
+    },
+    {
+      "id": "NFR-005",
+      "text": "No application-domain entity may be declared in wirekit; provider schema types only (AC-040, CON-106).",
+      "linkedAcceptanceCriteria": [
+        "AC-008"
+      ]
+    }
+  ],
+  "edgeCases": [
+    {
+      "id": "EC-001",
+      "description": "An address resolving to multiple structures",
+      "expectedBehavior": "The provider reports it unmeasurable; the module returns a typed unmeasurable error rather than guessing."
+    },
+    {
+      "id": "EC-002",
+      "description": "A report whose PDF is missing but whose measurements exist",
+      "expectedBehavior": "The measurements remain usable; download fails with a typed error."
+    },
+    {
+      "id": "EC-003",
+      "description": "An order polled past a caller-supplied deadline",
+      "expectedBehavior": "The last known status is returned instead of blocking forever."
+    },
+    {
+      "id": "EC-004",
+      "description": "A repeated idempotency key used with a different address",
+      "expectedBehavior": "The mismatch is rejected rather than silently returning the other property order."
+    }
+  ],
+  "dependencies": [
+    {
+      "name": "reqwest",
+      "type": "library",
+      "notes": "Already compiled in with rustls-tls; reused unchanged."
+    },
+    {
+      "name": "serde_json",
+      "type": "library",
+      "notes": "Already present; request and report payloads."
+    },
+    {
+      "name": "base64",
+      "type": "library",
+      "notes": "Already present; client-credentials header encoding."
+    }
+  ],
+  "risks": [
+    {
+      "id": "RISK-001",
+      "description": "EagleView commercial contract and API credentials are unconfirmed.",
+      "mitigation": "Build and verify against a local mock; keep the assumption marked [to be confirmed]."
+    },
+    {
+      "id": "RISK-002",
+      "description": "No order-status webhook is assumed to exist.",
+      "mitigation": "Poll with bounded backoff; add verification in a later version only if the contract confirms a callback."
+    },
+    {
+      "id": "RISK-003",
+      "description": "Cost per report is unknown.",
+      "mitigation": "Require an explicit caller cost acknowledgement, so no unpriced order can be placed."
+    },
+    {
+      "id": "RISK-004",
+      "description": "Coverage gaps for rural or new-construction addresses.",
+      "mitigation": "Surface a typed unmeasurable error rather than a generic failure."
+    }
+  ]
+}

@@ -71,6 +71,9 @@ pub mod trace;
 #[cfg(feature = "angi")]
 pub mod angi;
 
+#[cfg(feature = "eagleview")]
+pub mod eagleview;
+
 #[cfg(feature = "google-lsa")]
 pub mod google_lsa;
 

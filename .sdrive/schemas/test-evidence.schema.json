@@ -68,6 +68,25 @@
       "type": "array",
       "items": { "type": "string", "pattern": "^AC-[0-9]{3}$" }
     },
+    "redGreen": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "ac": { "type": "string", "pattern": "^AC-[0-9]{3}$" },
+          "test": { "type": "string", "minLength": 1 },
+          "proven": { "type": "boolean" },
+          "method": { "type": "string" },
+          "baseExitCode": { "type": "integer" },
+          "reason": { "type": "string" }
+        },
+        "required": ["ac", "test", "proven"],
+        "additionalProperties": false
+      }
+    },
+    "redGreenBase": {
+      "type": ["string", "null"]
+    },
     "outputTail": {
       "type": "string"
     },

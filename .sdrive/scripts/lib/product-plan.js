@@ -433,8 +433,15 @@ function collectFeatureLinks(state, sdriveRoot) {
 
   for (const worktree of state.worktrees || []) {
     if (!worktree) continue;
+    // `items` wins when a branch carries several: `item` is the field written before shared
+    // branches existed, so preferring it would link only the first member of a shared branch
+    // and leave the others looking unprepared.
     const ids = normalizeIds(
-      worktree.item || worktree.items || worktree.productItem || worktree.backlogId || []
+      (Array.isArray(worktree.items) && worktree.items.length ? worktree.items : null) ||
+        worktree.item ||
+        worktree.productItem ||
+        worktree.backlogId ||
+        []
     );
     for (const id of ids) {
       put(id, {

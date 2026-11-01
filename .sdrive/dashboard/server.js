@@ -2446,20 +2446,21 @@ const SLASH_DETAILS = {
     handsOff: "/sdrive:test"
   },
   "/sdrive:performance": {
-    what: "Benchmarks and optimises performance and search visibility (SEO).",
-    why: "Ensures the feature is not just correct, but fast enough and discoverable.",
-    when: "After implementation, before review. Use --all to optimise every ongoing feature.",
+    what: "Fixes performance and search-visibility findings: measures, optimises, and re-measures.",
+    why: "Turns a missed NFR into a fix. Review measures; this command repairs.",
+    when:
+      "When /sdrive:review reports a missed NFR or SEO finding. Use --all to optimise every ongoing feature.",
     does: [
-      "Benchmarks against the feature's speed NFRs",
+      "Benchmarks against the feature's speed NFRs (median of at least 5 runs)",
       "Audits metadata, semantic HTML, structured data, and crawlability",
       "Applies approved speed and SEO fixes",
-      "Re-measures to prove the fix landed"
+      "Re-measures to prove the fix landed — the check that found it is the check that clears it"
     ],
     produces: [
       ".sdrive/reports/performance/performance-report-<feature>-<version>-<date>.md"
     ],
     reads: ["The implementation", "The feature's NFRs"],
-    handsOff: "/sdrive:review"
+    handsOff: "/sdrive:test, then /sdrive:review to re-verify"
   },
   "/sdrive:debug": {
     what: "Reproduces, isolates, and fixes defects — layout, APIs, runtime, and glitches.",
@@ -2480,21 +2481,33 @@ const SLASH_DETAILS = {
     handsOff: "/sdrive:review"
   },
   "/sdrive:review": {
-    what: "Runs the final audit and produces a pass/fail verdict.",
-    why: "The last quality gate before work is considered done. It does not merge or archive.",
+    what: "Runs the final audit — spec, tests, security, and performance — and produces a pass/fail verdict.",
+    why:
+      "The last quality gate before work is considered done. It audits and certifies; it never edits code, merges, or archives.",
     when: "When the feature is complete. Use --all to review every ongoing feature one after the other.",
     does: [
       "Verifies every acceptance criterion has a linked, passing test",
+      "Audits security itself: secret scan, vulnerable dependencies, and every REQUIRED CON-51x control verified as wired into the request path — not merely present in the manifest",
+      "Measures performance against the declared NFRs (median of at least 5 runs) and assesses SEO separately",
       "Audits the code against the spec and acceptance criteria",
-      "Checks quality, security, and governance compliance",
+      "Records both audits in review.json, so the gate can refuse an absent, failing, unexplained, or unverified one",
+      "On FAIL, writes a remediation list naming the command that fixes each finding — /sdrive:secure, /sdrive:performance, /sdrive:test, or /sdrive:apply — and stops",
+      "Never edits source to clear a finding: a fix moves HEAD, which would invalidate the verdict it just wrote",
       "Makes no Git or GitHub writes — no pull requests, no branch switching, no merging",
       "Issues a pass/fail verdict with findings"
     ],
     produces: [
-      ".sdrive/reports/reviews/review-report-<feature>-<version>-<date>.md"
+      ".sdrive/specs/<lifecycle>/<feature>/<version>/review.md",
+      ".sdrive/governance/<feature>/<version>/review.json (verdict, audits, remediation)"
     ],
-    reads: ["The implementation", "The spec", "Every prior report"],
-    handsOff: "/sdrive:archive"
+    reads: [
+      "The implementation",
+      "The spec",
+      "The constitution's Security Baseline",
+      "Every prior report"
+    ],
+    handsOff:
+      "/sdrive:archive on PASS · /sdrive:secure, /sdrive:performance, /sdrive:test, or /sdrive:apply on FAIL"
   },
   "/sdrive:archive": {
     what: "Merges an approved feature to the confirmed target branch and completes its lifecycle.",
@@ -2516,19 +2529,22 @@ const SLASH_DETAILS = {
     handsOff: "Nothing — the feature lifecycle ends here"
   },
   "/sdrive:secure": {
-    what: "Performs a security audit, threat modelling, and fixes.",
-    why: "Catches vulnerabilities before they reach users.",
-    when: "Before the review gate. Use --all to audit every ongoing feature.",
+    what: "Fixes security findings: threat modelling, remediation, and re-verification.",
+    why: "Turns a security finding into a fix. Review detects; this command repairs.",
+    when:
+      "When /sdrive:review reports a security finding. Use --all to audit every ongoing feature.",
     does: [
       "Threat-models the feature's attack surface",
-      "Scans for OWASP-class vulnerabilities",
-      "Applies approved fixes and re-tests"
+      "Scans for OWASP-class vulnerabilities and leaked secrets",
+      "Applies approved fixes and re-tests",
+      "Rotates a leaked credential rather than rewriting the file that holds it — deleting a key does not un-leak it",
+      "Never opens a secret file to read it; findings cite the variable name and location, redacted"
     ],
     produces: [
       ".sdrive/reports/security/security-report-<feature>-<version>-<date>.md"
     ],
     reads: ["The implementation", "The feature spec"],
-    handsOff: "/sdrive:review"
+    handsOff: "/sdrive:test, then /sdrive:review to re-verify"
   },
   "/sdrive:test": {
     what: "Writes tests for the acceptance criteria and reports coverage.",

@@ -98,9 +98,14 @@ async fn ac_030_retries_rate_limit_hits_and_errors_are_all_traced() {
         .expect("the client builds");
     let _ = client.get_json::<serde_json::Value>("v1/broken").await;
 
-    let bucket = TokenBucket::new(RateLimitConfig::new(1, 100.0).expect("a valid bucket"));
+    let bucket = TokenBucket::new(RateLimitConfig::new(1, 0.2).expect("a valid bucket"));
     assert_eq!(bucket.try_acquire(), None);
-    bucket.acquire().await;
+    // A deliberately slow refill makes the wait deterministic. With the previous
+    // 100/second rate a slow scheduler could refill inside the window, so
+    // `acquire` returned immediately and the trace never fired — a flake, not a
+    // behaviour change. At 0.2/second no token can arrive within the timeout.
+    let waited = tokio::time::timeout(Duration::from_millis(200), bucket.acquire()).await;
+    assert!(waited.is_err(), "the bucket waits for a token");
 
     let messages = capture.messages();
     for expected in [

@@ -174,8 +174,218 @@ function testEvidencePolicy(root) {
   return {
     required: governance.requireTestEvidence === true,
     allowStale: governance.allowStaleEvidence === true,
-    structuredReview: governance.requireStructuredReview === true
+    structuredReview: governance.requireStructuredReview === true,
+    // Security and performance audits inside review are opt-in: turning them on for
+    // existing projects would refuse every in-flight feature at once. Off by default
+    // means 0.1.53 projects behave exactly as before; the audit itself still runs when
+    // the review agent is asked for it.
+    security: governance.requireReviewSecurity === true,
+    performance: governance.requireReviewPerformance === true,
+    // "I could not check" is an admission, not a pass - so `not_verified` blocks unless
+    // the project says otherwise. The escape hatch exists for environments that
+    // genuinely cannot run a scanner or start the app.
+    allowUnverifiedSecurity: governance.allowUnverifiedSecurity === true,
+    allowUnverifiedPerformance: governance.allowUnverifiedPerformance === true,
+    // Red-before-green: a test that passes without the change proves nothing. Opt-in,
+    // and grandfathered per feature, because demanding proof from work that was
+    // proposed under the old rules would refuse every in-flight feature at once.
+    redGreen: governance.requireRedGreen === true,
+    redGreenEnforceFrom:
+      typeof governance.redGreenEnforceFrom === "string" ? governance.redGreenEnforceFrom : null
   };
+}
+
+// ---------- GRANDFATHERING ----------
+//
+// "It only affects features proposed after the upgrade" has to be a mechanism, not a
+// promise. The signal is the feature's earliest recorded activity: every gate approval
+// pushes a timestamped history entry, so work that was in flight before the cutoff has
+// a stamp from before it and work proposed afterwards has one after it.
+//
+// No timestamp at all means the age is unknown, and unknown is grandfathered. Refusing
+// work of unknowable age is exactly the deadlock this mechanism exists to prevent, and
+// a feature with no history at all has not agreed to anything yet anyway.
+function earliestActivityAt(version) {
+  const stamps = [];
+
+  for (const entry of (version && version.history) || []) {
+    if (entry && typeof entry.timestamp === "string") stamps.push(entry.timestamp);
+  }
+
+  for (const value of Object.values((version && version.gates) || {})) {
+    if (value && typeof value === "object" && typeof value.at === "string") stamps.push(value.at);
+  }
+
+  if (stamps.length === 0) return null;
+
+  const parsed = stamps.map((stamp) => Date.parse(stamp)).filter((time) => !Number.isNaN(time));
+
+  return parsed.length === 0 ? null : new Date(Math.min(...parsed)).toISOString();
+}
+
+function isGrandfatheredVersion(version, cutoff) {
+  // No cutoff recorded means the check was never switched on with a date attached, so
+  // there is nothing to enforce against.
+  if (!cutoff) return true;
+
+  const earliest = earliestActivityAt(version);
+
+  if (!earliest) return true;
+
+  return Date.parse(earliest) < Date.parse(cutoff);
+}
+
+// ---------- RED-BEFORE-GREEN BLOCKERS ----------
+//
+// Coverage asks "is this criterion tested?". This asks "would that test have failed
+// without the work?" - the only question that separates a real test from a decorative
+// one. `sdrive test --prove` answers it by running the suite at the base commit.
+function redGreenBlockers({ evidence, specJson, traceJson, featureName }) {
+  const blockers = [];
+
+  if (!evidence) {
+    blockers.push(
+      `Red-before-green is required but there is no test-evidence.json - run \`sdrive test ${featureName} --prove\`.`
+    );
+
+    return blockers;
+  }
+
+  const effective = collectEffectiveAcceptanceCriteria(specJson);
+  const tested = collectTestedAcceptanceCriteria(traceJson);
+  const inScope = effective.filter((ac) => tested.includes(ac));
+
+  if (inScope.length === 0) {
+    // Nothing covered means the coverage check is already refusing; adding a second
+    // complaint about the same absence would bury the actionable one.
+    return blockers;
+  }
+
+  const recorded = new Map(
+    (Array.isArray(evidence.redGreen) ? evidence.redGreen : [])
+      .filter((entry) => entry && typeof entry.ac === "string")
+      .map((entry) => [entry.ac, entry])
+  );
+
+  const missing = inScope.filter((ac) => !recorded.has(ac));
+
+  if (missing.length > 0) {
+    blockers.push(
+      `${missing.length} of ${inScope.length} covered acceptance criteria have no red-before-green evidence ` +
+        `(${missing.slice(0, 6).join(", ")}${missing.length > 6 ? ", ..." : ""}) - ` +
+        `run \`sdrive test ${featureName} --prove\` so the suite is also run at the base commit.`
+    );
+  }
+
+  // Recorded, but the suite passed there too. That is the vacuous-test case: the work
+  // is not what makes these tests pass, so they cannot certify it.
+  const unproven = inScope
+    .filter((ac) => recorded.has(ac) && recorded.get(ac).proven !== true)
+    .map((ac) => {
+      const entry = recorded.get(ac);
+      const base = entry.baseExitCode === undefined ? "" : ` (exit ${entry.baseExitCode} at base)`;
+
+      return `${ac}${base}`;
+    });
+
+  if (unproven.length > 0) {
+    blockers.push(
+      `${unproven.length} acceptance criteria are covered by tests that also pass without the work ` +
+        `(${unproven.slice(0, 6).join(", ")}${unproven.length > 6 ? ", ..." : ""}) - ` +
+        "a test that passes before and after the change does not certify it. Strengthen the assertions, or withdraw the criterion with a reason."
+    );
+  }
+
+  return blockers;
+}
+
+// ---------- SECURITY / PERFORMANCE AUDIT RECORD ----------
+//
+// `/sdrive:secure` and `/sdrive:performance` can fix things, but only if someone runs
+// them and nothing made review care. These checks move the ANALYSIS half of those
+// commands into the gate - the REMEDIATION half stays where it is, because a review
+// that edits code moves HEAD and invalidates the very verdict it is writing.
+//
+// Four states, and the difference between the last two is the whole safety property:
+//   pass            measured and clean
+//   fail            a finding that requires a fix - blocks
+//   not_applicable  nothing here to measure; needs a reason ("this is not a claim
+//                   anyone can skip: 'nothing to measure' must be stated")
+//   not_verified    it could not be measured; needs a reason AND an opt-out, because an
+//                   unverified security check on a release is exactly what a
+//                   prompt-only rule used to let through
+const AUDIT_STATES = ["pass", "fail", "not_applicable", "not_verified"];
+
+function auditBlockers(reviewJson, section, label, options) {
+  const blockers = [];
+  const record = reviewJson[section];
+
+  if (!record) {
+    blockers.push(
+      `review.json has no \`${section}\` audit, so ${label} is not recorded. Run \`/sdrive:review\` and record the result: pass, fail, not_applicable with a reason, or not_verified with a reason.`
+    );
+    return blockers;
+  }
+
+  const status = record.status;
+  const reason = typeof record.reason === "string" ? record.reason.trim() : "";
+
+  if (!AUDIT_STATES.includes(status)) {
+    blockers.push(
+      `review.json \`${section}.status\` is "${status || "missing"}", which is not one of ${AUDIT_STATES.join(
+        ", "
+      )}.`
+    );
+    return blockers;
+  }
+
+  if (status === "fail") {
+    blockers.push(
+      `review.json records a failing ${label}. Clear the findings with \`${options.fixWith}\`, then re-run \`sdrive test\` and \`/sdrive:review\`.`
+    );
+  }
+
+  if (status === "not_verified") {
+    if (!reason) {
+      blockers.push(
+        `review.json records ${label} as "not_verified" with no reason. State what could not be checked and why.`
+      );
+    }
+
+    if (!options.allowUnverified) {
+      blockers.push(
+        `review.json records ${label} as "not_verified", and this project does not accept unverified audits. Install the missing tool or runtime and re-run \`/sdrive:review\`, or accept it explicitly with \`sdrive config:set governance.${options.allowKey} true\`.`
+      );
+    }
+  }
+
+  if (status === "not_applicable" && !reason) {
+    blockers.push(
+      `review.json records ${label} as "not_applicable" with no reason. "Nothing to measure" is a claim - state it.`
+    );
+  }
+
+  return blockers;
+}
+
+// A PASS verdict sitting next to an open high-severity finding is a contradiction, and
+// the cheapest evidence that a review was rubber-stamped. Both halves are already
+// required fields, so this detector needs no new input from the reviewer.
+function contradictionBlockers(reviewJson) {
+  const findings = Array.isArray(reviewJson.findings) ? reviewJson.findings : [];
+  const blocking = findings.filter(
+    (finding) => finding && finding.severity === "high" && finding.fixRequired === true
+  );
+
+  if (reviewJson.status === "PASS" && blocking.length > 0) {
+    return [
+      `review.json records status "PASS" while ${blocking.length} high-severity finding(s) require a fix ("${
+        blocking[0].issue
+      }"). A fix-required finding is a FAIL verdict.`
+    ];
+  }
+
+  return [];
 }
 
 function headCommit(root) {
@@ -579,6 +789,34 @@ function checkGateRequirements(root, feature, version, gate) {
       }
     }
 
+    // Security and performance are part of the review now, when the project opts in.
+    // The record is what makes the handoff survivable: a session that ends mid-review
+    // leaves review.json naming the command that clears each finding, so `sdrive status`
+    // in another editor says what to do next instead of "run the tests again".
+    if (reviewJson && (reviewPolicy.security || reviewPolicy.performance)) {
+      if (reviewPolicy.security) {
+        blockers.push(
+          ...auditBlockers(reviewJson, "security", "the security audit", {
+            fixWith: `/sdrive:secure ${feature.name}`,
+            allowUnverified: reviewPolicy.allowUnverifiedSecurity,
+            allowKey: "allowUnverifiedSecurity"
+          })
+        );
+      }
+
+      if (reviewPolicy.performance) {
+        blockers.push(
+          ...auditBlockers(reviewJson, "performance", "the performance audit", {
+            fixWith: `/sdrive:performance ${feature.name}`,
+            allowUnverified: reviewPolicy.allowUnverifiedPerformance,
+            allowKey: "allowUnverifiedPerformance"
+          })
+        );
+      }
+
+      blockers.push(...contradictionBlockers(reviewJson));
+    }
+
     // Coverage is the whole point of this gate. Approving review is what unlocks
     // /sdrive:archive, and archive is what merges to the target branch and moves the
     // feature to completed/. An untested feature that reaches completed/ is already on
@@ -691,6 +929,27 @@ function checkGateRequirements(root, feature, version, gate) {
       }
     }
 
+    // Red-before-green. Off by default; grandfathered per feature so that switching it
+    // on never refuses work that was already in flight when the project opted in.
+    if (policy.redGreen) {
+      if (isGrandfatheredVersion(version, policy.redGreenEnforceFrom)) {
+        warnings.push(
+          `Red-before-green is switched on, but ${feature.name} ${version.id} predates the cutoff ` +
+            `(${policy.redGreenEnforceFrom || "no cutoff recorded"}), so it is grandfathered. ` +
+            "Features proposed after the cutoff must prove their tests fail without the work."
+        );
+      } else {
+        blockers.push(
+          ...redGreenBlockers({
+            evidence: readJsonIfPresent(govFile("test-evidence.json")),
+            specJson: readJsonIfPresent(govFile("spec.json")),
+            traceJson: readJsonIfPresent(govFile("traceability.json")),
+            featureName: feature.name
+          })
+        );
+      }
+    }
+
     // The coverage report is a human-readable artifact. Its absence weakens the audit
     // trail, but traceability.json above is the machine-checkable source of truth, so
     // a missing report warns rather than blocks.
@@ -753,5 +1012,12 @@ module.exports = {
   collectSubstantiatedWithdrawals,
   collectEffectiveAcceptanceCriteria,
   collectTestedAcceptanceCriteria,
+  redGreenBlockers,
+  isGrandfatheredVersion,
+  earliestActivityAt,
+  AUDIT_STATES,
+  auditBlockers,
+  contradictionBlockers,
+  testEvidencePolicy,
   checkGateRequirements
 };

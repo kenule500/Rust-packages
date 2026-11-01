@@ -326,12 +326,12 @@
       "versions": [
         {
           "id": "v1",
-          "phase": "backlog",
-          "currentStep": "specification",
+          "phase": "ongoing",
+          "currentStep": "implementation",
           "gates": {
             "specification": "approved",
             "planning": "approved",
-            "implementation": "pending",
+            "implementation": "approved",
             "review": "pending"
           },
           "history": [
@@ -353,6 +353,13 @@
               "actor": "kenule500",
               "previousValue": "pending",
               "timestamp": "2026-10-31T13:36:50Z"
+            },
+            {
+              "event": "Gate 3 approved: implementation closed. Field names realigned to the plan (primary_email, lines, invoice_ref, amount, errors, event_id, realm_id, item_type) with serde renames preserving the Intuit wire shape; 7 reuse components corrected to their files; 7 contracts recorded as superseded (path-template constants); sdrive verify warn with 0 missing and 7 withdrawn; 11 tasks and 18 traceability rows complete",
+              "by": "kenule500",
+              "actor": "kenule500",
+              "previousValue": "pending",
+              "timestamp": "2026-11-01T14:20:00Z"
             }
           ]
         }

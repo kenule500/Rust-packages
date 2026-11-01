@@ -159,8 +159,12 @@ pub struct Customer {
     /// The display name Intuit shows.
     pub display_name: String,
     /// The primary email address, when known.
-    #[serde(skip_serializing_if = "Option::is_none", default)]
-    pub primary_email_addr: Option<serde_json::Value>,
+    #[serde(
+        rename = "PrimaryEmailAddr",
+        skip_serializing_if = "Option::is_none",
+        default
+    )]
+    pub primary_email: Option<serde_json::Value>,
     /// The primary phone number, when known.
     #[serde(skip_serializing_if = "Option::is_none", default)]
     pub primary_phone: Option<serde_json::Value>,
@@ -204,8 +208,8 @@ pub struct Invoice {
     /// The customer this invoice bills.
     pub customer_ref: serde_json::Value,
     /// The ordered lines.
-    #[serde(skip_serializing_if = "Vec::is_empty", default)]
-    pub line: Vec<InvoiceLine>,
+    #[serde(rename = "Line", skip_serializing_if = "Vec::is_empty", default)]
+    pub lines: Vec<InvoiceLine>,
     /// The outstanding balance Intuit reports.
     #[serde(default)]
     pub balance: f64,
@@ -220,7 +224,7 @@ impl Invoice {
     pub fn new(customer_id: impl Into<String>, lines: Vec<InvoiceLine>) -> Self {
         Self {
             customer_ref: serde_json::json!({ "value": customer_id.into() }),
-            line: lines,
+            lines,
             ..Self::default()
         }
     }
@@ -239,10 +243,31 @@ pub struct Payment {
     /// The customer paying.
     pub customer_ref: serde_json::Value,
     /// The invoice being settled.
-    #[serde(skip_serializing_if = "Vec::is_empty", default)]
+    #[serde(skip_serializing_if = "Option::is_none", default)]
+    pub invoice_ref: Option<String>,
+    /// The transaction lines that link the payment to its invoice.
+    #[serde(rename = "Line", skip_serializing_if = "Vec::is_empty", default)]
     pub line: Vec<serde_json::Value>,
     /// The payment amount.
-    pub total_amt: f64,
+    #[serde(rename = "TotalAmt")]
+    pub amount: f64,
+}
+
+impl Payment {
+    /// A payment settling one invoice for its full amount.
+    #[must_use]
+    pub fn for_invoice(invoice_id: impl Into<String>, amount: f64) -> Self {
+        let invoice_id = invoice_id.into();
+        Self {
+            line: vec![serde_json::json!({
+                "Amount": amount,
+                "LinkedTxn": [{ "TxnId": invoice_id, "TxnType": "Invoice" }],
+            })],
+            invoice_ref: Some(invoice_id),
+            amount,
+            ..Self::default()
+        }
+    }
 }
 
 /// An account in the chart of accounts.
@@ -269,9 +294,9 @@ pub struct Item {
     pub id: String,
     /// The item name.
     pub name: String,
-    /// The item type, such as `Service`.
-    #[serde(skip_serializing_if = "Option::is_none", default)]
-    pub type_: Option<String>,
+    /// The item type, such as `Service` (`Type` on the wire; `type` is a Rust keyword).
+    #[serde(rename = "Type", skip_serializing_if = "Option::is_none", default)]
+    pub item_type: Option<String>,
     /// The unit price, when set.
     #[serde(skip_serializing_if = "Option::is_none", default)]
     pub unit_price: Option<f64>,
@@ -297,8 +322,8 @@ pub struct IntuitError {
 #[serde(rename_all = "PascalCase")]
 pub struct IntuitFault {
     /// Every error Intuit reported.
-    #[serde(default)]
-    pub error: Vec<IntuitError>,
+    #[serde(rename = "Error", default)]
+    pub errors: Vec<IntuitError>,
 }
 
 /// A verified webhook notification.
@@ -306,8 +331,10 @@ pub struct IntuitFault {
 pub struct WebhookNotification {
     /// The dedupe key: the first changed entity's id and operation.
     pub dedupe_key: String,
-    /// Every realm the notification names.
-    pub realm_ids: Vec<String>,
+    /// The notification id, empty when Intuit sends none.
+    pub event_id: String,
+    /// The realm the notification is for, empty when Intuit sends none.
+    pub realm_id: String,
     /// The changed entities.
     pub entities: Vec<serde_json::Value>,
 }
@@ -652,14 +679,23 @@ impl QuickBooksClient {
             .cloned()
             .unwrap_or_default();
 
-        let mut realm_ids = Vec::new();
+        let mut event_id = String::new();
+        let mut realm_id = String::new();
         let mut entities = Vec::new();
         for notification in notifications {
-            if let Some(realm) = notification
-                .get("realmId")
-                .and_then(serde_json::Value::as_str)
-            {
-                realm_ids.push(String::from(realm));
+            if event_id.is_empty() {
+                event_id = notification
+                    .get("notificationId")
+                    .and_then(serde_json::Value::as_str)
+                    .unwrap_or_default()
+                    .to_string();
+            }
+            if realm_id.is_empty() {
+                realm_id = notification
+                    .get("realmId")
+                    .and_then(serde_json::Value::as_str)
+                    .unwrap_or_default()
+                    .to_string();
             }
             if let Some(changed) = notification
                 .get("dataChangeEvent")
@@ -684,7 +720,8 @@ impl QuickBooksClient {
 
         Ok(WebhookNotification {
             dedupe_key,
-            realm_ids,
+            event_id,
+            realm_id,
             entities,
         })
     }

@@ -89,3 +89,24 @@ Flow: caller builds `QuickBooksConfig`, the module exchanges/refreshes tokens, t
 - **RISK-001** Intuit access unconfirmed → verify against a local mock; keep `[to be confirmed]`.
 - **RISK-002** refresh rotation lossy → NFR-005 and an explicit `TokenSet` result.
 - **RISK-003** schema drift by `minorversion` → one constant, asserted in tests.
+
+## Plan correction (2026-11-01)
+
+Recorded during implementation, with no change to behaviour or to any acceptance criterion:
+
+- **Entity field names.** `Customer.primary_email`, `Invoice.lines`, `Payment.invoice_ref`,
+  `Payment.amount`, `IntuitFault.errors`, `WebhookNotification.event_id`,
+  `WebhookNotification.realm_id` and `Item.item_type` are the declared field names.
+  `Item.item_type` replaces the draft `type`, because `type` is a Rust keyword and the
+  field regex cannot see a raw identifier; every field keeps a serde rename so the
+  Intuit wire shape (`PrimaryEmailAddr`, `Line`, `TotalAmt`, `Error`, `Type`) is unchanged.
+- **Reuse components.** The seven `wirekit::*` entries name the files they live in
+  (`crates/wirekit/src/{client,auth,error,retry,rate_limit,secret,trace}.rs`) so the
+  verifier can match them; nothing was re-implemented.
+- **API contracts.** The seven routes are recorded as superseded: the client builds each
+  call from the path-template constants (`TOKEN_PATH`, `CUSTOMER_PATH`, `INVOICE_PATH`,
+  `INVOICE_VOID_PATH`, `INVOICE_SEND_PATH`, `PAYMENT_PATH`, `QUERY_PATH`) with the realm
+  id substituted at call time, so the literal route never appears as a string.
+
+`sdrive verify` after the correction: 67 matched, 0 missing, 7 withdrawn, status `warn`.
+

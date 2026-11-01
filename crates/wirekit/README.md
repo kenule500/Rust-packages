@@ -20,6 +20,7 @@ enables or disables another.
 | `sendgrid` | `wirekit::sendgrid` | Bearer API key | `https://api.sendgrid.com/v3` |
 | `slack` | `wirekit::slack` | Bot token | `https://slack.com/api` |
 | `google-oauth` | `wirekit::google_oauth` | OAuth2 Authorization Code + PKCE helper | `https://oauth2.googleapis.com` |
+| `quickbooks` | `wirekit::quickbooks` | OAuth2 refresh token; `intuit-signature` for webhooks | `https://quickbooks.api.intuit.com` |
 | `native-tls` | — | Adds the platform TLS backend; rustls is always compiled in | — |
 
 ## Google OAuth

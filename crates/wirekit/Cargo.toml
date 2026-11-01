@@ -48,6 +48,11 @@ adp = []
 # base64, url, serde_json), so it needs no new library.
 google-oauth = []
 
+# BP-013. QuickBooks Online: customers, invoices, payments, reference data,
+# OAuth2 refresh, and webhook verification. No new dependency: base64, hmac,
+# sha2, serde, serde_json, and url are already compiled in.
+quickbooks = []
+
 [dependencies]
 reqwest = { version = "0.12.23", default-features = false, features = [
     "rustls-tls",

@@ -260,6 +260,11 @@ impl fmt::Debug for MetaClient {
     }
 }
 
+/// Whether `url` points at a loopback host — the crate's test affinity.
+fn is_loopback(url: &Url) -> bool {
+    matches!(url.host_str(), Some("127.0.0.1" | "localhost" | "::1"))
+}
+
 /// The nested `error` object Graph returns on a failed call.
 #[derive(Clone, Debug, Default, PartialEq, Eq, serde::Deserialize)]
 pub struct GraphError {
@@ -336,7 +341,10 @@ impl MetaClientBuilder {
             .filter(|secret| !secret.trim().is_empty())
             .ok_or_else(|| WirekitError::invalid_config("a Meta app secret must be configured"))?;
 
-        if self.client.base_url().scheme() != "https" {
+        // AC-013: real traffic must be HTTPS. A loopback base URL is the crate's
+        // own test affinity (`allow_insecure_localhost`), so it is exempt here.
+        let base = self.client.base_url();
+        if base.scheme() != "https" && !is_loopback(base) {
             return Err(WirekitError::invalid_config(
                 "the Meta base URL must use https (CON-520)",
             ));
@@ -402,13 +410,26 @@ impl MetaClient {
         WhatsAppBusiness { meta: self }
     }
 
-    /// Build a Graph URL for `host` and `path`, refusing anything but HTTPS.
+    /// Build a Graph URL for `host` and `path`.
+    ///
+    /// A loopback transport (the crate's `allow_insecure_localhost` test
+    /// affinity) is used as the base so mock servers work; otherwise the real
+    /// Graph host is used and HTTPS is enforced.
     fn endpoint(&self, host: &str, path: &str) -> Result<Url, WirekitError> {
-        let url = Url::parse(&format!("https://{host}/{path}")).map_err(|error| {
+        let configured = self.http.base_url();
+        let loopback = is_loopback(configured);
+
+        let base = if loopback {
+            String::from(configured.as_str().trim_end_matches('/'))
+        } else {
+            format!("https://{host}")
+        };
+
+        let url = Url::parse(&format!("{base}/{path}")).map_err(|error| {
             WirekitError::invalid_config(format!("the Meta endpoint could not be built: {error}"))
         })?;
 
-        if url.scheme() != "https" {
+        if !loopback && url.scheme() != "https" {
             return Err(WirekitError::invalid_config(
                 "the Meta endpoint must use https (CON-520)",
             ));

@@ -646,6 +646,12 @@
               "actor": "kenule500",
               "previousValue": "pending",
               "timestamp": "2026-11-01T21:25:02Z"
+            },
+            {
+              "event": "Acceptance suite added: 13 tests in crates/wirekit/tests/eagleview-provider-module (one per AC), 13 passed with exit code 0; the cost guard and the idempotency replay are asserted by request counts; report written and every traceability row carries its TEST-0NN id",
+              "by": "SpecDrive",
+              "actor": "kenule500",
+              "timestamp": "2026-11-01T21:33:59Z"
             }
           ]
         }

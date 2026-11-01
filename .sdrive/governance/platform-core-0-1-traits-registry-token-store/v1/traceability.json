@@ -26,7 +26,8 @@
       "requirementId": "FR-002",
       "acceptanceCriteriaIds": [
         "AC-001",
-        "AC-010"
+        "AC-010",
+        "AC-003"
       ],
       "planSection": "P1 Crate scaffold and identity",
       "taskIds": [
@@ -35,6 +36,7 @@
       ],
       "testIds": [
         "TEST-001",
+        "TEST-003",
         "TEST-010"
       ],
       "status": "complete"
@@ -42,13 +44,15 @@
     {
       "requirementId": "FR-003",
       "acceptanceCriteriaIds": [
-        "AC-007"
+        "AC-007",
+        "AC-006"
       ],
       "planSection": "P2 Capabilities and registry",
       "taskIds": [
         "T2.2"
       ],
       "testIds": [
+        "TEST-006",
         "TEST-007"
       ],
       "status": "complete"

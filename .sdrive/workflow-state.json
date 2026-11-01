@@ -321,7 +321,9 @@
       "name": "quickbooks-provider-module",
       "branch": "feature/bp-013-quickbooks",
       "base": "main",
-      "productItems": ["BP-013"],
+      "productItems": [
+        "BP-013"
+      ],
       "currentVersion": "v1",
       "versions": [
         {
@@ -332,7 +334,7 @@
             "specification": "approved",
             "planning": "approved",
             "implementation": "approved",
-            "review": "pending"
+            "review": "approved"
           },
           "history": [
             {
@@ -366,6 +368,13 @@
               "by": "SpecDrive",
               "actor": "kenule500",
               "timestamp": "2026-11-01T15:05:00Z"
+            },
+            {
+              "event": "Review PASS recorded by the human reviewer with findings: fmt, clippy -D warnings, docs -D warnings, workspace tests and sdrive test evidence all green at 38e27ad, verify 0 missing, CI 9/9 including Audit and MSRV; medium finding is the unguarded concurrent refresh; cleared for archive",
+              "by": "kenule500",
+              "actor": "kenule500",
+              "previousValue": "pending",
+              "timestamp": "2026-11-01T15:35:00Z"
             }
           ]
         }

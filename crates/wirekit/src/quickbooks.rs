@@ -374,15 +374,27 @@ impl QuickBooksClient {
             .map(|token| token.refresh_token.clone())
     }
 
+    /// Build a resource URL for `template`.
+    ///
+    /// A loopback transport (the crate's `allow_insecure_localhost` test
+    /// affinity) is used as the base so mock servers work; otherwise the real
+    /// QuickBooks host is used and HTTPS is enforced (AC-001, CON-520).
     fn endpoint(&self, template: &str) -> Result<Url, WirekitError> {
         let path = template.replace("{realm-id}", &self.inner.config.realm_id);
-        let base = format!("{BASE_URL}{path}");
+        let configured = self.inner.http.base_url();
+        let loopback = is_loopback(configured);
+
+        let base = if loopback {
+            format!("{}{path}", configured.as_str().trim_end_matches('/'))
+        } else {
+            format!("{BASE_URL}{path}")
+        };
 
         let mut url = Url::parse(&base).map_err(|error| {
             WirekitError::invalid_config(format!("the QuickBooks endpoint is invalid: {error}"))
         })?;
 
-        if url.scheme() != "https" {
+        if !loopback && url.scheme() != "https" {
             return Err(WirekitError::invalid_config(
                 "the QuickBooks endpoint must use https (CON-520)",
             ));
@@ -392,6 +404,20 @@ impl QuickBooksClient {
             .append_pair("minorversion", &self.inner.config.minor_version);
 
         Ok(url)
+    }
+
+    /// The token endpoint, honouring a loopback transport for tests.
+    fn token_url(&self) -> Result<Url, WirekitError> {
+        let configured = self.inner.http.base_url();
+        let base = if is_loopback(configured) {
+            format!("{}{TOKEN_PATH}", configured.as_str().trim_end_matches('/'))
+        } else {
+            String::from(TOKEN_URL)
+        };
+
+        Url::parse(&base).map_err(|error| {
+            WirekitError::invalid_config(format!("the Intuit token URL is invalid: {error}"))
+        })
     }
 
     /// The current bearer token, refreshed before it expires.
@@ -425,9 +451,7 @@ impl QuickBooksClient {
             config.refresh_token.expose()
         );
 
-        let url = Url::parse(TOKEN_URL).map_err(|error| {
-            WirekitError::invalid_config(format!("the Intuit token URL is invalid: {error}"))
-        })?;
+        let url = self.token_url()?;
 
         let spec = RequestSpec::post(url)
             .try_header("authorization", &format!("Basic {basic}"))?
@@ -581,6 +605,11 @@ impl QuickBooksClient {
         let response: Response<R> = self.inner.http.execute(spec).await?;
         Ok(response.value)
     }
+}
+
+/// Whether `url` points at a loopback host — the crate's test affinity.
+fn is_loopback(url: &Url) -> bool {
+    matches!(url.host_str(), Some("127.0.0.1" | "localhost" | "::1"))
 }
 
 fn now_seconds() -> i64 {

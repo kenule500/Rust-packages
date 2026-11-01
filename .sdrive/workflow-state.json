@@ -328,7 +328,7 @@
       "versions": [
         {
           "id": "v1",
-          "phase": "ongoing",
+          "phase": "completed",
           "currentStep": "implementation",
           "gates": {
             "specification": "approved",
@@ -381,6 +381,14 @@
               "actor": "kenule500",
               "previousValue": "pending",
               "timestamp": "2026-11-01T14:25:00Z"
+            },
+            {
+              "event": "feature_archived",
+              "by": "kenule500",
+              "from": "ongoing",
+              "version": "v1",
+              "mergeCommit": "",
+              "timestamp": "2026-11-01T14:42:35.712Z"
             }
           ]
         }
@@ -397,7 +405,7 @@
       "versions": [
         {
           "id": "v1",
-          "phase": "ongoing",
+          "phase": "completed",
           "currentStep": "implementation",
           "gates": {
             "specification": "approved",
@@ -438,6 +446,14 @@
               "actor": "kenule500",
               "previousValue": "pending",
               "timestamp": "2026-11-01T14:25:00Z"
+            },
+            {
+              "event": "feature_archived",
+              "by": "kenule500",
+              "from": "ongoing",
+              "version": "v1",
+              "mergeCommit": "",
+              "timestamp": "2026-11-01T14:42:56.811Z"
             }
           ]
         }
@@ -454,7 +470,7 @@
       "versions": [
         {
           "id": "v1",
-          "phase": "ongoing",
+          "phase": "completed",
           "currentStep": "implementation",
           "gates": {
             "specification": "approved",
@@ -501,6 +517,14 @@
               "actor": "kenule500",
               "previousValue": "pending",
               "timestamp": "2026-11-01T14:25:00Z"
+            },
+            {
+              "event": "feature_archived",
+              "by": "kenule500",
+              "from": "ongoing",
+              "version": "v1",
+              "mergeCommit": "",
+              "timestamp": "2026-11-01T14:42:57.534Z"
             }
           ]
         }

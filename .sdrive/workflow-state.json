@@ -468,6 +468,12 @@
               "actor": "kenule500",
               "previousValue": "pending",
               "timestamp": "2026-11-01T00:17:02Z"
+            },
+            {
+              "event": "Acceptance suite added: 13 tests in crates/platform-core/tests/platform-core-0-1-traits-registry-token-store (one per AC), 13 passed with exit code 0; report written to .sdrive/reports/tests/test-report-platform-core-0-1-traits-registry-token-store-v1-2026-11-01.md, every traceability row carries its TEST-0NN id, sdrive verify pass with 0 missing",
+              "by": "SpecDrive",
+              "actor": "kenule500",
+              "timestamp": "2026-11-01T14:13:10Z"
             }
           ]
         }

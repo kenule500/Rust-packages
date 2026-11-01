@@ -615,7 +615,7 @@
           "phase": "backlog",
           "currentStep": "specification",
           "gates": {
-            "specification": "pending",
+            "specification": "approved",
             "planning": "pending",
             "implementation": "pending",
             "review": "pending"
@@ -625,6 +625,13 @@
               "event": "Proposed from BP-012 (EagleView provider module, P1, depends on BP-005 and a commercial contract that is [to be confirmed]) on its own branch because the access envelope is external",
               "by": "SpecDrive",
               "timestamp": "2026-11-01T17:12:08Z"
+            },
+            {
+              "event": "Gate 1 approved: eagleview-provider-module specification and traceability (7 stories, 13 ACs, 13 FR, 5 NFR, 4 edge cases); BP-012 commercial access stays [to be confirmed]",
+              "by": "kenule500",
+              "actor": "kenule500",
+              "previousValue": "pending",
+              "timestamp": "2026-11-01T17:20:26Z"
             }
           ]
         }

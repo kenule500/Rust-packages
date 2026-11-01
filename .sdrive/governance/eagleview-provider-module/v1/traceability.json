@@ -8,7 +8,9 @@
         "AC-001"
       ],
       "planSection": "P1 Foundation",
-      "taskIds": [],
+      "taskIds": [
+        "T1.1"
+      ],
       "testIds": [],
       "status": "not_started"
     },
@@ -19,7 +21,9 @@
         "AC-002"
       ],
       "planSection": "P1 Foundation",
-      "taskIds": [],
+      "taskIds": [
+        "T1.2"
+      ],
       "testIds": [],
       "status": "not_started"
     },
@@ -28,8 +32,10 @@
       "acceptanceCriteriaIds": [
         "AC-003"
       ],
-      "planSection": "P1 Foundation",
-      "taskIds": [],
+      "planSection": "P2 Ordering",
+      "taskIds": [
+        "T2.1"
+      ],
       "testIds": [],
       "status": "not_started"
     },
@@ -38,8 +44,10 @@
       "acceptanceCriteriaIds": [
         "AC-004"
       ],
-      "planSection": "P1 Foundation",
-      "taskIds": [],
+      "planSection": "P2 Ordering",
+      "taskIds": [
+        "T2.2"
+      ],
       "testIds": [],
       "status": "not_started"
     },
@@ -48,8 +56,10 @@
       "acceptanceCriteriaIds": [
         "AC-005"
       ],
-      "planSection": "P1 Foundation",
-      "taskIds": [],
+      "planSection": "P2 Ordering",
+      "taskIds": [
+        "T2.3"
+      ],
       "testIds": [],
       "status": "not_started"
     },
@@ -58,8 +68,10 @@
       "acceptanceCriteriaIds": [
         "AC-006"
       ],
-      "planSection": "P1 Foundation",
-      "taskIds": [],
+      "planSection": "P3 Lifecycle",
+      "taskIds": [
+        "T3.1"
+      ],
       "testIds": [],
       "status": "not_started"
     },
@@ -68,8 +80,10 @@
       "acceptanceCriteriaIds": [
         "AC-007"
       ],
-      "planSection": "P1 Foundation",
-      "taskIds": [],
+      "planSection": "P3 Lifecycle",
+      "taskIds": [
+        "T3.2"
+      ],
       "testIds": [],
       "status": "not_started"
     },
@@ -78,8 +92,10 @@
       "acceptanceCriteriaIds": [
         "AC-008"
       ],
-      "planSection": "P1 Foundation",
-      "taskIds": [],
+      "planSection": "P4 Report",
+      "taskIds": [
+        "T4.1"
+      ],
       "testIds": [],
       "status": "not_started"
     },
@@ -88,8 +104,10 @@
       "acceptanceCriteriaIds": [
         "AC-009"
       ],
-      "planSection": "P1 Foundation",
-      "taskIds": [],
+      "planSection": "P4 Report",
+      "taskIds": [
+        "T4.2"
+      ],
       "testIds": [],
       "status": "not_started"
     },
@@ -98,8 +116,10 @@
       "acceptanceCriteriaIds": [
         "AC-010"
       ],
-      "planSection": "P1 Foundation",
-      "taskIds": [],
+      "planSection": "P4 Report",
+      "taskIds": [
+        "T4.3"
+      ],
       "testIds": [],
       "status": "not_started"
     },
@@ -108,8 +128,10 @@
       "acceptanceCriteriaIds": [
         "AC-011"
       ],
-      "planSection": "P1 Foundation",
-      "taskIds": [],
+      "planSection": "P5 Errors, docs, verification",
+      "taskIds": [
+        "T5.1"
+      ],
       "testIds": [],
       "status": "not_started"
     },
@@ -118,8 +140,10 @@
       "acceptanceCriteriaIds": [
         "AC-012"
       ],
-      "planSection": "P1 Foundation",
-      "taskIds": [],
+      "planSection": "P5 Errors, docs, verification",
+      "taskIds": [
+        "T5.1"
+      ],
       "testIds": [],
       "status": "not_started"
     },
@@ -129,7 +153,9 @@
         "AC-013"
       ],
       "planSection": "P1 Foundation",
-      "taskIds": [],
+      "taskIds": [
+        "T1.2"
+      ],
       "testIds": [],
       "status": "not_started"
     },
@@ -139,7 +165,10 @@
         "AC-001"
       ],
       "planSection": "P1 Foundation",
-      "taskIds": [],
+      "taskIds": [
+        "T1.2",
+        "T5.2"
+      ],
       "testIds": [],
       "status": "not_started"
     },
@@ -148,8 +177,11 @@
       "acceptanceCriteriaIds": [
         "AC-009"
       ],
-      "planSection": "P1 Foundation",
-      "taskIds": [],
+      "planSection": "P4 Report",
+      "taskIds": [
+        "T4.2",
+        "T5.2"
+      ],
       "testIds": [],
       "status": "not_started"
     },
@@ -159,7 +191,10 @@
         "AC-013"
       ],
       "planSection": "P1 Foundation",
-      "taskIds": [],
+      "taskIds": [
+        "T1.2",
+        "T5.2"
+      ],
       "testIds": [],
       "status": "not_started"
     },
@@ -169,7 +204,10 @@
         "AC-001"
       ],
       "planSection": "P1 Foundation",
-      "taskIds": [],
+      "taskIds": [
+        "T1.1",
+        "T5.2"
+      ],
       "testIds": [],
       "status": "not_started"
     },
@@ -178,8 +216,11 @@
       "acceptanceCriteriaIds": [
         "AC-008"
       ],
-      "planSection": "P1 Foundation",
-      "taskIds": [],
+      "planSection": "P4 Report",
+      "taskIds": [
+        "T4.1",
+        "T5.2"
+      ],
       "testIds": [],
       "status": "not_started"
     }

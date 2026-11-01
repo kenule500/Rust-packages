@@ -1,0 +1,105 @@
+{
+  "feature": "eagleview-provider-module",
+  "version": 1,
+  "architecture": {
+    "approach": "One feature-flagged module, crates/wirekit/src/eagleview.rs, that adds client-credentials token caching, an idempotent paid order, and an asynchronous order-status lifecycle on top of the existing transport, retry, rate-limit, secret, and error types. No new dependency.",
+    "components": [
+      { "name": "crates/wirekit/src/eagleview.rs", "action": "create", "description": "Client, token cache, order lifecycle, report and PDF, typed errors." },
+      { "name": "crates/wirekit/Cargo.toml", "action": "modify", "description": "Add the additive, default-off eagleview feature." },
+      { "name": "crates/wirekit/src/lib.rs", "action": "modify", "description": "Declare pub mod eagleview behind cfg(feature = \"eagleview\")." },
+      { "name": "crates/wirekit/src/client.rs", "action": "reuse", "description": "Pooled transport and TLS enforcement." },
+      { "name": "crates/wirekit/src/auth.rs", "action": "reuse", "description": "Bearer header application after the token call." },
+      { "name": "crates/wirekit/src/error.rs", "action": "reuse", "description": "Api, Auth, Decode, and InvalidConfig mapping." },
+      { "name": "crates/wirekit/src/retry.rs", "action": "reuse", "description": "429 and 5xx handling with Retry-After." },
+      { "name": "crates/wirekit/src/rate_limit.rs", "action": "reuse", "description": "Token bucket." },
+      { "name": "crates/wirekit/src/secret.rs", "action": "reuse", "description": "Client secret and access token." },
+      { "name": "crates/wirekit/src/trace.rs", "action": "reuse", "description": "Request spans." },
+      { "name": "crates/wirekit/README.md", "action": "modify", "description": "Provider row and example." },
+      { "name": "crates/wirekit/CHANGELOG.md", "action": "modify", "description": "Unreleased entry." }
+    ],
+    "referencedRequirementIds": [
+      "FR-001", "FR-002", "FR-003", "FR-004", "FR-005", "FR-006", "FR-007",
+      "FR-008", "FR-009", "FR-010", "FR-011", "FR-012", "FR-013",
+      "NFR-001", "NFR-002", "NFR-003", "NFR-004", "NFR-005"
+    ]
+  },
+  "dataModel": {
+    "entities": [
+      { "name": "EagleViewConfig", "action": "create", "fields": [
+        { "name": "client_id", "type": "String", "action": "add" },
+        { "name": "client_secret", "type": "Secret<String>", "action": "add" }
+      ] },
+      { "name": "AccessToken", "action": "create", "fields": [
+        { "name": "access_token", "type": "Secret<String>", "action": "add" },
+        { "name": "expires_at", "type": "i64", "action": "add" }
+      ] },
+      { "name": "MeasurementRequest", "action": "create", "fields": [
+        { "name": "address_line", "type": "String", "action": "add" },
+        { "name": "city", "type": "String", "action": "add" },
+        { "name": "state", "type": "String", "action": "add" },
+        { "name": "postal_code", "type": "String", "action": "add" },
+        { "name": "product", "type": "String", "action": "add" },
+        { "name": "options", "type": "Vec<String>", "action": "add" }
+      ] },
+      { "name": "MeasurementOrder", "action": "create", "fields": [
+        { "name": "id", "type": "String", "action": "add" },
+        { "name": "status", "type": "MeasurementStatus", "action": "add" },
+        { "name": "cost_acknowledged", "type": "bool", "action": "add" }
+      ] },
+      { "name": "MeasurementStatus", "action": "create", "fields": [
+        { "name": "Accepted", "type": "variant", "action": "add" },
+        { "name": "Processing", "type": "variant", "action": "add" },
+        { "name": "Complete", "type": "variant", "action": "add" },
+        { "name": "Failed", "type": "variant", "action": "add" }
+      ] },
+      { "name": "MeasurementReport", "action": "create", "fields": [
+        { "name": "order_id", "type": "String", "action": "add" },
+        { "name": "total_area", "type": "RoofArea", "action": "add" },
+        { "name": "pitch", "type": "RoofPitch", "action": "add" },
+        { "name": "segments", "type": "Vec<RoofSegment>", "action": "add" },
+        { "name": "document_url", "type": "Option<String>", "action": "add" }
+      ] },
+      { "name": "RoofSegment", "action": "create", "fields": [
+        { "name": "kind", "type": "SegmentKind", "action": "add" },
+        { "name": "area_squares", "type": "f64", "action": "add" },
+        { "name": "pitch", "type": "RoofPitch", "action": "add" }
+      ] },
+      { "name": "RoofPitch", "action": "create", "fields": [
+        { "name": "ratio", "type": "String", "action": "add" },
+        { "name": "rise_over_run", "type": "f64", "action": "add" }
+      ] },
+      { "name": "RoofArea", "action": "create", "fields": [
+        { "name": "squares", "type": "f64", "action": "add" },
+        { "name": "facets", "type": "u32", "action": "add" },
+        { "name": "waste_factor", "type": "f64", "action": "add" }
+      ] }
+    ],
+    "flowDescription": "The caller builds EagleViewConfig, orders a measurement with a cost acknowledgement and an idempotency key, polls order_status until Complete, then fetches the report and optionally the PDF. Rejections, unmeasurable addresses, and processing failures map onto distinct WirekitError::Api codes."
+  },
+  "apiContracts": [
+    { "method": "POST", "path": "/oauth2/token", "action": "create", "authenticationRequired": false, "linkedRequirements": ["FR-002"] },
+    { "method": "POST", "path": "/v1/orders", "action": "create", "authenticationRequired": true, "linkedRequirements": ["FR-003", "FR-004", "FR-005"] },
+    { "method": "GET", "path": "/v1/orders/{order-id}", "action": "create", "authenticationRequired": true, "linkedRequirements": ["FR-006", "FR-007"] },
+    { "method": "GET", "path": "/v1/orders/{order-id}/report", "action": "create", "authenticationRequired": true, "linkedRequirements": ["FR-008"] },
+    { "method": "GET", "path": "/v1/orders/{order-id}/report/document", "action": "create", "authenticationRequired": true, "linkedRequirements": ["FR-009"] },
+    { "method": "GET", "path": "/v1/reports", "action": "create", "authenticationRequired": true, "linkedRequirements": ["FR-010"] }
+  ],
+  "securityConsiderations": [
+    { "requirementId": "NFR-001", "description": "Client secret and access token live in Secret and never render in Debug." },
+    { "requirementId": "NFR-003", "description": "A non-loopback cleartext base URL is refused at construction (CON-520)." },
+    { "requirementId": "NFR-002", "description": "The PDF body is size-bounded and its content type validated before it is returned." },
+    { "requirementId": "NFR-004", "description": "No new dependency is added; the module reuses the audited client, retry, and secret machinery." },
+    { "requirementId": "NFR-005", "description": "A rejected order is never retried, and a repeated idempotency key with a different address is refused (FR-004, EC-004)." }
+  ],
+  "dependencies": [
+    { "name": "reqwest", "type": "library", "action": "no_change", "notes": "Already compiled in with rustls-tls." },
+    { "name": "serde_json", "type": "library", "action": "no_change", "notes": "Payloads and typed entities." },
+    { "name": "base64", "type": "library", "action": "no_change", "notes": "Client-credentials header encoding." }
+  ],
+  "risks": [
+    { "id": "RISK-001", "description": "EagleView commercial contract and API credentials are unconfirmed.", "mitigation": "Build and verify against a local mock; keep the assumption marked [to be confirmed]." },
+    { "id": "RISK-002", "description": "No order-status webhook is assumed to exist.", "mitigation": "Poll with bounded backoff; add verification in a later version only if the contract confirms a callback." },
+    { "id": "RISK-003", "description": "Cost per report is unknown.", "mitigation": "Require an explicit caller cost acknowledgement, so no unpriced order can be placed." },
+    { "id": "RISK-004", "description": "Coverage gaps for rural or new-construction addresses.", "mitigation": "Surface a typed unmeasurable error rather than a generic failure." }
+  ]
+}

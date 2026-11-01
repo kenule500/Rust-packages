@@ -21,6 +21,7 @@ enables or disables another.
 | `slack` | `wirekit::slack` | Bot token | `https://slack.com/api` |
 | `google-oauth` | `wirekit::google_oauth` | OAuth2 Authorization Code + PKCE helper | `https://oauth2.googleapis.com` |
 | `meta` | `wirekit::meta` | Page or system-user token; `X-Hub-Signature-256` for webhooks | `https://graph.facebook.com` |
+| `quickbooks` | `wirekit::quickbooks` | OAuth2 refresh token; `intuit-signature` for webhooks | `https://quickbooks.api.intuit.com` |
 | `native-tls` | — | Adds the platform TLS backend; rustls is always compiled in | — |
 
 ## Google OAuth

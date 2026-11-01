@@ -52,6 +52,10 @@ google-oauth = []
 # No new dependency: the module reuses the client, retry, rate limit, secret,
 # and HMAC machinery already compiled in.
 meta = []
+# BP-013. QuickBooks Online: customers, invoices, payments, reference data,
+# OAuth2 refresh, and webhook verification. No new dependency: base64, hmac,
+# sha2, serde, serde_json, and url are already compiled in.
+quickbooks = []
 
 [dependencies]
 reqwest = { version = "0.12.23", default-features = false, features = [
@@ -97,6 +101,11 @@ quick-xml = { version = "0.41", optional = true }
 
 [dev-dependencies]
 serde_json = "1.0.140"
+# The acceptance suites sign their own webhook payloads; all three crates are
+# already crate dependencies, so no new library enters the graph.
+hmac = "0.12.1"
+sha2 = "0.10.9"
+base64 = "0.22.1"
 # Pinned exactly: 0.6.4+ use `let` chains in conditions and need Rust 1.88,
 # which would break the MSRV 1.85 test job (Cargo.lock is not committed).
 wiremock = "=0.6.3"
@@ -104,9 +113,6 @@ wiremock = "=0.6.3"
 # `tokio` or `tracing` dependencies, so the test harness declares them itself.
 tokio = { version = "1.44.2", features = ["macros", "rt", "time"] }
 tracing = "0.1.41"
-# Webhook tests sign their own payloads; both crates are already dependencies.
-hmac = "0.12.1"
-sha2 = "0.10.9"
 
 [[test]]
 name = "google-oauth-shared-helper"

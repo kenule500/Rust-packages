@@ -83,6 +83,9 @@ pub mod meta;
 #[cfg(feature = "noaa")]
 pub mod noaa;
 
+#[cfg(feature = "quickbooks")]
+pub mod quickbooks;
+
 #[cfg(feature = "sage-intacct")]
 pub mod sage_intacct;
 

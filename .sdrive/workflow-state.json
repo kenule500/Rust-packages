@@ -529,6 +529,69 @@
           ]
         }
       ]
+    },
+    {
+      "name": "quickbooks-provider-module",
+      "branch": "feature/bp-013-quickbooks",
+      "base": "main",
+      "productItems": [
+        "BP-013"
+      ],
+      "currentVersion": "v1",
+      "versions": [
+        {
+          "id": "v1",
+          "phase": "ongoing",
+          "currentStep": "implementation",
+          "gates": {
+            "specification": "approved",
+            "planning": "approved",
+            "implementation": "approved",
+            "review": "approved"
+          },
+          "history": [
+            {
+              "event": "Proposed from group expression [BP-011, BP-011, BP-013, BP-014, BP-017] on its own branch because BP-013 is gated on Intuit access; scope is the full catalogue surface",
+              "by": "SpecDrive",
+              "timestamp": "2026-10-31T13:13:52Z"
+            },
+            {
+              "event": "Gate 1 approved: QuickBooks provider module specification and traceability",
+              "by": "kenule500",
+              "actor": "kenule500",
+              "previousValue": "pending",
+              "timestamp": "2026-10-31T13:31:41Z"
+            },
+            {
+              "event": "Gate 2 approved: plan and tasks for the QuickBooks provider module",
+              "by": "kenule500",
+              "actor": "kenule500",
+              "previousValue": "pending",
+              "timestamp": "2026-10-31T13:36:50Z"
+            },
+            {
+              "event": "Gate 3 approved: implementation closed. Field names realigned to the plan (primary_email, lines, invoice_ref, amount, errors, event_id, realm_id, item_type) with serde renames preserving the Intuit wire shape; 7 reuse components corrected to their files; 7 contracts recorded as superseded (path-template constants); sdrive verify warn with 0 missing and 7 withdrawn; 11 tasks and 18 traceability rows complete",
+              "by": "kenule500",
+              "actor": "kenule500",
+              "previousValue": "pending",
+              "timestamp": "2026-11-01T14:20:00Z"
+            },
+            {
+              "event": "Acceptance suite added: 16 tests in crates/wirekit/tests/quickbooks-provider-module (one per AC), 16 passed with exit code 0 and workspace tests plus clippy green; two defects fixed with approval (api_from_body now unwraps Fault.Error[] for AC-014, and the entities carry the Qbo prefix so the archived AC-040 hygiene check passes); report written and every traceability row carries its TEST-0NN id",
+              "by": "SpecDrive",
+              "actor": "kenule500",
+              "timestamp": "2026-11-01T15:05:00Z"
+            },
+            {
+              "event": "Review PASS recorded by the human reviewer with findings: fmt, clippy -D warnings, docs -D warnings, workspace tests and sdrive test evidence all green at 38e27ad, verify 0 missing, CI 9/9 including Audit and MSRV; medium finding is the unguarded concurrent refresh; cleared for archive",
+              "by": "kenule500",
+              "actor": "kenule500",
+              "previousValue": "pending",
+              "timestamp": "2026-11-01T15:35:00Z"
+            }
+          ]
+        }
+      ]
     }
   ]
 }

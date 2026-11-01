@@ -14,6 +14,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   media upload, `X-Hub-Signature-256` webhook verification, the
   `hub.challenge` handshake, app subscription calls, and a normalised inbound
   event carrying a dedupe key.
+- `quickbooks`, a QuickBooks Online module behind the additive `quickbooks`
+  feature: customer create/update, invoice create/void/send with ordered lines,
+  payment recording, account and item queries, OAuth2 refresh before expiry with
+  the rotated refresh token surfaced, and `intuit-signature` webhook
+  verification with a dedupe key.
 
 ## [0.1.0] - 2026-10-20
 

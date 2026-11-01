@@ -1,0 +1,145 @@
+{
+  "feature": "quickbooks-provider-module",
+  "title": "QuickBooks provider module",
+  "version": 1,
+  "overview": {
+    "problemStatement": "QuickBooks Online is the accounting system of record for most consumers, but wirekit has no QuickBooks module, so every integration re-implements OAuth2 token handling, realm-scoped routing, Intuit Fault parsing, and webhook verification, and mistakes produce duplicate invoices in a system of record.",
+    "proposedSolution": "Add a quickbooks feature-flagged module exposing QuickBooksClient, Customer, Invoice, Payment, Account, and Item per catalogue/13_quickbooks.md: create/update/read, invoice lines, void, send, payment recording, account and item listing, OAuth2 refresh-before-expiry, and intuit-signature webhook verification, reusing the crate client, retry, rate-limit, secret, and error types.",
+    "targetAudience": "Rust developers syncing accounting data, including an invoicing and accounting agent in a consuming application.",
+    "assumptions": [
+      "Intuit app approval, sandbox credentials, and the realm id are [to be confirmed]; the module assumes approved OAuth2 credentials.",
+      "Base URL is https://quickbooks.api.intuit.com/v3/company/{realmId} with a minorversion query parameter.",
+      "Access tokens live about 60 minutes; refresh tokens rotate and must be persisted by the caller.",
+      "No external research was performed beyond the repository catalogue and constitution (CON-704)."
+    ],
+    "outOfScope": [
+      "OAuth2 authorization-code browser flow and token persistence.",
+      "Payroll, tax filing, and other Intuit products.",
+      "Bulk or batch endpoints and CDC polling.",
+      "Accounting domain rules such as revenue recognition (CON-106)."
+    ]
+  },
+  "userStories": [
+    {
+      "id": "US-001",
+      "title": "Connect and refresh OAuth2 tokens",
+      "role": "developer",
+      "want": "the module to manage the token lifecycle",
+      "benefit": "sync jobs do not fail at expiry",
+      "acceptanceCriteria": [
+        { "id": "AC-001", "text": "Given client id, client secret, refresh token, and realm id, when the client is built, then credentials are held in Secret and Debug renders no plaintext." },
+        { "id": "AC-002", "text": "Given an expired or soon-to-expire access token, when a request is made, then the module refreshes once, applies the token, and retries exactly once." },
+        { "id": "AC-003", "text": "Given a refresh returning a new refresh token, when it succeeds, then the caller receives the rotated token, and a persistent 401 after one refresh fails instead of looping." }
+      ]
+    },
+    {
+      "id": "US-002",
+      "title": "Sync customers",
+      "role": "developer",
+      "want": "typed customer sync",
+      "benefit": "a customer created in the product exists in accounting",
+      "acceptanceCriteria": [
+        { "id": "AC-004", "text": "Given a customer payload, when create is called, then a POST to the realm customer resource sends the display name and optional contact fields and returns the created entity with its id." },
+        { "id": "AC-005", "text": "Given an existing customer id and changed fields, when update is called, then the request carries Id and SyncToken and returns the entity with an incremented sync token." }
+      ]
+    },
+    {
+      "id": "US-003",
+      "title": "Create, read, void, and send invoices",
+      "role": "developer",
+      "want": "invoices with lines",
+      "benefit": "completed work becomes a billable document",
+      "acceptanceCriteria": [
+        { "id": "AC-006", "text": "Given a customer reference and at least one line, when create_invoice is called, then the request carries the customer reference and ordered lines with amount, description, and item reference." },
+        { "id": "AC-007", "text": "Given an existing invoice, when void_invoice is called, then the request uses the documented void operation and the returned invoice reports a voided balance." },
+        { "id": "AC-008", "text": "Given an existing invoice, when send_invoice is called, then the request targets the send operation and the response records the delivery." }
+      ]
+    },
+    {
+      "id": "US-004",
+      "title": "Record payments",
+      "role": "developer",
+      "want": "payments linked to invoices",
+      "benefit": "the accounting record balances",
+      "acceptanceCriteria": [
+        { "id": "AC-009", "text": "Given an invoice id and an amount, when record_payment is called, then the payment references the invoice and the amount is expressed in the linked transaction." },
+        { "id": "AC-010", "text": "Given a payment over the invoice balance, when it is recorded, then the caller receives a typed validation error rather than a silent partial success." }
+      ]
+    },
+    {
+      "id": "US-005",
+      "title": "Read accounts and items",
+      "role": "developer",
+      "want": "reference data",
+      "benefit": "invoice lines point at real accounts and items",
+      "acceptanceCriteria": [
+        { "id": "AC-011", "text": "Given a realm, when list_accounts or list_items is called, then the module returns typed entries with id and name using the query endpoint with a bounded result size." }
+      ]
+    },
+    {
+      "id": "US-006",
+      "title": "Verify webhooks",
+      "role": "developer",
+      "want": "signed change notifications",
+      "benefit": "only Intuit can trigger a resync",
+      "acceptanceCriteria": [
+        { "id": "AC-012", "text": "Given raw bytes, the verifier token, and a correct intuit-signature, when verification runs, then the HMAC comparison is constant time and returns the parsed notification." },
+        { "id": "AC-013", "text": "Given a wrong or missing signature, when verification runs, then it fails closed and nothing is parsed; a repeated event id is reported as a duplicate." }
+      ]
+    },
+    {
+      "id": "US-007",
+      "title": "Fail predictably",
+      "role": "developer",
+      "want": "Intuit faults, retries, and duplicate protection handled consistently",
+      "benefit": "sync failures never corrupt the accounting record",
+      "acceptanceCriteria": [
+        { "id": "AC-014", "text": "Given an Intuit Fault with Error entries, when a call fails, then the error is WirekitError::Api exposing every Intuit code and message." },
+        { "id": "AC-015", "text": "Given a 429 with Retry-After, when the call is retried, then the policy honours the header and validation faults are never retried." },
+        { "id": "AC-016", "text": "Given a caller-supplied idempotency key, when a create is retried, then the module checks for an existing entity by that key before creating a duplicate." }
+      ]
+    }
+
+
+  ],
+  "functionalRequirements": [
+    { "id": "FR-001", "text": "The crate MUST expose an additive, default-off quickbooks feature that enables no other provider.", "linkedAcceptanceCriteria": ["AC-001"] },
+    { "id": "FR-002", "text": "QuickBooksClient MUST hold credentials and refresh tokens in Secret, reject a non-HTTPS base URL, and read no environment variables.", "linkedAcceptanceCriteria": ["AC-001"] },
+    { "id": "FR-003", "text": "The module MUST provide QuickBooksClient, Customer, Invoice, Payment, Account, and Item as named in the catalogue.", "linkedAcceptanceCriteria": ["AC-004", "AC-006", "AC-009", "AC-011"] },
+    { "id": "FR-004", "text": "Token refresh MUST happen before expiry and at most once per request, surfacing the rotated refresh token.", "linkedAcceptanceCriteria": ["AC-002", "AC-003"] },
+    { "id": "FR-005", "text": "Customer create and update MUST be supported, with Id and SyncToken on update.", "linkedAcceptanceCriteria": ["AC-004", "AC-005"] },
+    { "id": "FR-006", "text": "Invoice create with ordered lines, void, and send MUST be supported.", "linkedAcceptanceCriteria": ["AC-006", "AC-007", "AC-008"] },
+    { "id": "FR-007", "text": "Payments MUST reference an invoice and over-balance amounts MUST produce a typed error.", "linkedAcceptanceCriteria": ["AC-009", "AC-010"] },
+    { "id": "FR-008", "text": "Account and item listing MUST use the query endpoint with a bounded result size.", "linkedAcceptanceCriteria": ["AC-011"] },
+    { "id": "FR-009", "text": "Webhook verification MUST use HMAC over raw bytes with a constant-time comparison and MUST fail closed.", "linkedAcceptanceCriteria": ["AC-012", "AC-013"] },
+    { "id": "FR-010", "text": "Duplicate webhook events MUST be detectable by event id.", "linkedAcceptanceCriteria": ["AC-013"] },
+    { "id": "FR-011", "text": "Intuit Fault bodies MUST map to WirekitError::Api preserving every code and message.", "linkedAcceptanceCriteria": ["AC-014"] },
+    { "id": "FR-012", "text": "Retries MUST honour Retry-After for 429 and 5xx, MUST NOT retry validation faults, and creates MUST support an idempotency check.", "linkedAcceptanceCriteria": ["AC-015", "AC-016"] }
+  ],
+  "nonFunctionalRequirements": [
+    { "id": "NFR-001", "text": "Client credentials, access and refresh tokens, and the webhook verifier token MUST be held in Secret and render redacted (CON-511, CON-519).", "linkedAcceptanceCriteria": ["AC-001"] },
+    { "id": "NFR-002", "text": "Every request MUST be realm-scoped by the configured realm id; a contradicting per-call realm MUST be rejected (CON-512).", "linkedAcceptanceCriteria": ["AC-004"] },
+    { "id": "NFR-003", "text": "Provider responses and webhook bodies MUST be size-bounded and typed before use (CON-515).", "linkedAcceptanceCriteria": ["AC-010", "AC-012"] },
+    { "id": "NFR-004", "text": "All traffic MUST use HTTPS and a cleartext base URL MUST be rejected at construction (CON-520).", "linkedAcceptanceCriteria": ["AC-001"] },
+    { "id": "NFR-005", "text": "The rotated refresh token MUST be surfaced so the caller can persist it, and losing it MUST NOT silently continue with a stale token.", "linkedAcceptanceCriteria": ["AC-003"] },
+    { "id": "NFR-006", "text": "The module MUST compile under forbid(unsafe_code) and deny(missing_docs) (CON-201, CON-202).", "linkedAcceptanceCriteria": ["AC-001"] }
+  ],
+  "edgeCases": [
+    { "id": "EC-001", "description": "Refresh succeeds but the rotated refresh token is not persisted", "expectedBehavior": "The next run fails authentication rather than reusing a stale token." },
+    { "id": "EC-002", "description": "Two creates with the same idempotency key race", "expectedBehavior": "The second finds the existing entity or surfaces the provider duplicate error." },
+    { "id": "EC-003", "description": "Webhook replays the same event id", "expectedBehavior": "Reported as a duplicate instead of resyncing twice." },
+    { "id": "EC-004", "description": "Invoice line references a missing item in the realm", "expectedBehavior": "Provider validation fault surfaced as a typed error naming the item." }
+  ],
+  "dependencies": [
+    { "name": "reqwest", "type": "library", "notes": "Already compiled in with rustls-tls; reused unchanged." },
+    { "name": "sha2", "type": "library", "notes": "Already present; HMAC-SHA256 webhook verification." },
+    { "name": "hmac", "type": "library", "notes": "Already present; constant-time signature comparison." },
+    { "name": "serde_json", "type": "library", "notes": "Already present; entity and Fault payloads." },
+    { "name": "base64", "type": "library", "notes": "Already present; not required by the documented shapes but available for signature encoding." }
+  ],
+  "risks": [
+    { "id": "RISK-001", "description": "Intuit app approval, sandbox credentials, and a realm are unconfirmed.", "mitigation": "Verify against a local mock of documented shapes as m5-gated-integrations did; keep the assumption marked [to be confirmed]." },
+    { "id": "RISK-002", "description": "Refresh-token rotation is lossy if the caller does not persist the new value.", "mitigation": "NFR-005 plus an explicit result type carrying the rotated token." },
+    { "id": "RISK-003", "description": "QuickBooks entity schemas change with minorversion.", "mitigation": "One version constant, documented and asserted in tests." }
+  ]
+}

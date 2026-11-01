@@ -613,10 +613,10 @@
         {
           "id": "v1",
           "phase": "backlog",
-          "currentStep": "specification",
+          "currentStep": "implementation",
           "gates": {
             "specification": "approved",
-            "planning": "pending",
+            "planning": "approved",
             "implementation": "pending",
             "review": "pending"
           },
@@ -632,6 +632,13 @@
               "actor": "kenule500",
               "previousValue": "pending",
               "timestamp": "2026-11-01T17:20:26Z"
+            },
+            {
+              "event": "Gate 2 approved: eagleview technical plan and 12 tasks across 5 phases; one module, no new dependency, mock-based verification because BP-012 access is [to be confirmed]",
+              "by": "kenule500",
+              "actor": "kenule500",
+              "previousValue": "pending",
+              "timestamp": "2026-11-01T21:07:38Z"
             }
           ]
         }

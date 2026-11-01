@@ -777,10 +777,19 @@ fn message_body(
 }
 
 /// The `payload` object for a Messenger or Instagram attachment.
+///
+/// Meta expects `url` (or `attachment_id`); WhatsApp's `link` key belongs to
+/// [`attachment_payload`] only.
 fn attachment_body(attachment: &MessageAttachment) -> serde_json::Value {
+    let payload = match (&attachment.url, &attachment.attachment_id) {
+        (Some(url), _) => serde_json::json!({ "url": url }),
+        (_, Some(attachment_id)) => serde_json::json!({ "attachment_id": attachment_id }),
+        _ => serde_json::json!({}),
+    };
+
     serde_json::json!({
         "type": attachment.kind.as_str(),
-        "payload": attachment_payload(attachment),
+        "payload": payload,
     })
 }
 

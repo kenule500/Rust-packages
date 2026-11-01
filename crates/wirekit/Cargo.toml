@@ -104,6 +104,9 @@ wiremock = "=0.6.3"
 # `tokio` or `tracing` dependencies, so the test harness declares them itself.
 tokio = { version = "1.44.2", features = ["macros", "rt", "time"] }
 tracing = "0.1.41"
+# Webhook tests sign their own payloads; both crates are already dependencies.
+hmac = "0.12.1"
+sha2 = "0.10.9"
 
 [[test]]
 name = "google-oauth-shared-helper"

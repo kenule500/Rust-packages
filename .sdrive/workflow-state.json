@@ -618,7 +618,7 @@
             "specification": "approved",
             "planning": "approved",
             "implementation": "approved",
-            "review": "pending"
+            "review": "approved"
           },
           "history": [
             {
@@ -652,6 +652,13 @@
               "by": "SpecDrive",
               "actor": "kenule500",
               "timestamp": "2026-11-01T21:33:59Z"
+            },
+            {
+              "event": "Review PASS recorded by the human reviewer with findings: fmt, clippy -D warnings, docs -D warnings and the workspace suite green at 3deba12, sdrive test evidence recorded, verify 0 missing, CI 9/9 green; medium finding is the process-local idempotency ledger; cleared for archive",
+              "by": "kenule500",
+              "actor": "kenule500",
+              "previousValue": "pending",
+              "timestamp": "2026-11-01T22:09:21Z"
             }
           ]
         }

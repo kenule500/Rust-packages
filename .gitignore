@@ -13,3 +13,6 @@ target/
 **/*.rs.bk
 Cargo.lock
 .DS_Store
+
+# Local tool and command scratch logs (not project artifacts)
+.perch/

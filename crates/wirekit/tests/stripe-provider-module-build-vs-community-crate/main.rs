@@ -22,7 +22,26 @@ fn read(relative: &str) -> String {
 }
 
 fn spec() -> String {
-    read(".sdrive/specs/ongoing/stripe-provider-module-build-vs-community-crate/v1/spec.md")
+    // The feature moves from `ongoing/` to `completed/` when it is archived, so
+    // resolve the live location instead of pinning one lifecycle folder.
+    const RELATIVE: &str = "stripe-provider-module-build-vs-community-crate/v1/spec.md";
+
+    for lifecycle in ["ongoing", "completed"] {
+        let path = repo_root()
+            .join(".sdrive/specs")
+            .join(lifecycle)
+            .join(RELATIVE);
+        if path.is_file() {
+            return read(
+                path.strip_prefix(repo_root())
+                    .expect("the spec lives inside the repository")
+                    .to_str()
+                    .expect("repository paths are UTF-8"),
+            );
+        }
+    }
+
+    panic!("the stripe decision record is in neither specs/ongoing nor specs/completed");
 }
 
 fn wirekit_readme() -> String {

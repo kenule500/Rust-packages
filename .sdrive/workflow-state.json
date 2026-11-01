@@ -600,6 +600,35 @@
           ]
         }
       ]
+    },
+    {
+      "name": "eagleview-provider-module",
+      "branch": "feature/bp-012-eagleview",
+      "base": "main",
+      "productItems": [
+        "BP-012"
+      ],
+      "currentVersion": "v1",
+      "versions": [
+        {
+          "id": "v1",
+          "phase": "backlog",
+          "currentStep": "specification",
+          "gates": {
+            "specification": "pending",
+            "planning": "pending",
+            "implementation": "pending",
+            "review": "pending"
+          },
+          "history": [
+            {
+              "event": "Proposed from BP-012 (EagleView provider module, P1, depends on BP-005 and a commercial contract that is [to be confirmed]) on its own branch because the access envelope is external",
+              "by": "SpecDrive",
+              "timestamp": "2026-11-01T17:12:08Z"
+            }
+          ]
+        }
+      ]
     }
   ]
 }

@@ -1,0 +1,158 @@
+{
+  "feature": "syncforge-0-1-queue-idempotency-conflicts-traits",
+  "title": "syncforge 0.1 - queue, idempotency, conflicts, traits",
+  "version": 1,
+  "overview": {
+    "problemStatement": "An offline-capable application must answer four questions correctly the moment connectivity returns: did the action happen, has it already been sent, what if the server saw a newer version, and what time did it actually happen. Most applications answer them with a queue table, a synced boolean, and hope, which works until a duplicate invoice, a lost photo, or a job marked complete twice reaches support. Every offline-first app rebuilds the same primitives - a durable queue, idempotency keys, retry with backoff, batch upload, conflict handling, and audit timestamps - and rebuilds them slightly wrong each time.",
+    "proposedSolution": "Port and adapt the syncforge crate from feature/m3-substrate as prior art: Action, ActionId, EntityType, Operation, Batch, ActionResult, ActionStatus, BatchResult, ConflictInfo, ConflictStrategy, CustomMerger, Resolution, TimestampDecision, SyncError, and the Storage and Transport traits, plus a SyncEngine and a replay model. Enqueue persists before acknowledging, every action carries a UUID v7 idempotency key, a batch returns a per-action result so a partial failure neither retries all actions nor drops one, and the conflict policy is explicit per entity rather than accidental. Ship MemoryStorage and MockTransport for deterministic replay tests. No SQLite or HTTP implementation and no connectivity detection in 0.1.",
+    "targetAudience": "Rust developers building offline-capable field, mobile (Tauri), desktop, or edge applications whose client and server are both Rust, and this project's field application as the first consumer.",
+    "assumptions": [
+      "A working implementation exists on feature/m3-substrate (19 files, features default) and is ported and adapted rather than redesigned.",
+      "main has no [workspace.dependencies], and the branch manifests use *.workspace = true, so every dependency is declared directly in the crate manifest.",
+      "The crate is self-contained: it does not depend on wirekit or platform-core, matching the catalogue.",
+      "The contract is at-least-once delivery plus idempotency keys; the caller's handler must be idempotent for side effects the key alone cannot dedupe.",
+      "The branch tests are not ported; the test agent authors tests against this specification.",
+      "The unmerged m3-substrate/v1 spec covers four crates and is not reused as governance here."
+    ],
+    "outOfScope": [
+      "A SQLite storage implementation in 0.1; Storage is a trait, and SQLite is a later adapter.",
+      "An HTTP transport implementation in 0.1; Transport is a trait, and HTTP is a later adapter.",
+      "Connectivity detection and WASM packaging.",
+      "Automatic application of a merged value on the server; the resolution is returned to the caller.",
+      "A CRDT and document merging.",
+      "Authentication, authorization, and permissions; the server authorizes every action.",
+      "A schema migration tool; action versions are the caller's responsibility.",
+      "Exactly-once semantics."
+    ]
+  },
+  "userStories": [
+    {
+      "id": "US-001",
+      "title": "Enqueue an action durably",
+      "role": "app developer",
+      "want": "an action persisted before the UI acknowledges it",
+      "benefit": "a crash or force-quit does not lose the write",
+      "acceptanceCriteria": [
+        { "id": "AC-001", "text": "Given an Action carrying an entity, an operation, a payload, and a client timestamp, when it is enqueued, then it is persisted to Storage before the call reports success." },
+        { "id": "AC-002", "text": "Given a new action, when it is created, then it receives a UUID v7 ActionId and a distinct idempotency key." }
+      ]
+    },
+    {
+      "id": "US-002",
+      "title": "Replay idempotently on reconnect",
+      "role": "app developer",
+      "want": "pending actions replayed without duplicating side effects",
+      "benefit": "the same action never runs twice even when a response was lost",
+      "acceptanceCriteria": [
+        { "id": "AC-003", "text": "Given pending actions and a transport, when the engine replays, then each action is sent with its idempotency key and an action reported Duplicate is marked sent rather than retried." },
+        { "id": "AC-004", "text": "Given a transport that fails an action with a retryable status, when replay completes, then that action is marked retry with its attempt count advanced and the others are marked by their own results." }
+      ]
+    },
+    {
+      "id": "US-003",
+      "title": "Report per-action results for a batch",
+      "role": "app developer",
+      "want": "one result per action in a batch",
+      "benefit": "a partial batch failure neither retries everything nor drops the failure",
+      "acceptanceCriteria": [
+        { "id": "AC-005", "text": "Given a batch of many actions where some succeed and some fail, when the result is returned, then it carries one ActionResult per action with a status of Applied, Duplicate, Conflict, Rejected, or Retry." },
+        { "id": "AC-006", "text": "Given a batch, when it is built, then its size is bounded by a configured limit so a week offline does not replay as one unbounded request." }
+      ]
+    },
+    {
+      "id": "US-004",
+      "title": "Resolve conflicts explicitly",
+      "role": "app developer",
+      "want": "a conflict policy chosen per entity rather than invented per handler",
+      "benefit": "an offline edit cannot silently overwrite a newer server value by accident",
+      "acceptanceCriteria": [
+        { "id": "AC-007", "text": "Given a server-reported conflict, when the result is inspected, then ConflictInfo carries both sides and the configured strategy resolves it to a typed Resolution." },
+        { "id": "AC-008", "text": "Given the conflict strategies, when they are inspected, then LastWriteWins, ServerWins, ClientWins, and Custom are available and Custom accepts a caller merger." }
+      ]
+    },
+    {
+      "id": "US-005",
+      "title": "Preserve audit-accurate timestamps",
+      "role": "app developer",
+      "want": "the client time the action happened recorded and trusted within a tolerance",
+      "benefit": "job completion time is a payroll and billing fact rather than a network artifact",
+      "acceptanceCriteria": [
+        { "id": "AC-009", "text": "Given an action and a server time, when the timestamp decision is made, then it returns a typed TimestampDecision that accepts, clamps, or rejects the client time within a configurable tolerance and records both times." }
+      ]
+    },
+    {
+      "id": "US-006",
+      "title": "Handle poison actions",
+      "role": "app developer",
+      "want": "an action that always fails to stop blocking the queue",
+      "benefit": "sync does not silently stop forever because of one bad action",
+      "acceptanceCriteria": [
+        { "id": "AC-010", "text": "Given an action that keeps failing, when its attempts reach the configured maximum, then it is marked failed and surfaced instead of being retried indefinitely." }
+      ]
+    },
+    {
+      "id": "US-007",
+      "title": "Stay storage- and transport-agnostic",
+      "role": "app developer",
+      "want": "traits for storage and transport with test implementations",
+      "benefit": "I choose my database and protocol, and I can test replay deterministically",
+      "acceptanceCriteria": [
+        { "id": "AC-011", "text": "Given the crate, when Storage and Transport are implemented by a caller, then the queue and conflict logic work unchanged, and MemoryStorage and MockTransport are provided for deterministic tests." },
+        { "id": "AC-012", "text": "Given the crate built with --no-default-features, when it compiles, then the core types, error type, and both test implementations are available with no extra feature required." }
+      ]
+    },
+    {
+      "id": "US-008",
+      "title": "Build on the workspace baseline",
+      "role": "maintainer",
+      "want": "lint and MSRV conformance",
+      "benefit": "the crate ships like the rest of the workspace",
+      "acceptanceCriteria": [
+        { "id": "AC-013", "text": "Given the crate, when it is built with all features on Rust 1.87, then it compiles with forbid(unsafe_code) and deny(missing_docs), ships the licence files, and emits queue depth, replay rate, conflict count, and sync duration through tracing." }
+      ]
+    }
+  ],
+  "functionalRequirements": [
+    { "id": "FR-001", "text": "The crate MUST expose Action, ActionId, EntityType, Operation, Batch, ActionResult, ActionStatus, BatchResult, ConflictInfo, ConflictStrategy, CustomMerger, Resolution, TimestampDecision, SyncError, and Storage and Transport traits per catalogue/02_syncforge.md and the shared module list.", "linkedAcceptanceCriteria": ["AC-001", "AC-005", "AC-007", "AC-009", "AC-011"] },
+    { "id": "FR-002", "text": "Enqueue MUST persist to Storage before the call reports success.", "linkedAcceptanceCriteria": ["AC-001"] },
+    { "id": "FR-003", "text": "Every action MUST receive a UUID v7 idempotency key at creation, and a Duplicate result MUST mark the action sent rather than retried.", "linkedAcceptanceCriteria": ["AC-002", "AC-003"] },
+    { "id": "FR-004", "text": "A batch MUST return one ActionResult per action with a status of Applied, Duplicate, Conflict, Rejected, or Retry.", "linkedAcceptanceCriteria": ["AC-005"] },
+    { "id": "FR-005", "text": "A batch MUST be bounded by a configured size.", "linkedAcceptanceCriteria": ["AC-006"] },
+    { "id": "FR-006", "text": "ConflictStrategy MUST provide LastWriteWins, ServerWins, ClientWins, and Custom, and a conflict MUST resolve to a typed Resolution carrying ConflictInfo.", "linkedAcceptanceCriteria": ["AC-007", "AC-008"] },
+    { "id": "FR-007", "text": "The crate MUST return a typed TimestampDecision that applies a configurable tolerance to the client time and records both the client and server times.", "linkedAcceptanceCriteria": ["AC-009"] },
+    { "id": "FR-008", "text": "An action that exhausts its maximum attempts MUST be marked failed and surfaced rather than retried indefinitely.", "linkedAcceptanceCriteria": ["AC-010"] },
+    { "id": "FR-009", "text": "Storage and Transport MUST be traits, and MemoryStorage and MockTransport MUST be provided for deterministic tests.", "linkedAcceptanceCriteria": ["AC-011", "AC-012"] },
+    { "id": "FR-010", "text": "The crate MUST emit queue depth, replay success and failure, conflict count, and sync duration through tracing.", "linkedAcceptanceCriteria": ["AC-013"] },
+    { "id": "FR-011", "text": "The crate MUST declare forbid(unsafe_code) and deny(missing_docs) and MUST NOT depend on wirekit or platform-core.", "linkedAcceptanceCriteria": ["AC-013"] }
+  ],
+  "nonFunctionalRequirements": [
+    { "id": "NFR-001", "text": "The crate MUST NOT read or write credentials and MUST NOT read the environment; storage and transport are caller-supplied (CON-519).", "linkedAcceptanceCriteria": ["AC-011"] },
+    { "id": "NFR-002", "text": "Untrusted transport responses MUST be validated before mutating queue state, and a malformed response MUST produce a typed SyncError rather than a panic (CON-515).", "linkedAcceptanceCriteria": ["AC-003"] },
+    { "id": "NFR-003", "text": "The crate MUST be storage- and transport-agnostic and MUST NOT force a database or an HTTP client on a consumer (CON-107 applies in spirit: stateful concerns stay in their own crate).", "linkedAcceptanceCriteria": ["AC-011"] },
+    { "id": "NFR-004", "text": "The crate MUST compile on Rust 1.87 with all features and MUST contain no product or vendor workflow vocabulary (CON-102, CON-106).", "linkedAcceptanceCriteria": ["AC-013"] },
+    { "id": "NFR-005", "text": "Every public item MUST carry rustdoc and every module MUST state its scope and non-goals (CON-202, CON-203).", "linkedAcceptanceCriteria": ["AC-013"] }
+  ],
+  "edgeCases": [
+    { "id": "EC-001", "description": "The process dies after enqueue and before replay", "expectedBehavior": "The action is still in Storage and replays on the next launch." },
+    { "id": "EC-002", "description": "The server applied an action but the response was lost", "expectedBehavior": "The retry carries the same idempotency key and the server reports Duplicate, which is not an error and is not retried." },
+    { "id": "EC-003", "description": "A batch of many actions where one is rejected", "expectedBehavior": "Per-action results leave the rejected action marked Rejected and every other action at its own status." },
+    { "id": "EC-004", "description": "One action always fails validation", "expectedBehavior": "After the attempt cap it is marked failed and surfaced; the queue continues instead of blocking." },
+    { "id": "EC-005", "description": "The device clock is wrong by more than the tolerance", "expectedBehavior": "TimestampDecision rejects or clamps the client time and records both times rather than silently trusting it." },
+    { "id": "EC-006", "description": "Build with --no-default-features", "expectedBehavior": "Core types, SyncError, MemoryStorage, and MockTransport compile." }
+  ],
+  "dependencies": [
+    { "name": "async-trait", "type": "library", "notes": "Async Storage and Transport methods; declared directly because main has no workspace.dependencies." },
+    { "name": "chrono", "type": "library", "notes": "Client and server timestamps and the tolerance decision." },
+    { "name": "serde", "type": "library", "notes": "Action and batch serialization across the client/server boundary." },
+    { "name": "serde_json", "type": "library", "notes": "Action payload handling." },
+    { "name": "uuid", "type": "library", "notes": "ActionId and the UUID v7 idempotency key." },
+    { "name": "thiserror", "type": "library", "notes": "SyncError with stable variants." },
+    { "name": "tracing", "type": "library", "notes": "Queue depth, replay rate, conflicts, and duration." },
+    { "name": "tokio", "type": "library", "notes": "Dev only, for async replay tests written later by the test agent." }
+  ],
+  "risks": [
+    { "id": "RISK-001", "description": "Queue and conflict semantics are the highest design risk in M3, and a rushed model is expensive to change once a client depends on it.", "mitigation": "The catalogue's failure-mode list is mirrored in the edge cases and each is pinned by an AC; the test agent covers replay determinism with MockTransport." },
+    { "id": "RISK-002", "description": "The pre-1.0 API will change before 1.0, and both client and server compile against the shared types, so a change breaks both sides at once.", "mitigation": "Document 0.x instability as the workspace already does for every crate, and keep the public surface to the catalogue list." },
+    { "id": "RISK-003", "description": "Porting stale code may drag in manifests using workspace inheritance the current workspace does not define.", "mitigation": "Adapt the manifest to declare dependencies directly, as platform-core did, and let the MSRV and clippy jobs prove it." }
+  ]
+}

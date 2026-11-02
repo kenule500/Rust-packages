@@ -1,0 +1,91 @@
+{
+  "feature": "hookgate-0-1-verifiers-dedupe-replay-outbox",
+  "version": 1,
+  "architecture": {
+    "approach": "Port the hookgate crate from feature/m3-substrate as prior art and adapt it to the current workspace: one library crate at crates/hookgate, feature-gated with default = [presets] and an additive presets feature that ships the provider verifiers. The core is four value types (DeliveryId, IdempotencyKey, InboundRequest, VerifiedEvent) plus DeliveryRecord, InsertOutcome, and DeadLetterRecord, a redacting error type, and three traits: Verifier (synchronous, because signature checking does no I/O), DeliveryStore, and Outbox (both async). The load-bearing invariant is that verification runs over the exact received bytes; InboundRequest therefore holds Bytes and never a parsed document, and the module docs state that re-serialization is a security bug. MemoryDeliveryStore is the reference implementation. The crate has no provider client, no outbound HTTP, no HTTP server, and no axum integration, and it depends on platform-core only for tenant identity.",
+    "components": [
+      { "name": "crates/hookgate/src/types.rs", "action": "create", "description": "DeliveryId, IdempotencyKey, InboundRequest (raw Bytes), VerifiedEvent, DeliveryRecord, InsertOutcome, DeadLetterRecord. Ported from prior art." },
+      { "name": "crates/hookgate/src/error.rs", "action": "create", "description": "HookgateError with stable variants plus redact_error, so a failure never renders a signature or a shared secret." },
+      { "name": "crates/hookgate/src/verify/mod.rs", "action": "create", "description": "The Verifier trait and the shared constant-time comparison and timestamp-tolerance machinery, operating on the raw received bytes only." },
+      { "name": "crates/hookgate/src/verify/presets.rs", "action": "create", "description": "The presets feature: Meta (X-Hub-Signature-256), Stripe (timestamp tolerance), Shopify (base64), Twilio (HMAC-SHA1 over URL plus sorted params), Slack (v0 versioned), GitHub, and a configurable generic HMAC verifier." },
+      { "name": "crates/hookgate/src/store.rs", "action": "create", "description": "The DeliveryStore trait (insert_if_new returning InsertOutcome, mark_processed, mark_failed) and the Outbox trait." },
+      { "name": "crates/hookgate/src/memory.rs", "action": "create", "description": "MemoryDeliveryStore: the non-durable reference implementation and deterministic test seam." },
+      { "name": "crates/hookgate/src/lib.rs", "action": "create", "description": "Module declarations, re-exports, crate docs with the raw-body rule and the non-goals list, and the forbid(unsafe_code) and deny(missing_docs) attributes." },
+      { "name": "crates/hookgate/Cargo.toml", "action": "create", "description": "Manifest with dependencies declared directly (main has no [workspace.dependencies]). Features default = [presets] and presets = []." },
+      { "name": "crates/hookgate/README.md", "action": "create", "description": "Crate README describing the ingress flow, the raw-body rule, the presets, and the non-goals." },
+      { "name": "crates/hookgate/LICENSE-MIT", "action": "reuse", "description": "Reused verbatim from the workspace root licence files." },
+      { "name": "crates/hookgate/LICENSE-APACHE", "action": "reuse", "description": "Reused verbatim from the workspace root licence files." },
+      { "name": "crates/platform-core", "action": "reuse", "description": "Tenant identity is consumed, not redefined." },
+      { "name": "Cargo.toml", "action": "modify", "description": "Verify the workspace resolves the new member via the crates/* glob." }
+    ],
+    "referencedRequirementIds": ["FR-001", "FR-002", "FR-003", "FR-004", "FR-005", "FR-006", "FR-007", "FR-008", "FR-009", "FR-010", "FR-011", "NFR-001", "NFR-002", "NFR-003", "NFR-004", "NFR-005", "NFR-006"]
+  },
+  "dataModel": {
+    "entities": [
+      { "name": "InboundRequest", "action": "create", "fields": [
+        { "name": "provider", "type": "ProviderId", "action": "add" },
+        { "name": "headers", "type": "HeaderMap", "action": "add" },
+        { "name": "body", "type": "Bytes", "action": "add" },
+        { "name": "received_at", "type": "DateTime<Utc>", "action": "add" }
+      ] },
+      { "name": "VerifiedEvent", "action": "create", "fields": [
+        { "name": "delivery", "type": "DeliveryId", "action": "add" },
+        { "name": "provider", "type": "ProviderId", "action": "add" },
+        { "name": "event_id", "type": "Option<String>", "nullable": true, "action": "add" },
+        { "name": "event_type", "type": "String", "action": "add" },
+        { "name": "payload", "type": "serde_json::Value", "action": "add" },
+        { "name": "raw", "type": "Bytes", "action": "add" }
+      ] },
+      { "name": "DeliveryRecord", "action": "create", "fields": [
+        { "name": "id", "type": "DeliveryId", "action": "add" },
+        { "name": "tenant", "type": "TenantId", "action": "add" },
+        { "name": "provider", "type": "ProviderId", "action": "add" },
+        { "name": "event_id", "type": "Option<String>", "nullable": true, "action": "add" },
+        { "name": "event_type", "type": "String", "action": "add" },
+        { "name": "raw", "type": "Bytes", "action": "add" },
+        { "name": "received_at", "type": "DateTime<Utc>", "action": "add" },
+        { "name": "state", "type": "DeliveryState", "action": "add" }
+      ] },
+      { "name": "DeadLetterRecord", "action": "create", "fields": [
+        { "name": "delivery", "type": "DeliveryId", "action": "add" },
+        { "name": "raw", "type": "Bytes", "action": "add" },
+        { "name": "reason", "type": "String", "action": "add" },
+        { "name": "attempts", "type": "u32", "action": "add" }
+      ] }
+    ],
+    "flowDescription": "A verified request follows one path: receive the raw bytes, resolve the tenant and provider, verify the signature against those exact bytes with a constant-time comparison, reject a timestamp outside the tolerance as stale, insert the delivery if it is new, enqueue the verified event to the outbox, and only then report success. A duplicate insert returns InsertOutcome::Duplicate rather than a second row, and uniqueness includes the tenant so the same event id from two tenants is not a duplicate. The processor consumes the outbox, marks the delivery processed, or dead-letters it with the raw body and reason. Replay of a dead-lettered delivery is idempotent against the delivery store."
+  },
+  "securityConsiderations": [
+    { "requirementId": "NFR-001", "description": "Every delivery read and write is scoped by tenant; another tenant cannot observe or replay a delivery that is not theirs." },
+    { "requirementId": "NFR-002", "description": "Signature material and shared secrets never render: the error type is redacted and InboundRequest holds raw bytes without a secret field." },
+    { "requirementId": "NFR-003", "description": "Headers, raw bodies, and event ids are validated and bounded before use; an oversized or malformed request is a typed error rather than a panic." },
+    { "requirementId": "NFR-004", "description": "The crate reads no secret from the environment; the caller constructs each verifier with its own secret." }
+  ],
+  "performanceConsiderations": [
+    { "requirementId": "NFR-003", "strategy": "Signature comparison is constant-time (subtle) so verification cost does not leak the expected value through timing." },
+    { "requirementId": "NFR-005", "strategy": "InboundRequest keeps the body as Bytes and clones by reference counting, so the raw bytes are not copied per verification stage." }
+  ],
+  "dependencies": [
+    { "name": "platform-core", "type": "internal", "action": "no_change", "notes": "Internal path dependency already on main; supplies TenantId." },
+    { "name": "async-trait", "type": "library", "action": "add", "notes": "Declared directly because main has no [workspace.dependencies]. No skill available for Rust crate dependencies; docs-only per the workspace precedent." },
+    { "name": "bytes", "type": "library", "action": "add", "notes": "Raw body bytes preserved verbatim for verification. No skill available." },
+    { "name": "http", "type": "library", "action": "add", "notes": "HeaderMap for InboundRequest. No skill available." },
+    { "name": "hmac", "type": "library", "action": "add", "notes": "Provider signature presets. No skill available." },
+    { "name": "sha1", "type": "library", "action": "add", "notes": "Twilio's signature uses HMAC-SHA1. No skill available." },
+    { "name": "sha2", "type": "library", "action": "add", "notes": "HMAC-SHA256 presets. No skill available." },
+    { "name": "subtle", "type": "library", "action": "add", "notes": "Constant-time signature comparison. No skill available." },
+    { "name": "base64", "type": "library", "action": "add", "notes": "Shopify and generic base64 signatures. No skill available." },
+    { "name": "hex", "type": "library", "action": "add", "notes": "Hex-encoded signatures. No skill available." },
+    { "name": "chrono", "type": "library", "action": "add", "notes": "Received-at and timestamp tolerance. No skill available." },
+    { "name": "serde_json", "type": "library", "action": "add", "notes": "Parsed payload after verification. No skill available." },
+    { "name": "uuid", "type": "library", "action": "add", "notes": "DeliveryId. No skill available." },
+    { "name": "thiserror", "type": "library", "action": "add", "notes": "The redacting error type. No skill available." },
+    { "name": "tracing", "type": "library", "action": "add", "notes": "Received, verified, duplicate, rejected, processed, dead-lettered. No skill available." },
+    { "name": "tokio", "type": "library", "action": "add", "notes": "Dev-dependency only, for the test agent." }
+  ],
+  "risks": [
+    { "description": "The raw-body rule is easy to violate by a well-meaning refactor that parses first, which silently breaks every signature.", "mitigation": "AC-001 and AC-003 assert it directly and EC-001 names the failure so a test can pin it." },
+    { "description": "The delivery-and-outbox-before-acknowledge guarantee is weak when the two writes are not transactional in the memory store.", "mitigation": "State the guarantee explicitly on the store contract and pin it with AC-007 and EC-003." },
+    { "description": "Porting stale code may drag in a cross-crate dev-dependency on quota-ledger from the prior art.", "mitigation": "Declare dependencies directly and drop the cross-crate dev-dependency unless the test actually needs it." }
+  ]
+}

@@ -1,0 +1,106 @@
+{
+  "feature": "syncforge-0-1-queue-idempotency-conflicts-traits",
+  "version": 1,
+  "phases": [
+    {
+      "phaseId": "P1",
+      "name": "Crate scaffold and core types",
+      "dependencies": [],
+      "tasks": [
+        {
+          "id": "T1.1",
+          "title": "Scaffold the syncforge crate",
+          "description": "Create crates/syncforge with a manifest that declares dependencies directly (main has no [workspace.dependencies]), feature default = [], the workspace-inherited edition, rust-version, licence, and repository fields, the licence files, a README, and a lib.rs carrying forbid(unsafe_code), deny(missing_docs), and crate docs stating the replay model, scope, and non-goals. Lay out the modules that expose the catalogue's public surface: action, batch, conflict, timestamp, storage, transport, engine, and error. Confirm the workspace resolves the new member. The crate must not depend on wirekit or platform-core.",
+          "linkedRequirements": ["FR-001"],
+          "linkedAcceptanceCriteria": ["AC-013"],
+          "completed": false
+        },
+        {
+          "id": "T1.2",
+          "title": "Implement the core types, the error type, and the storage and transport seams",
+          "description": "Implement action.rs with Action, ActionId, EntityType, and Operation, and error.rs with the single SyncError enum. Implement storage.rs with the Storage trait and MemoryStorage, and transport.rs with the Transport trait and MockTransport (FR-009). Every public item carries rustdoc and every module states its scope and non-goals. The crate reads no credentials and no environment; storage and transport are caller-supplied (NFR-001).",
+          "linkedRequirements": ["FR-001", "FR-009", "NFR-001"],
+          "linkedAcceptanceCriteria": ["AC-011", "AC-013"],
+          "completed": false
+        }
+      ]
+    },
+    {
+      "phaseId": "P2",
+      "name": "Queue, storage, and replay",
+      "dependencies": ["P1"],
+      "tasks": [
+        {
+          "id": "T2.1",
+          "title": "Implement durable enqueue and idempotency keys",
+          "description": "Implement enqueue so an action is persisted to Storage before the call reports success (FR-002). Every action receives a UUID v7 ActionId and a distinct idempotency key at construction (FR-003).",
+          "linkedRequirements": ["FR-002", "FR-003"],
+          "linkedAcceptanceCriteria": ["AC-001", "AC-002", "AC-003"],
+          "completed": false
+        },
+        {
+          "id": "T2.2",
+          "title": "Implement bounded batching and per-action results",
+          "description": "Implement batch.rs with Batch, BatchResult, ActionResult, and ActionStatus. A batch is bounded by a configured size so a long offline period does not replay as one unbounded request (FR-005), and a batch returns exactly one ActionResult per action with a status of Applied, Duplicate, Conflict, Rejected, or Retry (FR-004).",
+          "linkedRequirements": ["FR-004", "FR-005"],
+          "linkedAcceptanceCriteria": ["AC-005", "AC-006"],
+          "completed": false
+        },
+        {
+          "id": "T2.3",
+          "title": "Implement replay, duplicate handling, and the attempt cap",
+          "description": "Implement engine.rs replay: send each pending action with its idempotency key and map the returned BatchResult onto queue state. An Applied result is marked sent, a Duplicate is marked sent and never retried (FR-003), Rejected is terminal and surfaced, and Retry advances the attempt count (FR-004). An action that reaches the configured attempt cap is marked failed and surfaced rather than retried indefinitely (FR-008).",
+          "linkedRequirements": ["FR-003", "FR-004", "FR-008"],
+          "linkedAcceptanceCriteria": ["AC-003", "AC-004", "AC-005", "AC-010"],
+          "completed": false
+        },
+        {
+          "id": "T2.4",
+          "title": "Harden the seams and validate transport responses",
+          "description": "Write the engine only against the Storage and Transport traits so queue and conflict logic work unchanged for any caller implementation, and so the crate forces no database or HTTP client on a consumer; MemoryStorage and MockTransport back deterministic replay tests (FR-009, NFR-003). Validate and bound every transport response before mutating queue state, returning a typed SyncError for a malformed response rather than panicking (NFR-002).",
+          "linkedRequirements": ["FR-009", "NFR-002", "NFR-003"],
+          "linkedAcceptanceCriteria": ["AC-003", "AC-011", "AC-012"],
+          "completed": false
+        }
+      ]
+    },
+    {
+      "phaseId": "P3",
+      "name": "Conflict and timestamp",
+      "dependencies": ["P2"],
+      "tasks": [
+        {
+          "id": "T3.1",
+          "title": "Implement conflict strategies and resolution",
+          "description": "Implement conflict.rs with ConflictStrategy (LastWriteWins, ServerWins, ClientWins, and Custom accepting a caller merger), ConflictInfo carrying both sides, and Resolution. A server-reported conflict resolves through the configured strategy for that entity to a typed Resolution rather than through logic invented inside a handler.",
+          "linkedRequirements": ["FR-006"],
+          "linkedAcceptanceCriteria": ["AC-007", "AC-008"],
+          "completed": false
+        },
+        {
+          "id": "T3.2",
+          "title": "Implement the timestamp tolerance decision",
+          "description": "Implement timestamp.rs so the decision returns a typed TimestampDecision that accepts, clamps, or rejects the client time within a configurable tolerance and records both the client and the server time, so a skewed device clock is visible rather than silently trusted.",
+          "linkedRequirements": ["FR-007"],
+          "linkedAcceptanceCriteria": ["AC-009"],
+          "completed": false
+        }
+      ]
+    },
+    {
+      "phaseId": "P4",
+      "name": "Wiring, docs, verification",
+      "dependencies": ["P3"],
+      "tasks": [
+        {
+          "id": "T4.1",
+          "title": "Wire the crate, document it, and run the verification checks",
+          "description": "Confirm the workspace resolves the new member; write the README covering the queue, idempotency, conflict strategies, timestamp handling, and non-goals; ensure every public item carries rustdoc and every module states scope and non-goals (NFR-005); confirm forbid(unsafe_code) and deny(missing_docs) are present and the crate depends on neither wirekit nor platform-core (FR-011); and keep the crate free of product or vendor vocabulary (NFR-004). Emit queue depth, replay success and failure, conflict count, and sync duration through tracing (FR-010). Then run cargo fmt --all --check, cargo clippy --workspace --all-features -- -D warnings, cargo doc --workspace --all-features --no-deps with RUSTDOCFLAGS=-D warnings, cargo check -p syncforge --no-default-features, and node .sdrive/scripts/validate-governance.js. Test authoring and execution are the test agent's responsibility and are not part of this phase.",
+          "linkedRequirements": ["FR-010", "FR-011", "NFR-004", "NFR-005"],
+          "linkedAcceptanceCriteria": ["AC-013"],
+          "completed": false
+        }
+      ]
+    }
+  ]
+}

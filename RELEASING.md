@@ -25,7 +25,7 @@ git status --porcelain
 
 Confirm the release commit is green in GitHub Actions before continuing. The
 workflow must have passed format, clippy, docs, package, the three-OS test
-matrix, the Rust 1.85 MSRV job, and the dependency audit.
+matrix, the Rust 1.87 MSRV job, and the dependency audit.
 
 Check that the crate name is still available. A `404` means the name is free:
 
@@ -44,7 +44,7 @@ cargo metadata --no-deps --format-version 1
 ```
 
 The `dado-yaml` package must report version `0.1.0`, the repository URL, the
-`MIT OR Apache-2.0` license, Rust 1.85, and the `yaml`, `diag`, `graph`, `emit`,
+`MIT OR Apache-2.0` license, Rust 1.87, and the `yaml`, `diag`, `graph`, `emit`,
 and `glob` features.
 
 ## 2. Version and changelog
@@ -196,7 +196,7 @@ git status --porcelain
 
 `git status --porcelain` must print nothing, and CI must be green on the release
 commit for format, clippy, docs, package, the three-OS test matrix, and the Rust
-1.85 MSRV job.
+1.87 MSRV job.
 
 Confirm the name is still free. A `404` means it is:
 
@@ -213,7 +213,7 @@ cargo metadata --no-deps --format-version 1
 ```
 
 The `wirekit` package must report version `0.1.0`, the repository URL, the
-`MIT OR Apache-2.0` license, Rust 1.85, and the `noaa`, `twilio`, `sendgrid`,
+`MIT OR Apache-2.0` license, Rust 1.87, and the `noaa`, `twilio`, `sendgrid`,
 `slack`, and `native-tls` features.
 
 ## 2. Version and changelog

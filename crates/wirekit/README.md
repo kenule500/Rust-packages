@@ -270,7 +270,7 @@ published crate.
 
 ## Minimum supported Rust version
 
-Rust 1.85, edition 2021.
+Rust 1.87, edition 2021.
 
 ## License
 

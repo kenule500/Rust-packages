@@ -6,19 +6,9 @@
 # record the RUSTSEC ID, the reason, and the condition that removes the entry.
 
 [advisories]
-ignore = [
-    # RUSTSEC-2026-0387: timing variability in crypto-bigint operations that are
-    # meant to be constant-time.
-    #
-    # Why it is ignored:
-    # - It arrives through p256 0.13 -> elliptic-curve 0.13. The `sendgrid`
-    #   feature uses p256 only to verify Event Webhook signatures over public
-    #   keys and payloads, so no secret scalar arithmetic runs in this crate.
-    # - Every patched release (crypto-bigint >= 0.7.6) declares rust-version
-    #   1.87, and the workspace MSRV is 1.85 (Cargo.toml, AC-039). Fixing it
-    #   needs the p256 0.14 / ecdsa 0.17 / elliptic-curve 0.14 line, which also
-    #   pulls crypto-bigint 0.7.10 and ctutils 0.4.7, both 1.87.
-    #
-    # Remove this entry and move to p256 0.14 when the MSRV reaches 1.87.
-    "RUSTSEC-2026-0387",
-]
+# Empty on purpose: the MSRV move to 1.87 allowed the patched ECDSA stack
+# (p256 0.14 / ecdsa 0.17 -> elliptic-curve 0.14 -> crypto-bigint 0.7.10), so
+# RUSTSEC-2026-0387 no longer applies. Add entries here only for an advisory
+# that genuinely cannot be fixed, and record the RUSTSEC ID, the reason, and the
+# condition that removes the entry.
+ignore = []

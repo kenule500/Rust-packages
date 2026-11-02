@@ -281,7 +281,7 @@ Source: `.sdrive/constitution.md` CON-214; `catalogue/36_rtmp_publish.md`.
 | Stability | 0.x: APIs may change; 1.0 freezes after external usage |
 | Changelog | Per-crate `CHANGELOG.md`, Keep a Changelog format |
 | Release notes | Summarize breaking changes, deprecations, and new providers |
-| MSRV | 1.85 until a constitution amendment changes it |
+| MSRV | 1.87 until a constitution amendment changes it |
 | Licence | `MIT OR Apache-2.0` on every crate |
 
 ## Visual and brand guidance

@@ -37,7 +37,7 @@ from the app", and "Public crates.io, not app-only".
 | Language | Rust | `Cargo.toml` |
 | Edition | 2021 | `Cargo.toml` `[workspace.package]` |
 | Resolver | 3 (MSRV-aware) | `Cargo.toml` |
-| MSRV | 1.85 | `Cargo.toml` `rust-version` |
+| MSRV | 1.87 | `Cargo.toml` `rust-version` |
 | Licence | `MIT OR Apache-2.0` | `Cargo.toml` `license` |
 | Workspace members | `crates/*` | `Cargo.toml` |
 | Installed toolchain | rustc 1.95.0, cargo 1.95.0 | `rustc --version`, `cargo --version` |

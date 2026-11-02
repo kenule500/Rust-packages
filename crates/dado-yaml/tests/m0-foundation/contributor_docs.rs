@@ -11,7 +11,7 @@ fn ac_022_contributing_documents_the_full_contribution_path() {
         &doc,
         &[
             "## Prerequisites",
-            "Rust 1.85 or newer",
+            "Rust 1.87 or newer",
             "## Build and test",
             "cargo build --workspace --all-features",
             "cargo test --workspace --all-features",

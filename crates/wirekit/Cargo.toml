@@ -86,12 +86,12 @@ percent-encoding = "2.3.1"
 sha1 = { version = "0.10.6", optional = true }
 serde_urlencoded = { version = "0.7.1", optional = true }
 hex = { version = "0.4.3", optional = true }
-p256 = { version = "0.13.2", optional = true, default-features = false, features = [
+p256 = { version = "0.14.0", optional = true, default-features = false, features = [
     "ecdsa",
     "pkcs8",
     "std",
 ] }
-ecdsa = { version = "0.16.9", optional = true, default-features = false, features = [
+ecdsa = { version = "0.17.0", optional = true, default-features = false, features = [
     "std",
     "der",
 ] }
@@ -100,8 +100,9 @@ ecdsa = { version = "0.16.9", optional = true, default-features = false, feature
 # build without `angi` or `sage-intacct` carries neither.
 # Licences verified on crates.io: csv 1.4.0 is Unlicense/MIT, quick-xml is
 # MIT - both compatible with this crate's MIT OR Apache-2.0.
-# quick-xml is capped at 0.41: 0.42 declares rust-version 1.86, which would break
-# the workspace's 1.85 MSRV (the CI MSRV job builds --all-features).
+# quick-xml is held at 0.41: 0.42 declares rust-version 1.86, which is now within
+# the workspace's 1.87 MSRV, so the cap may be lifted in a follow-up that returns
+# `sage_intacct` to the `str`-returning API. Until then the cap is deliberate.
 csv = { version = "1.4.0", optional = true }
 quick-xml = { version = "0.41", optional = true }
 
@@ -113,7 +114,7 @@ hmac = "0.12.1"
 sha2 = "0.10.9"
 base64 = "0.22.1"
 # Pinned exactly: 0.6.4+ use `let` chains in conditions and need Rust 1.88,
-# which would break the MSRV 1.85 test job (Cargo.lock is not committed).
+# which would break the MSRV 1.87 test job (Cargo.lock is not committed).
 wiremock = "=0.6.3"
 # Integration tests are separate crates: they cannot borrow the library's own
 # `tokio` or `tracing` dependencies, so the test harness declares them itself.

@@ -12,7 +12,7 @@
 | Fact | Value | Source |
 |---|---|---|
 | Edition | 2021 | `Cargo.toml` |
-| MSRV | 1.85 | `Cargo.toml` |
+| MSRV | 1.87 | `Cargo.toml` |
 | Resolver | 2 | `Cargo.toml` |
 | Licence | `MIT OR Apache-2.0` | `Cargo.toml` |
 | Installed toolchain | 1.95.0 | `rustc --version` |

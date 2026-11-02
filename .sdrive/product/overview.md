@@ -136,7 +136,7 @@ The 11 public crates:
 
 | Constraint | Source |
 |---|---|
-| Rust edition 2021, MSRV 1.85 | `.sdrive/constitution.md` CON-102; `Cargo.toml` |
+| Rust edition 2021, MSRV 1.87 | `.sdrive/constitution.md` CON-102; `Cargo.toml` |
 | `MIT OR Apache-2.0` | CON-102; `Cargo.toml` |
 | Single Cargo workspace at the repository root, members `crates/*` | CON-101 |
 | One job per package; no framework | CON-103 |
@@ -182,7 +182,7 @@ These are proposals, not commitments:
 - [to be confirmed] The umbrella public brand name; "GIA Packages" is the repository name, not necessarily the public product name.
 - [to be confirmed] Provider access (Meta, EagleView, QuickBooks, Google LSA) can be obtained within the roadmap window.
 - [to be confirmed] External developers will accept a 0.x API in exchange for early access.
-- [to be confirmed] MSRV 1.85 remains acceptable for the first year.
+- [to be confirmed] MSRV 1.87 remains acceptable for the first year.
 - [to be confirmed] The candidate dependencies in this document will be approved crate by crate.
 - [to be confirmed] No JavaScript/TypeScript surface is planned; if one appears, re-evaluate Turborepo.
 - [to be confirmed] A single maintainer is sufficient until external contributors join.

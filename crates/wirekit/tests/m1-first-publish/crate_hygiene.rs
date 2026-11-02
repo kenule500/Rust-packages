@@ -81,15 +81,15 @@ fn ac_038_features_are_additive_and_provider_modules_stay_compiled() {
 }
 
 #[test]
-fn ac_039_the_workspace_targets_rust_1_85_and_edition_2021() {
+fn ac_039_the_workspace_targets_rust_1_87_and_edition_2021() {
     let workspace = common::repo_file("../../Cargo.toml");
     assert!(
         workspace.contains("edition = \"2021\""),
         "the workspace edition is 2021"
     );
     assert!(
-        workspace.contains("rust-version = \"1.85\""),
-        "the workspace MSRV is 1.85"
+        workspace.contains("rust-version = \"1.87\""),
+        "the workspace MSRV is 1.87"
     );
 
     let manifest = common::repo_file("Cargo.toml");

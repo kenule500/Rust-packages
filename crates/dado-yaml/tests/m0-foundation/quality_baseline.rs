@@ -75,11 +75,11 @@ fn ac_017_test_jobs_run_the_workspace_suite_on_all_three_operating_systems() {
 }
 
 #[test]
-fn ac_018_msrv_job_uses_rust_1_85() {
+fn ac_018_msrv_job_uses_rust_1_87() {
     let ci = ci_workflow();
 
     assert_contains(&ci, "  msrv:", "MSRV job");
-    assert_contains(&ci, "dtolnay/rust-toolchain@1.85.0", "MSRV toolchain");
+    assert_contains(&ci, "dtolnay/rust-toolchain@1.87.0", "MSRV toolchain");
     assert_contains(&ci, "cargo build --workspace --all-features", "MSRV build");
     assert_contains(
         &ci,

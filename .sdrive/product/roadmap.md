@@ -41,7 +41,7 @@ Make the repository safe to publish from. Finish the one crate that already exis
 ### Work detail
 
 - **`dado-yaml` parser:** implement the YAML 1.2 core subset described in `crates/dado-yaml/README.md`; reject unsupported constructs with positioned errors; replace the `D0001` scaffold.
-- **CI:** run `cargo fmt --check`, `cargo clippy --workspace --all-features -- -D warnings`, `cargo test --workspace --all-features`, `cargo doc --workspace --all-features --no-deps`, and an MSRV check on 1.85.
+- **CI:** run `cargo fmt --check`, `cargo clippy --workspace --all-features -- -D warnings`, `cargo test --workspace --all-features`, `cargo doc --workspace --all-features --no-deps`, and an MSRV check on 1.87.
 - **Contributor docs:** state the branch policy, the test requirement, the source-citation rule, and how to report a security issue privately.
 - **Release runbook:** metadata checklist, version bump, changelog, `cargo publish --dry-run`, publish order, and rollback guidance.
 
@@ -290,7 +290,7 @@ Turn a working ecosystem into a trusted one: remaining providers, docs, design p
 | `wirekit` feature flags make builds painful | Propose a `wirekit-streaming` companion crate |
 | Turborepo's Rust support stabilizes | Re-evaluate BP-037 against measured CI time |
 | A JavaScript/TypeScript surface appears | Re-evaluate Turborepo and add a Node toolchain |
-| MSRV 1.85 becomes a blocker | Amend the constitution and publish an MSRV policy |
+| MSRV 1.87 becomes a blocker | Amend the constitution and publish an MSRV policy |
 | 1.0 demand arrives earlier | Run the freeze audit early; do not skip adoption evidence |
 
 ## Turborepo

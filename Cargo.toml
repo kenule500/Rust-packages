@@ -1,11 +1,15 @@
 [workspace]
 # Resolver 3 is MSRV-aware: dependencies are resolved against the `rust-version`
-# below, so a fresh lockfile stays buildable on Rust 1.85 (AC-039).
+# below, so a fresh lockfile stays buildable on Rust 1.87 (AC-039).
 resolver = "3"
 members = ["crates/*"]
 
 [workspace.package]
 edition = "2021"
-rust-version = "1.85"
+# 1.87 is the floor required by the patched ECDSA stack (p256 0.14 ->
+# elliptic-curve 0.14 -> crypto-bigint 0.7 + ctutils 0.4), which is what makes
+# RUSTSEC-2026-0387 fixable. Raising this again requires a constitution
+# amendment (CON-102).
+rust-version = "1.87"
 license = "MIT OR Apache-2.0"
 repository = "https://github.com/kenule500/Rust-packages"

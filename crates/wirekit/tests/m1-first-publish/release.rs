@@ -170,7 +170,7 @@ fn ac_077_published_metadata_resolves() {
         "the workspace declares the repository"
     );
     assert!(workspace.contains("license = \"MIT OR Apache-2.0\""));
-    assert!(workspace.contains("rust-version = \"1.85\""));
+    assert!(workspace.contains("rust-version = \"1.87\""));
 
     assert!(manifest.contains("repository.workspace = true"));
     assert!(manifest.contains("license.workspace = true"));
@@ -277,7 +277,7 @@ fn ac_078_the_changelog_describes_the_first_release() {
         );
     }
     assert!(
-        entry.contains("MSRV is Rust 1.85"),
+        entry.contains("MSRV is Rust 1.87"),
         "the entry states the minimum supported Rust version"
     );
     assert!(entry.contains("### Added"));

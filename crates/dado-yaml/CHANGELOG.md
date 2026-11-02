@@ -25,7 +25,7 @@ The first baseline release of `dado-yaml`.
 - The `diag`, `graph`, `emit`, and `glob` modules, available independently of
   `yaml`.
 - GitHub Actions CI for formatting, clippy, documentation, packaging, a stable
-  Rust test matrix on Ubuntu, Windows, and macOS, and Rust 1.85 MSRV.
+  Rust test matrix on Ubuntu, Windows, and macOS, and Rust 1.87 MSRV.
 - Contributor, security, issue, and pull request templates, plus the
   `dado-yaml-v0.1.0` release runbook.
 

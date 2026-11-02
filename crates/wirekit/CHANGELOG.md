@@ -25,6 +25,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   lifecycle, report fetch, a size-bounded PDF download, and address-scoped report
   listing.
 
+### Changed
+
+- The minimum supported Rust version is now **1.87** (was 1.85). The bump is what
+  allows the patched ECDSA stack (`p256` 0.14, `ecdsa` 0.17, `elliptic-curve`
+  0.14, `crypto-bigint` 0.7), which retires RUSTSEC-2026-0387. No API changed for
+  callers on a current toolchain.
+
 ## [0.1.0] - 2026-10-20
 
 The first release of `wirekit`: the shared HTTP core plus four provider modules.
@@ -70,7 +77,7 @@ The first release of `wirekit`: the shared HTTP core plus four provider modules.
 
 ### Notes
 
-- MSRV is Rust 1.85, edition 2021.
+- MSRV is Rust 1.87, edition 2021.
 - `default = []` means "no provider module", not "no core".
 - The crate performs outbound HTTPS requests only. It never listens, never
   reads credentials from the environment, and never persists state.

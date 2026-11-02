@@ -56,7 +56,7 @@
 
 - BP-001 is the only item with existing code. The other three create the baseline the rest of the plan depends on.
 - If the YAML parser slips, publish `dado-yaml` 0.1.0 with `diag`, `graph`, `emit`, and `glob`, and move YAML to 0.2.0. Record the split before publishing.
-- BP-002 must include an MSRV job on Rust 1.85, not just the installed toolchain.
+- BP-002 must include an MSRV job on Rust 1.87, not just the installed toolchain.
 
 ## M1 - First publish
 
@@ -194,7 +194,7 @@
 
 - Provider access can be obtained within the roadmap window.
 - External developers accept 0.x.
-- MSRV 1.85 remains acceptable.
+- MSRV 1.87 remains acceptable (raised from 1.85 on 2026-11-02 to retire RUSTSEC-2026-0387).
 - A single maintainer is sufficient until contributors join.
 - No JavaScript/TypeScript surface is planned.
 

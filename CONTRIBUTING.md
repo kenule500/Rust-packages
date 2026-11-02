@@ -7,7 +7,7 @@ workspace lives at the repository root, with the published crate at
 
 ## Prerequisites
 
-- Rust 1.85 or newer. The workspace's MSRV is declared in
+- Rust 1.87 or newer. The workspace's MSRV is declared in
   [`Cargo.toml`](Cargo.toml).
 - `rustfmt` and `clippy` components:
   `rustup component add rustfmt clippy`

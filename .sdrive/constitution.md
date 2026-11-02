@@ -1,7 +1,7 @@
 # Project Constitution
 
-> **Version:** 1.2.0
-> **Last Updated:** 2026-11-01
+> **Version:** 1.3.0
+> **Last Updated:** 2026-11-02
 > **Status:** Active
 
 This document is the single source of truth for all project standards, rules, and constraints. All AI agents and developers MUST adhere to these rules.
@@ -9,7 +9,7 @@ This document is the single source of truth for all project standards, rules, an
 ## 1. Tech Stack & Architecture (CON-1xx)
 
 - **CON-101:** The repository MUST use one Cargo workspace rooted at the repository root with members declared as `crates/*`. <!-- source: .sdrive/context/architecture-context.md §Workspace shape; Cargo.toml -->
-- **CON-102:** Every crate MUST inherit `edition = "2021"`, `rust-version = "1.85"`, and `license = "MIT OR Apache-2.0"` from `[workspace.package]`. Overriding them requires a constitution amendment. <!-- source: .sdrive/context/architecture-context.md §Workspace shape; Cargo.toml -->
+- **CON-102:** Every crate MUST inherit `edition = "2021"`, `rust-version = "1.87"`, and `license = "MIT OR Apache-2.0"` from `[workspace.package]`. Overriding them requires a constitution amendment. <!-- source: .sdrive/context/architecture-context.md §Workspace shape; Cargo.toml -->
 - **CON-103:** Every package MUST have exactly one job. Packages MUST NOT be merged into a framework. <!-- source: .sdrive/context/project-overview.md §Purpose; README.md -->
 - **CON-104:** Provider integrations MUST ship as feature-flagged modules of `wirekit`. A provider MUST NOT become a separate crate without a constitution amendment. <!-- source: .sdrive/context/architecture-context.md §Provider clients are modules, not crates; catalogue/00_provider_index.md -->
 - **CON-105:** A new provider module MUST have a design file following the `03`-`28` pattern before implementation begins. <!-- source: .sdrive/context/architecture-context.md §Provider clients are modules, not crates; catalogue/01_wirekit.md -->
@@ -115,3 +115,6 @@ Every feature that touches authentication, user input, or an HTTP surface MUST a
 | Version | Date | Change Summary | Source |
 |---------|------|----------------|--------|
 | 1.0.0   | 2026-10-20 | Initial merge of repository discovery, architecture, code standards, UI scope, testing, security baseline, git workflow, and AI agent rules | context files |
+| 1.1.0   | 2026-10-31 | `quick-xml` capped at 0.41 so the MSRV job builds the `sage-intacct` feature | RUSTSEC/MSRV review |
+| 1.2.0   | 2026-11-01 | CON-108 renamed the crate from `dado` to `dado-yaml` after the crates.io name collision | `fix(publish)` rename |
+| 1.3.0   | 2026-11-02 | CON-102 raised the MSRV from 1.85 to 1.87 so the patched ECDSA stack (p256 0.14) can be adopted and RUSTSEC-2026-0387 retired | `cargo audit` finding |

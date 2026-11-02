@@ -172,7 +172,7 @@ fn ac_032_package_metadata_resolves_to_real_values() {
     assert_contains_all(
         &workspace,
         &[
-            "rust-version = \"1.85\"",
+            "rust-version = \"1.87\"",
             "license = \"MIT OR Apache-2.0\"",
             "repository = \"https://github.com/kenule500/Rust-packages\"",
         ],

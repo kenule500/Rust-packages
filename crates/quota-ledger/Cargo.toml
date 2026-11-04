@@ -1,0 +1,51 @@
+[package]
+name = "quota-ledger"
+version = "0.1.0"
+edition.workspace = true
+rust-version.workspace = true
+license.workspace = true
+repository.workspace = true
+readme = "README.md"
+description = "Per-tenant, per-provider quota reservations with commit, release, exhaustion policies, and an optional Postgres ledger."
+keywords = ["quota", "multi-tenant", "postgres", "rate-limit"]
+categories = ["database", "development-tools"]
+include = [
+    "Cargo.toml",
+    "README.md",
+    "LICENSE-MIT",
+    "LICENSE-APACHE",
+    "src/**",
+]
+
+[package.metadata.docs.rs]
+all-features = true
+
+[features]
+default = []
+# The optional Postgres backend. Off by default so no `sqlx` type enters the
+# default build.
+postgres = ["dep:sqlx"]
+
+[dependencies]
+# Declared directly: the workspace has no [workspace.dependencies], so each
+# version lives with the crate that needs it, as `platform-core` does.
+async-trait = "0.1.92"
+chrono = { version = "0.4.45", features = ["serde"] }
+thiserror = "2.0.21"
+uuid = { version = "1.28.0", features = ["v4", "v7", "serde"] }
+# Tenant and provider identity are consumed, not redefined.
+platform-core = { path = "../platform-core", version = "0.1.0" }
+# Optional, behind the `postgres` feature. `ring` (via rustls) is already in the
+# graph through `wirekit`, so this adds no new C-compiling dependency.
+sqlx = { version = "0.8.6", default-features = false, features = [
+    "postgres",
+    "runtime-tokio-rustls",
+    "chrono",
+    "uuid",
+], optional = true }
+
+[dev-dependencies]
+# `Window::fixed` and `Window::rolling` take chrono types, so the acceptance
+# tests need chrono on their own dependency edge. Already a normal dependency.
+chrono = { version = "0.4.45", features = ["serde"] }
+tokio = { version = "1.54.0", features = ["macros", "rt-multi-thread"] }

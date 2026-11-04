@@ -3,7 +3,7 @@ title: quota-ledger 0.1 - technical plan
 status: backlog
 version: v1
 created: 2026-11-02
-updated: 2026-11-02
+updated: 2026-11-04
 ---
 
 # quota-ledger 0.1 - technical plan
@@ -34,10 +34,11 @@ Port the `quota-ledger` crate from `feature/m3-substrate` as prior art and adapt
 ## Data model
 
 - **`Budget`** — tenant, provider, metric, limit, window, policy.
-- **`Reservation`** — id, key, amount, optional idempotency key, state, created_at.
-- **`Usage`** — limit, consumed, held, optional overage, resets_at.
-- **Postgres `budget`** — tenant, provider, metric, window bounds, limit, consumed, held.
-- **Postgres `reservation`** — id, budget reference, amount, idempotency key, state, created_at.
+- **`Reservation`** — id, key, units, optional idempotency key, expires_at, policy.
+- **`Usage`** — limit, used, held, overage, overage_cents, reset_at.
+- **Postgres `quota_budget`** — tenant_id, provider_id, metric, window_start, window_end, limit_units, policy, unit_cost_cents, used_units, held_units, overage_units, overage_cents.
+- **Postgres `quota_reservation`** — reservation_id, a composite budget reference (tenant_id, provider_id, metric, window_start), units, idempotency_key, expires_at, policy, overage_units, overage_cents, settled_at, created_at.
+- **Postgres `quota_dead_hold`** — one row per reclaimed hold, keyed by reservation_id, so reclaim returns a hold's units exactly once.
 
 **Flow.** A caller derives a `QuotaKey` from the authenticated tenant and the provider, then reserves before the outbound call. `reserve` checks capacity and records a hold atomically, returning a `Reservation` or a typed `QuotaExceeded`. On success the caller `commit`s, consuming the hold exactly once; on a definite provider rejection the caller `release`s it. `usage` reports limit, consumed, held, and the next reset. In Postgres the claim is one conditional `UPDATE` whose `WHERE` clause carries the remaining-capacity predicate, so the database serializes concurrent claims and two pods cannot both take the final unit.
 

@@ -11,14 +11,14 @@
       { "name": "crates/quota-ledger/src/window.rs", "action": "create", "description": "Window and Period arithmetic, including the reset instant computed from the configured window rather than an assumed UTC midnight." },
       { "name": "crates/quota-ledger/src/policy.rs", "action": "create", "description": "ExhaustionPolicy evaluation: HardStop denies; Overage, Degrade, and Queue report the caller's chosen outcome." },
       { "name": "crates/quota-ledger/src/postgres/mod.rs", "action": "create", "description": "The postgres-feature backend: a QuotaStore implementation over a connection using parameterized statements and an atomic conditional claim." },
-      { "name": "crates/quota-ledger/src/postgres/schema.sql", "action": "create", "description": "The shipped schema: a budget row per (tenant, provider, metric, window) with limit, consumed, held, and window bounds, plus a reservation row keyed by ReservationId." },
+      { "name": "crates/quota-ledger/src/postgres/schema.sql", "action": "create", "description": "The shipped schema: a budget row per (tenant, provider, metric, window) with limit, used, held, and window bounds, plus a reservation row keyed by ReservationId and a dead-hold row that makes reclaim idempotent.", "resolution": { "kind": "superseded", "reason": "Shipped at crates/quota-ledger/src/postgres/schema.sql and applied by PostgresQuotaStore::apply_schema, but sdrive verify only scans code extensions (sql is not one of them), so the file cannot be matched statically.", "at": "2026-11-04" } },
       { "name": "crates/quota-ledger/src/lib.rs", "action": "create", "description": "Module declarations, re-exports, crate docs with scope and non-goals, and the forbid(unsafe_code) and deny(missing_docs) attributes." },
       { "name": "crates/quota-ledger/Cargo.toml", "action": "create", "description": "Manifest. Dependencies are declared directly rather than inherited, because main has no [workspace.dependencies]. Features default = [] and postgres = [dep:sqlx]." },
       { "name": "crates/quota-ledger/README.md", "action": "create", "description": "Crate README describing scope, features, the reserve/commit/release flow, and non-goals." },
-      { "name": "crates/quota-ledger/LICENSE-MIT", "action": "reuse", "description": "Reused verbatim from the workspace root licence files." },
-      { "name": "crates/quota-ledger/LICENSE-APACHE", "action": "reuse", "description": "Reused verbatim from the workspace root licence files." },
-      { "name": "crates/platform-core", "action": "reuse", "description": "Tenant and provider identity are consumed, not redefined. Already present on main." },
-      { "name": "Cargo.toml", "action": "modify", "description": "The workspace members glob crates/* already picks up the new crate; no member edit is required, but the workspace must resolve the new package." }
+      { "name": "crates/quota-ledger/LICENSE-MIT", "action": "reuse", "description": "Reused verbatim from the workspace root licence files.", "resolution": { "kind": "superseded", "reason": "Copied verbatim from the workspace root, but it carries no code extension so sdrive verify cannot match it as a component.", "at": "2026-11-04" } },
+      { "name": "crates/quota-ledger/LICENSE-APACHE", "action": "reuse", "description": "Reused verbatim from the workspace root licence files.", "resolution": { "kind": "superseded", "reason": "Copied verbatim from the workspace root, but it carries no code extension so sdrive verify cannot match it as a component.", "at": "2026-11-04" } },
+      { "name": "crates/platform-core", "action": "reuse", "description": "Tenant and provider identity are consumed, not redefined. Already present on main.", "resolution": { "kind": "superseded", "reason": "Reused as an existing crate directory on main; the scanner matches files, so a directory component can never be recorded as a match.", "at": "2026-11-04" } },
+      { "name": "Cargo.toml", "action": "modify", "description": "The workspace members glob crates/* already picks up the new crate; no member edit is required, but the workspace must resolve the new package.", "resolution": { "kind": "superseded", "reason": "The members glob needed no edit, so the root manifest is unchanged; it also sits outside the scanned roots (crates), so it is recorded as resolved rather than matched.", "at": "2026-11-04" } }
     ],
     "referencedRequirementIds": ["FR-001", "FR-002", "FR-003", "FR-004", "FR-005", "FR-006", "FR-007", "FR-008", "FR-009", "FR-010", "FR-011", "FR-012", "NFR-001", "NFR-002", "NFR-003", "NFR-004", "NFR-005", "NFR-006"]
   },
@@ -35,34 +35,46 @@
       { "name": "Reservation", "action": "create", "fields": [
         { "name": "id", "type": "ReservationId", "action": "add" },
         { "name": "key", "type": "QuotaKey", "action": "add" },
-        { "name": "amount", "type": "u64", "action": "add" },
+        { "name": "units", "type": "u64", "action": "add" },
         { "name": "idempotency_key", "type": "Option<String>", "nullable": true, "action": "add" },
-        { "name": "state", "type": "ReservationState", "action": "add" },
-        { "name": "created_at", "type": "DateTime<Utc>", "action": "add" }
+        { "name": "expires_at", "type": "DateTime<Utc>", "action": "add" },
+        { "name": "policy", "type": "ExhaustionPolicy", "action": "add" }
       ] },
       { "name": "Usage", "action": "create", "fields": [
         { "name": "limit", "type": "u64", "action": "add" },
-        { "name": "consumed", "type": "u64", "action": "add" },
+        { "name": "used", "type": "u64", "action": "add" },
         { "name": "held", "type": "u64", "action": "add" },
-        { "name": "overage", "type": "Option<u64>", "nullable": true, "action": "add" },
-        { "name": "resets_at", "type": "DateTime<Utc>", "action": "add" }
+        { "name": "overage", "type": "u64", "action": "add" },
+        { "name": "overage_cents", "type": "u64", "action": "add" },
+        { "name": "reset_at", "type": "DateTime<Utc>", "action": "add" }
       ] },
-      { "name": "budget table (Postgres)", "action": "create", "fields": [
-        { "name": "tenant", "type": "uuid", "action": "add" },
-        { "name": "provider", "type": "text", "action": "add" },
+      { "name": "quota_budget", "action": "create", "description": "Postgres budget table.", "resolution": { "kind": "superseded", "reason": "Declared in crates/quota-ledger/src/postgres/schema.sql as quota_budget; the scanner reads no SQL files, so neither the table nor its columns can be matched", "at": "2026-11-04" }, "fields": [
+        { "name": "tenant_id", "type": "uuid", "action": "add" },
+        { "name": "provider_id", "type": "text", "action": "add" },
         { "name": "metric", "type": "text", "action": "add" },
         { "name": "window_start", "type": "timestamptz", "action": "add" },
         { "name": "window_end", "type": "timestamptz", "action": "add" },
-        { "name": "limit_count", "type": "bigint", "action": "add" },
-        { "name": "consumed", "type": "bigint", "action": "add" },
-        { "name": "held", "type": "bigint", "action": "add" }
+        { "name": "limit_units", "type": "bigint", "action": "add" },
+        { "name": "policy", "type": "text", "action": "add" },
+        { "name": "unit_cost_cents", "type": "bigint", "action": "add" },
+        { "name": "used_units", "type": "bigint", "action": "add" },
+        { "name": "held_units", "type": "bigint", "action": "add" },
+        { "name": "overage_units", "type": "bigint", "action": "add" },
+        { "name": "overage_cents", "type": "bigint", "action": "add" }
       ] },
-      { "name": "reservation table (Postgres)", "action": "create", "fields": [
-        { "name": "id", "type": "uuid", "action": "add" },
-        { "name": "budget_id", "type": "uuid", "action": "add" },
-        { "name": "amount", "type": "bigint", "action": "add" },
+      { "name": "quota_reservation", "action": "create", "description": "Postgres reservation table.", "resolution": { "kind": "superseded", "reason": "Declared in crates/quota-ledger/src/postgres/schema.sql as quota_reservation, keyed by a composite foreign key rather than a budget_id, and the scanner reads no SQL files", "at": "2026-11-04" }, "fields": [
+        { "name": "reservation_id", "type": "uuid", "action": "add" },
+        { "name": "tenant_id", "type": "uuid", "action": "add" },
+        { "name": "provider_id", "type": "text", "action": "add" },
+        { "name": "metric", "type": "text", "action": "add" },
+        { "name": "window_start", "type": "timestamptz", "action": "add" },
+        { "name": "units", "type": "bigint", "action": "add" },
         { "name": "idempotency_key", "type": "text", "nullable": true, "action": "add" },
-        { "name": "state", "type": "text", "action": "add" },
+        { "name": "expires_at", "type": "timestamptz", "action": "add" },
+        { "name": "policy", "type": "text", "action": "add" },
+        { "name": "overage_units", "type": "bigint", "action": "add" },
+        { "name": "overage_cents", "type": "bigint", "action": "add" },
+        { "name": "settled_at", "type": "timestamptz", "nullable": true, "action": "add" },
         { "name": "created_at", "type": "timestamptz", "action": "add" }
       ] }
     ],

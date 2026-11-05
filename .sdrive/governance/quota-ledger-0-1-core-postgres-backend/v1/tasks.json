@@ -113,7 +113,7 @@
           "description": "cargo generate-lockfile && cargo audit exits 1 on RUSTSEC-2023-0071 (rsa 0.9.10, medium, no fixed upgrade). The advisory is not reachable from quota-ledger at build time: it arrives because the sqlx facade resolves sqlx-mysql, which depends on rsa, into Cargo.lock even though only the postgres feature is enabled. Depend on sqlx-postgres (plus sqlx-core for the query helpers and types) instead of the sqlx facade so the MySQL and SQLite backends never enter the lockfile, or record a justified ignore in .cargo/audit.toml naming the RUSTSEC id, the reason, and the condition that removes the entry. Confirm with cargo generate-lockfile && cargo audit returning exit 0, and re-run the suite after the change.",
           "linkedRequirements": ["NFR-002"],
           "linkedAcceptanceCriteria": ["AC-015"],
-          "completed": false
+          "completed": true
         },
         {
           "id": "T5.2",

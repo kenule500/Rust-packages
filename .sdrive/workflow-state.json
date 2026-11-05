@@ -687,7 +687,7 @@
           "currentStep": "implementation",
           "gates": {
             "specification": "approved",
-            "planning": "approved",
+            "planning": "pending",
             "implementation": "approved",
             "review": "pending"
           },
@@ -762,6 +762,13 @@
               "event": "T5.2 fixed (review round 1, F2): crates/quota-ledger/Cargo.toml lowered the uuid floor from ^1.28.0 to ^1, matching platform-core, because both 1.28.0 and 1.29.0 declare rust-version 1.89 and left the crate with no version resolvable on the 1.87 MSRV. A clean resolve on Rust 1.87 now selects uuid 1.26.1 and cargo +1.87.0 build --workspace --all-features exits 0. Re-verified: cargo generate-lockfile + cargo audit exit 0 (292 crates, no advisory), fmt --all --check clean, clippy --workspace --all-features -D warnings clean, doc under RUSTDOCFLAGS=-D warnings clean, check -p quota-ledger --no-default-features clean, validate-governance green. T5.1 and T5.2 are both complete in tasks.json; the cargo +1.87.0 test half of T5.2 is deferred to sdrive test, which re-stamps the evidence the review gate reads",
               "by": "SpecDrive",
               "timestamp": "2026-11-05T02:05:00Z"
+            },
+            {
+              "event": "Plan corrected while closing T5.2: plan.json still declared the sqlx facade, which T5.1 had already replaced with sqlx-core + sqlx-postgres, so sdrive verify reported the facade as missing (1 missing, status fail). The facade is now recorded as superseded with its reason and the two driver crates are named; plan.md's dependency table was synced to match. sdrive verify is pass with 0 missing and 33 withdrawn. Because an approved planning artifact was edited, the planning gate was reset to pending for re-approval, as the earlier plan correction did",
+              "by": "SpecDrive",
+              "actor": "kenule500",
+              "previousValue": "approved",
+              "timestamp": "2026-11-05T02:20:00Z"
             }
           ]
         }

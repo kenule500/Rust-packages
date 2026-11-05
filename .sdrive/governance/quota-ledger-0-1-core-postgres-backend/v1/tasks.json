@@ -121,7 +121,7 @@
           "description": "cargo +1.87.0 build -p quota-ledger --all-features fails with 'error: rustc 1.87.0 is not supported by the following package: uuid@1.29.0 requires rustc 1.89.0', and forcing an older resolve fails with 'failed to select a version for the requirement uuid = ^1.28.0' because uuid 1.28.0 also declares rust-version 1.89. The workspace MSRV is 1.87 (CON-102) and CI runs cargo build --workspace --all-features on 1.87 with no committed lockfile, so the MSRV job fails. Lower the requirement to a floor that still builds on 1.87 (platform-core declares uuid = 1), then confirm with a clean resolve on 1.87: delete Cargo.lock, run cargo +1.87.0 build --workspace --all-features and cargo +1.87.0 test --workspace --all-features.",
           "linkedRequirements": ["NFR-005"],
           "linkedAcceptanceCriteria": ["AC-015"],
-          "completed": false
+          "completed": true
         }
       ]
     }

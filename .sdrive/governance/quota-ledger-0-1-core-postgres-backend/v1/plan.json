@@ -96,7 +96,9 @@
     { "name": "chrono", "type": "library", "action": "add", "notes": "Windows and the reset instant. No skill available." },
     { "name": "thiserror", "type": "library", "action": "add", "notes": "The single error enum. No skill available." },
     { "name": "uuid", "type": "library", "action": "add", "notes": "TenantId payload and ReservationId. No skill available." },
-    { "name": "sqlx", "type": "library", "action": "add", "notes": "Optional, behind the postgres feature; parameterized queries and TLS. No skill available." },
+    { "name": "sqlx", "type": "library", "action": "add", "notes": "Originally declared as the optional backend behind the postgres feature.", "resolution": { "kind": "superseded", "reason": "The sqlx facade was dropped in T5.1: it declares sqlx-mysql and sqlx-sqlite as optional dependencies on itself, so Cargo resolved them into Cargo.lock regardless of features and dragged rsa (RUSTSEC-2023-0071) into the audit of a build that never compiled it. Replaced by the two driver crates below, so the facade is no longer a dependency.", "at": "2026-11-05" } },
+    { "name": "sqlx-core", "type": "library", "action": "add", "notes": "Optional, behind the postgres feature (T5.1). Query helpers and types; forwards the runtime/TLS/chrono/uuid features the facade used to. No skill available." },
+    { "name": "sqlx-postgres", "type": "library", "action": "add", "notes": "Optional, behind the postgres feature (T5.1). Parameterized queries and TLS, replacing the sqlx facade so no other backend enters the lockfile. No skill available." },
     { "name": "tokio", "type": "library", "action": "add", "notes": "Dev-dependency only, for the test agent's async store tests." }
   ],
   "risks": [

@@ -62,8 +62,10 @@ Port the `quota-ledger` crate from `feature/m3-substrate` as prior art and adapt
 | `async-trait` | library | add | Declared directly; no skill available for Rust crate dependencies, docs-only per the `platform-core` precedent. |
 | `chrono` | library | add | Windows and the reset instant. |
 | `thiserror` | library | add | The single error enum. |
-| `uuid` | library | add | `TenantId` payload and `ReservationId`. |
-| `sqlx` | library | add | Optional, behind `postgres`; parameterized queries and TLS. |
+| `uuid` | library | add | `TenantId` payload and `ReservationId`. Floor is `1` as `platform-core` declares, not `1.28`: every `1.28.x`/`1.29.x` release declares `rust-version = 1.89`, so a higher floor makes the 1.87 MSRV unresolvable (T5.2). |
+| ~~`sqlx`~~ | library | add | Superseded by the two driver crates (T5.1). The facade declares `sqlx-mysql`/`sqlx-sqlite` as optional dependencies on itself, so Cargo resolved them into `Cargo.lock` regardless of features and pulled `rsa` (RUSTSEC-2023-0071) into the audit of a build that never compiled it. |
+| `sqlx-core` | library | add | Optional, behind `postgres`; query helpers and types, forwarding the runtime/TLS/chrono/uuid features the facade used to. |
+| `sqlx-postgres` | library | add | Optional, behind `postgres`; parameterized queries and TLS, replacing the facade so no other backend enters the lockfile. |
 | `tokio` | library | add | Dev-dependency only, for the test agent. |
 
 ## Risks

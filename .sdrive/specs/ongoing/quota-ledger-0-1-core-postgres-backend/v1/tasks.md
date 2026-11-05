@@ -42,8 +42,8 @@ updated: 2026-11-04
 
 ## P5 - Fixes (review round 1)
 
-- [ ] **T5.1 - Keep the new SQL dependency out of the vulnerability scan** (`NFR-002` / `AC-015`)
+- [x] **T5.1 - Keep the new SQL dependency out of the vulnerability scan** (`NFR-002` / `AC-015`)
   `cargo generate-lockfile && cargo audit` now exits 1 on RUSTSEC-2023-0071 (`rsa 0.9.10`, medium, no fixed upgrade). The advisory is not reachable from `quota-ledger` at build time: it arrives because the `sqlx` facade resolves `sqlx-mysql`, which depends on `rsa`, into `Cargo.lock` even though only the `postgres` feature is enabled. Depend on `sqlx-postgres` (plus `sqlx-core` for the query helpers and types) instead of the `sqlx` facade so the MySQL and SQLite backends never enter the lockfile, or record a justified `ignore` in `.cargo/audit.toml` naming the RUSTSEC id, the reason, and the condition that removes the entry. Confirm with `cargo generate-lockfile && cargo audit` returning exit 0, and re-run the suite after the change.
 
-- [ ] **T5.2 - Restore the 1.87 floor for the uuid dependency** (`NFR-005` / `AC-015`)
+- [x] **T5.2 - Restore the 1.87 floor for the uuid dependency** (`NFR-005` / `AC-015`)
   `cargo +1.87.0 build -p quota-ledger --all-features` fails with `error: rustc 1.87.0 is not supported by the following package: uuid@1.29.0 requires rustc 1.89.0`, and forcing an older resolve fails with `failed to select a version for the requirement uuid = "^1.28.0"` because `uuid 1.28.0` also declares `rust-version = 1.89`. The workspace MSRV is 1.87 (CON-102) and CI runs `cargo build --workspace --all-features` on 1.87 with no committed lockfile, so the MSRV job fails. Lower the requirement to a floor that still builds on 1.87 (`platform-core` declares `uuid = "1"`), then confirm with a clean resolve on 1.87: delete `Cargo.lock`, run `cargo +1.87.0 build --workspace --all-features` and `cargo +1.87.0 test --workspace --all-features`.

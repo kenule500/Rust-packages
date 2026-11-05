@@ -110,7 +110,7 @@
       "requirementId": "NFR-002",
       "acceptanceCriteriaIds": ["AC-015"],
       "planSection": "P3 Postgres backend",
-      "taskIds": ["T3.2"],
+      "taskIds": ["T3.2", "T5.1"],
       "testIds": ["TEST-015"],
       "status": "complete"
     },
@@ -134,7 +134,7 @@
       "requirementId": "NFR-005",
       "acceptanceCriteriaIds": ["AC-015"],
       "planSection": "P4 Wiring, docs, verification",
-      "taskIds": ["T4.1"],
+      "taskIds": ["T4.1", "T5.2"],
       "testIds": ["TEST-015"],
       "status": "complete"
     },

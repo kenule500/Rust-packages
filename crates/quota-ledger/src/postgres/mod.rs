@@ -14,10 +14,26 @@
 use std::fmt;
 use std::str::FromStr;
 
+/// Flat re-exports of the SQLx driver items this backend uses.
+///
+/// `quota-ledger` depends on `sqlx-core` and `sqlx-postgres` directly rather
+/// than through the `sqlx` facade: the facade declares the MySQL and SQLite
+/// drivers as optional dependencies on itself, and Cargo resolves those into
+/// `Cargo.lock` regardless of the features in play — which is what pulled
+/// `rsa` (RUSTSEC-2023-0071) into an audit that never compiled it. This module
+/// restores the facade's flat surface so the call sites below keep reading as
+/// `sqlx::query_as` and friends.
+mod sqlx {
+    pub use sqlx_core::transaction::Transaction;
+    pub use sqlx_core::{
+        query::query, query_as::query_as, query_scalar::query_scalar, raw_sql::raw_sql, Error,
+    };
+    pub use sqlx_postgres::{PgConnectOptions, PgPool, PgPoolOptions, PgSslMode, Postgres};
+}
+
+use self::sqlx::{PgConnectOptions, PgPool, PgPoolOptions, PgSslMode, Postgres, Transaction};
 use async_trait::async_trait;
 use chrono::{DateTime, Duration, Utc};
-use sqlx::postgres::{PgConnectOptions, PgPoolOptions, PgSslMode};
-use sqlx::{PgPool, Postgres, Transaction};
 use uuid::Uuid;
 
 use crate::policy;

@@ -24,7 +24,7 @@ all-features = true
 default = []
 # The optional Postgres backend. Off by default so no `sqlx` type enters the
 # default build.
-postgres = ["dep:sqlx"]
+postgres = ["dep:sqlx-core", "dep:sqlx-postgres"]
 
 [dependencies]
 # Declared directly: the workspace has no [workspace.dependencies], so each
@@ -35,11 +35,20 @@ thiserror = "2.0.21"
 uuid = { version = "1.28.0", features = ["v4", "v7", "serde"] }
 # Tenant and provider identity are consumed, not redefined.
 platform-core = { path = "../platform-core", version = "0.1.0" }
-# Optional, behind the `postgres` feature. `ring` (via rustls) is already in the
-# graph through `wirekit`, so this adds no new C-compiling dependency.
-sqlx = { version = "0.8.6", default-features = false, features = [
-    "postgres",
-    "runtime-tokio-rustls",
+# Optional, behind the `postgres` feature. The driver crates are depended on
+# directly rather than through the `sqlx` facade: the facade declares the MySQL
+# and SQLite drivers as optional dependencies on itself, and Cargo resolves
+# those into `Cargo.lock` regardless of the features in play, which drags `rsa`
+# (RUSTSEC-2023-0071) into an audit of a crate the build never compiles. `ring`
+# (via rustls) is already in the graph through `wirekit`, so these add no new
+# C-compiling dependency.
+sqlx-core = { version = "0.8.6", default-features = false, features = [
+    "_rt-tokio",
+    "_tls-rustls-ring-webpki",
+    "chrono",
+    "uuid",
+], optional = true }
+sqlx-postgres = { version = "0.8.6", default-features = false, features = [
     "chrono",
     "uuid",
 ], optional = true }

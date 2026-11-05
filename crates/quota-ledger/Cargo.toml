@@ -32,7 +32,11 @@ postgres = ["dep:sqlx-core", "dep:sqlx-postgres"]
 async-trait = "0.1.92"
 chrono = { version = "0.4.45", features = ["serde"] }
 thiserror = "2.0.21"
-uuid = { version = "1.28.0", features = ["v4", "v7", "serde"] }
+# A caret floor of "1" (as `platform-core` declares) rather than "1.28.0": both
+# 1.28.0 and 1.29.0 declare rust-version = 1.89, so any floor in that range
+# makes a 1.87 resolve impossible and fails the CI MSRV job. The crate needs
+# only the v4, v7, and serde features, all of which predate the 1.89 floor.
+uuid = { version = "1", features = ["v4", "v7", "serde"] }
 # Tenant and provider identity are consumed, not redefined.
 platform-core = { path = "../platform-core", version = "0.1.0" }
 # Optional, behind the `postgres` feature. The driver crates are depended on

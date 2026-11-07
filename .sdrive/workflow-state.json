@@ -689,7 +689,7 @@
             "specification": "approved",
             "planning": "approved",
             "implementation": "approved",
-            "review": "pending"
+            "review": "approved"
           },
           "history": [
             {
@@ -776,6 +776,13 @@
               "actor": "kenule500",
               "previousValue": "pending",
               "timestamp": "2026-11-07T14:56:55.905Z"
+            },
+            {
+              "event": "review_approved",
+              "by": "kenule500",
+              "actor": "kenule500",
+              "previousValue": "pending",
+              "timestamp": "2026-11-07T15:53:11.502Z"
             }
           ]
         }

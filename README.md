@@ -130,10 +130,10 @@ burden for a package nobody else can use.
 
 ## Status
 
-Five crates are implemented and tested in this workspace; none is published to
+Six crates are implemented and tested in this workspace; none is published to
 crates.io yet. `dado-yaml` 0.1.0, `platform-core` 0.1.0, `wirekit` 0.1.0,
-`quota-ledger` 0.1.0, and `hookgate` 0.1.0 all build, lint, and pass their
-suites (`cargo test --workspace --all-features`).
+`quota-ledger` 0.1.0, `hookgate` 0.1.0, and `syncforge` 0.1.0 all build, lint,
+and pass their suites (`cargo test --workspace --all-features`).
 
 `wirekit` ships the shared HTTP core plus eleven provider modules behind additive
 features: `noaa`, `twilio`, `sendgrid`, `slack`, `google-oauth`, `meta`, `angi`,
@@ -142,6 +142,6 @@ declared but has no module: its documentation could not be obtained, so no clien
 was written. Stripe is deliberately not wrapped; see the Payments section in
 [`crates/wirekit/README.md`](crates/wirekit/README.md).
 
-`syncforge`, `ffscene`, `mixbus`, `replay-recorder`, `studio-protocol`,
-`rtmp-publish`, and `signedlink` remain blueprints. The media and link packages
-are public candidates whose APIs must freeze before publish.
+`ffscene`, `mixbus`, `replay-recorder`, `studio-protocol`, `rtmp-publish`, and
+`signedlink` remain blueprints. The media and link packages are public candidates
+whose APIs must freeze before publish.

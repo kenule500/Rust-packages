@@ -1,0 +1,41 @@
+[package]
+name = "syncforge"
+version = "0.1.0"
+edition.workspace = true
+rust-version.workspace = true
+license.workspace = true
+repository.workspace = true
+readme = "README.md"
+description = "A durable action queue with UUID v7 idempotency, per-action batch results, and explicit conflict strategies for offline-first Rust clients."
+keywords = ["offline-first", "sync", "idempotency", "conflict-resolution"]
+categories = ["development-tools"]
+include = [
+    "Cargo.toml",
+    "README.md",
+    "LICENSE-MIT",
+    "LICENSE-APACHE",
+    "src/**",
+]
+
+[package.metadata.docs.rs]
+all-features = true
+
+[features]
+default = []
+
+[dependencies]
+# Declared directly: the workspace has no [workspace.dependencies], so each
+# version lives with the crate that needs it, as `platform-core` does.
+async-trait = "0.1"
+chrono = { version = "0.4.45", features = ["serde"] }
+serde = { version = "1.0.229", features = ["derive"] }
+serde_json = "1.0.140"
+thiserror = "2"
+tracing = "0.1.41"
+# A caret floor of "1" as `platform-core` declares: a higher floor makes a 1.87
+# resolve impossible because 1.28+ declares rust-version 1.89.
+uuid = { version = "1", features = ["v7", "serde"] }
+
+[dev-dependencies]
+# The test agent's acceptance suite drives the async storage and transport traits.
+tokio = { version = "1", features = ["macros", "rt-multi-thread", "time"] }

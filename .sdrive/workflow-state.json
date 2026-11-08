@@ -805,7 +805,7 @@
             "specification": "approved",
             "planning": "approved",
             "implementation": "approved",
-            "review": "pending"
+            "review": "approved"
           },
           "history": [
             {
@@ -844,6 +844,13 @@
               "actor": "kenule500",
               "previousValue": "pending",
               "timestamp": "2026-11-08T09:01:23.324Z"
+            },
+            {
+              "event": "review_approved",
+              "by": "kenule500",
+              "actor": "kenule500",
+              "previousValue": "pending",
+              "timestamp": "2026-11-08T09:25:17.182Z"
             }
           ]
         }
@@ -860,8 +867,8 @@
       "versions": [
         {
           "id": "v1",
-          "phase": "backlog",
-          "currentStep": "specification",
+          "phase": "ongoing",
+          "currentStep": "implementation",
           "gates": {
             "specification": "approved",
             "planning": "approved",
@@ -893,6 +900,11 @@
               "event": "Gate 2 approved: technical plan and execution tasks; plan/tasks/traceability validated green across the three grouped features",
               "by": "kenule500",
               "timestamp": "2026-11-02T09:20:00Z"
+            },
+            {
+              "event": "Implementation started: spec moved from specs/backlog to specs/ongoing; crates/syncforge ported from feature/m3-substrate prior art and realigned to the approved conflict and timestamp model",
+              "by": "SpecDrive",
+              "timestamp": "2026-11-08T09:40:00Z"
             }
           ]
         }

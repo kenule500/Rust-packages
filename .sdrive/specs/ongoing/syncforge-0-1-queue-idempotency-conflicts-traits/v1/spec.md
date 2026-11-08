@@ -1,6 +1,6 @@
----
+﻿---
 title: syncforge 0.1 - queue, idempotency, conflicts, traits
-status: backlog
+status: ongoing
 version: v1
 created: 2026-11-02
 updated: 2026-11-02
@@ -10,7 +10,7 @@ updated: 2026-11-02
 
 ## Overview
 
-- **Problem Statement**: An offline-capable application must answer four questions correctly the moment connectivity returns: did the action happen, has it already been sent, what if the server saw a newer version, and what time did it actually happen. Most applications answer them with a queue table, a `synced` boolean, and hope, which works until a duplicate invoice, a lost photo, or a job marked complete twice reaches support. Every offline-first app rebuilds the same primitives — a durable queue, idempotency keys, retry with backoff, batch upload, conflict handling, and audit timestamps — and rebuilds them slightly wrong each time.
+- **Problem Statement**: An offline-capable application must answer four questions correctly the moment connectivity returns: did the action happen, has it already been sent, what if the server saw a newer version, and what time did it actually happen. Most applications answer them with a queue table, a `synced` boolean, and hope, which works until a duplicate invoice, a lost photo, or a job marked complete twice reaches support. Every offline-first app rebuilds the same primitives â€” a durable queue, idempotency keys, retry with backoff, batch upload, conflict handling, and audit timestamps â€” and rebuilds them slightly wrong each time.
 - **Proposed Solution**: Port and adapt the `syncforge` crate from `feature/m3-substrate` as prior art: `Action`, `ActionId`, `EntityType`, `Operation`, `Batch`, `ActionResult`, `ActionStatus`, `BatchResult`, `ConflictInfo`, `ConflictStrategy`, `CustomMerger`, `Resolution`, `TimestampDecision`, `SyncError`, and the `Storage` and `Transport` traits, plus a `SyncEngine` and a replay model. Enqueue persists before acknowledging, every action carries a UUID v7 idempotency key, a batch returns a per-action result so a partial failure neither retries all actions nor drops one, and the conflict policy is explicit per entity rather than accidental. Ship `MemoryStorage` and `MockTransport` for deterministic replay tests. No SQLite or HTTP implementation and no connectivity detection in 0.1.
 - **Target Audience**: Rust developers building offline-capable field, mobile (Tauri), desktop, or edge applications whose client and server are both Rust, and this project's field application as the first consumer.
 - **Assumptions**:
@@ -105,12 +105,12 @@ As a maintainer, I want lint and MSRV conformance, so that the crate ships like 
 
 ## Edge Cases & Error States
 
-- EC-001: The process dies after enqueue and before replay → the action is still in `Storage` and replays on the next launch.
-- EC-002: The server applied an action but the response was lost → the retry carries the same idempotency key and the server reports `Duplicate`, which is not an error and is not retried.
-- EC-003: A batch of many actions where one is rejected → per-action results leave the rejected action marked `Rejected` and every other action at its own status.
-- EC-004: One action always fails validation → after the attempt cap it is marked failed and surfaced; the queue continues instead of blocking.
-- EC-005: The device clock is wrong by more than the tolerance → `TimestampDecision` rejects or clamps the client time and records both times rather than silently trusting it.
-- EC-006: Build with `--no-default-features` → core types, `SyncError`, `MemoryStorage`, and `MockTransport` compile.
+- EC-001: The process dies after enqueue and before replay â†’ the action is still in `Storage` and replays on the next launch.
+- EC-002: The server applied an action but the response was lost â†’ the retry carries the same idempotency key and the server reports `Duplicate`, which is not an error and is not retried.
+- EC-003: A batch of many actions where one is rejected â†’ per-action results leave the rejected action marked `Rejected` and every other action at its own status.
+- EC-004: One action always fails validation â†’ after the attempt cap it is marked failed and surfaced; the queue continues instead of blocking.
+- EC-005: The device clock is wrong by more than the tolerance â†’ `TimestampDecision` rejects or clamps the client time and records both times rather than silently trusting it.
+- EC-006: Build with `--no-default-features` â†’ core types, `SyncError`, `MemoryStorage`, and `MockTransport` compile.
 
 ## Out of Scope
 

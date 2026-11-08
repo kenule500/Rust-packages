@@ -1,6 +1,6 @@
----
+﻿---
 title: syncforge 0.1 - technical plan
-status: backlog
+status: ongoing
 version: v1
 created: 2026-11-02
 updated: 2026-11-02
@@ -10,7 +10,7 @@ updated: 2026-11-02
 
 ## Approach
 
-Port the `syncforge` crate from `feature/m3-substrate` as prior art and adapt it to the current workspace: one self-contained library crate at `crates/syncforge` with `default = []` and no dependency on `wirekit` or `platform-core`. The crate is built around two abstract seams — `Storage` and `Transport` — with `MemoryStorage` and `MockTransport` as the default implementations so replay is deterministic in tests. A `SyncEngine` owns the queue, batches pending actions, sends a batch through the transport, and maps the returned per-action results onto queue state. `Action` carries a UUID v7 idempotency key created at construction, so at-least-once delivery becomes safe replay. Conflict resolution is a strategy chosen per entity rather than logic buried in a handler, and timestamp handling returns a typed decision so a skewed device clock is recorded rather than trusted silently. Retry uses the attempt count on the action with a configurable cap, after which an action is marked failed rather than blocking the queue. Instrumentation events cover queue depth, replay, conflicts, and duration.
+Port the `syncforge` crate from `feature/m3-substrate` as prior art and adapt it to the current workspace: one self-contained library crate at `crates/syncforge` with `default = []` and no dependency on `wirekit` or `platform-core`. The crate is built around two abstract seams â€” `Storage` and `Transport` â€” with `MemoryStorage` and `MockTransport` as the default implementations so replay is deterministic in tests. A `SyncEngine` owns the queue, batches pending actions, sends a batch through the transport, and maps the returned per-action results onto queue state. `Action` carries a UUID v7 idempotency key created at construction, so at-least-once delivery becomes safe replay. Conflict resolution is a strategy chosen per entity rather than logic buried in a handler, and timestamp handling returns a typed decision so a skewed device clock is recorded rather than trusted silently. Retry uses the attempt count on the action with a configurable cap, after which an action is marked failed rather than blocking the queue. Instrumentation events cover queue depth, replay, conflicts, and duration.
 
 ## Components
 
@@ -32,22 +32,22 @@ Port the `syncforge` crate from `feature/m3-substrate` as prior art and adapt it
 
 ## Data model
 
-- **`Action`** — id, entity, operation, payload, client timestamp, idempotency key, attempt count.
-- **`BatchResult`** — one `ActionResult` per action.
-- **`ActionResult`** — action id, status, optional server timestamp, optional conflict.
-- **`ConflictInfo`** — entity, server value, client value, server timestamp.
+- **`Action`** â€” id, entity, operation, payload, client timestamp, idempotency key, attempt count.
+- **`BatchResult`** â€” one `ActionResult` per action.
+- **`ActionResult`** â€” action id, status, optional server timestamp, optional conflict.
+- **`ConflictInfo`** â€” entity, server value, client value, server timestamp.
 
 **Flow.** `enqueue` persists the action through `Storage` and only then reports success, so a crash cannot lose the write. On reconnect the engine lists pending actions, groups them into batches bounded by the configured size, and sends each batch through `Transport`. The server validates, dedupes by the idempotency key, executes each action through the caller's domain service, and returns one `ActionResult` per action. The client marks each action by its own result: `Applied` and `Duplicate` become sent (a duplicate is not an error and is not retried), `Conflict` invokes the configured strategy to produce a `Resolution`, `Rejected` is terminal and surfaced, and `Retry` advances the attempt count. An action that reaches the attempt cap is marked failed and surfaced rather than blocking the queue. A server-reported conflict carries `ConflictInfo` with both sides, and the timestamp decision records both the client and server times so a skewed clock is visible rather than silently trusted.
 
 ## Security considerations
 
-- **NFR-001** — the crate reads no credentials and no environment; storage and transport are supplied by the caller, so the crate never becomes a place a secret can leak from.
-- **NFR-002** — transport responses are untrusted input: they are validated and bounded before any queue state mutates, and a malformed response is a typed `SyncError` rather than a panic.
+- **NFR-001** â€” the crate reads no credentials and no environment; storage and transport are supplied by the caller, so the crate never becomes a place a secret can leak from.
+- **NFR-002** â€” transport responses are untrusted input: they are validated and bounded before any queue state mutates, and a malformed response is a typed `SyncError` rather than a panic.
 
 ## Performance considerations
 
-- **NFR-003** — batching bounds the request count for a long offline period, and the configured batch size caps a single request so a week offline does not replay as one unbounded call.
-- **NFR-004** — `MemoryStorage` eliminates I/O in the fast path for tests, and the `Storage` trait lets a real backend do batched writes without changing queue or conflict logic.
+- **NFR-003** â€” batching bounds the request count for a long offline period, and the configured batch size caps a single request so a week offline does not replay as one unbounded call.
+- **NFR-004** â€” `MemoryStorage` eliminates I/O in the fast path for tests, and the `Storage` trait lets a real backend do batched writes without changing queue or conflict logic.
 
 ## Dependencies
 

@@ -39,3 +39,10 @@ uuid = { version = "1", features = ["v7", "serde"] }
 [dev-dependencies]
 # The test agent's acceptance suite drives the async storage and transport traits.
 tokio = { version = "1", features = ["macros", "rt-multi-thread", "time"] }
+# The acceptance suite implements Storage and Transport, builds payloads, and
+# installs a capture subscriber. All four are already crate dependencies, so no
+# new library enters the graph.
+async-trait = "0.1"
+chrono = { version = "0.4.45", features = ["serde"] }
+serde_json = "1.0.140"
+tracing = "0.1.41"

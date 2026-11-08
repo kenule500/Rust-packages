@@ -49,3 +49,12 @@ uuid = { version = "1", features = ["v7"] }
 [dev-dependencies]
 # The test agent's acceptance suite drives the async store and outbox traits.
 tokio = { version = "1", features = ["macros", "rt-multi-thread", "time"] }
+# The acceptance suite signs its own webhook payloads, so it declares the
+# signing primitives directly. All six are already crate dependencies, so no new
+# library enters the graph.
+hmac = "0.12.1"
+sha1 = "0.10.6"
+sha2 = "0.10.9"
+base64 = "0.22.1"
+hex = "0.4.3"
+http = "1.3.1"

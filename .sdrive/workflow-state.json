@@ -872,7 +872,7 @@
           "gates": {
             "specification": "approved",
             "planning": "approved",
-            "implementation": "pending",
+            "implementation": "approved",
             "review": "pending"
           },
           "history": [
@@ -905,6 +905,13 @@
               "event": "Implementation started: spec moved from specs/backlog to specs/ongoing; crates/syncforge ported from feature/m3-substrate prior art and realigned to the approved conflict and timestamp model",
               "by": "SpecDrive",
               "timestamp": "2026-11-08T09:40:00Z"
+            },
+            {
+              "event": "implementation_approved",
+              "by": "kenule500",
+              "actor": "kenule500",
+              "previousValue": "pending",
+              "timestamp": "2026-11-08T09:44:44.419Z"
             }
           ]
         }

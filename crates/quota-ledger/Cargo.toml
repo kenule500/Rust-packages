@@ -75,3 +75,15 @@ redis = { version = "0.27", default-features = false, features = [
 # tests need chrono on their own dependency edge. Already a normal dependency.
 chrono = { version = "0.4.45", features = ["serde"] }
 tokio = { version = "1.54.0", features = ["macros", "rt-multi-thread"] }
+# The Redis acceptance suite builds the connection and cleans up its own keys.
+# Same crate and version as the optional dependency; no new library.
+redis = { version = "0.27", default-features = false, features = [
+    "aio",
+    "tokio-comp",
+    "connection-manager",
+    "script",
+] }
+
+[[test]]
+name = "quota-ledger-redis-backend"
+required-features = ["redis"]

@@ -1,5 +1,12 @@
 //! Redis key construction and window arithmetic.
 //!
+//! A budget key deliberately **excludes** the window start. A rolling window is
+//! anchored at its first reservation, so `Window::start_at(now)` changes on
+//! every call; deriving the key from it would give every reserve its own empty
+//! budget and break both the limit and idempotency. The window bounds live in
+//! the budget hash instead, and a reserve whose window has ended replaces the
+//! hash in the same script.
+//!
 //! Every budget and reservation key starts with `quota:` and then the tenant, so
 //! a key can never address another tenant's data. Caller-supplied segments
 //! (provider, metric, idempotency key) are percent-escaped so a `:` inside a
@@ -34,19 +41,13 @@ fn escape(segment: &str) -> String {
     out
 }
 
-/// The key holding one budget bucket.
-pub(crate) fn budget_key(
-    tenant: TenantId,
-    provider: &ProviderId,
-    metric: Metric,
-    window_start: DateTime<Utc>,
-) -> String {
+/// The key holding one budget bucket, independent of its current window.
+pub(crate) fn budget_key(tenant: TenantId, provider: &ProviderId, metric: Metric) -> String {
     format!(
-        "{PREFIX}:budget:{}:{}:{}:{}",
+        "{PREFIX}:budget:{}:{}:{}",
         tenant,
         escape(provider.as_str()),
-        escape(metric.as_str()),
-        window_start.timestamp_millis()
+        escape(metric.as_str())
     )
 }
 
@@ -66,19 +67,19 @@ pub(crate) fn reservation_index_key(id: ReservationId) -> String {
 }
 
 /// The key mapping one caller idempotency key to its reservation.
+///
+/// The key is bounded by the reservation TTL, so it does not need the window.
 pub(crate) fn idempotency_key(
     tenant: TenantId,
     provider: &ProviderId,
     metric: Metric,
-    window_start: DateTime<Utc>,
     caller_key: &str,
 ) -> String {
     format!(
-        "{PREFIX}:idem:{}:{}:{}:{}:{}",
+        "{PREFIX}:idem:{}:{}:{}:{}",
         tenant,
         escape(provider.as_str()),
         escape(metric.as_str()),
-        window_start.timestamp_millis(),
         escape(caller_key)
     )
 }
@@ -100,5 +101,5 @@ pub(crate) fn window_bounds(window: Window, now: DateTime<Utc>) -> (DateTime<Utc
 
 /// The key for a caller-supplied ledger bucket.
 pub(crate) fn usage_key(key: &QuotaKey) -> String {
-    budget_key(key.tenant, &key.provider, key.metric, key.window_start)
+    budget_key(key.tenant, &key.provider, key.metric)
 }

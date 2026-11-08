@@ -135,8 +135,7 @@ impl QuotaStore for RedisQuotaStore {
 
         let key = QuotaKey::new(budget.tenant, budget.provider, budget.metric, window_start);
         let id = ReservationId::generate();
-        let budget_key =
-            keys::budget_key(budget.tenant, &budget.provider, budget.metric, window_start);
+        let budget_key = keys::budget_key(budget.tenant, &budget.provider, budget.metric);
         let reservation_key = keys::reservation_key(budget.tenant, id);
         let index_key = keys::reservation_index_key(id);
         let bucket_index = keys::index_key(budget.tenant, &budget.provider, budget.metric);
@@ -144,13 +143,7 @@ impl QuotaStore for RedisQuotaStore {
         let idem_key = if caller_key.is_empty() {
             budget_key.clone()
         } else {
-            keys::idempotency_key(
-                budget.tenant,
-                &budget.provider,
-                budget.metric,
-                window_start,
-                caller_key,
-            )
+            keys::idempotency_key(budget.tenant, &budget.provider, budget.metric, caller_key)
         };
         let (policy_tag, unit_cost) = policy_tag(budget.policy);
         let budget_ttl = (window_end - now).num_seconds().max(60) + 3600;

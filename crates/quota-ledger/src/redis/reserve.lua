@@ -1,5 +1,10 @@
 -- Atomic quota reservation.
 --
+-- The budget key is independent of the window: a rolling window is anchored at
+-- the first reservation of the window, so a window-derived key would change on
+-- every call. The window bounds live in the hash, and a reserve whose window has
+-- ended replaces the hash inside this same script.
+--
 -- KEYS[1] budget key
 -- KEYS[2] reservation key (tenant-scoped)
 -- KEYS[3] reservation index key (id -> reservation key)
@@ -24,7 +29,7 @@
 --   OV,cost_cents         reserved beyond the limit under the overage policy
 --   DENY,remaining        hard-stop denial
 --   DEGRADE / QUEUE       policy outcome, nothing held
---   ALREADY,id,units,expires_ms,policy   idempotent replay with the same units
+--   ALREADY,id,units,expires_ms,policy,unit_cost   idempotent replay
 --   CONFLICT              idempotency key reused with different units
 
 local budget = KEYS[1]
@@ -44,6 +49,7 @@ local window_start = ARGV[8]
 local budget_ttl = tonumber(ARGV[9])
 local idem_key = ARGV[10]
 local res_prefix = ARGV[11]
+local now_ms = tonumber(ARGV[12])
 
 if units <= 0 then
   return {'CONFIG', 'units must be greater than zero'}
@@ -69,6 +75,14 @@ if idem_key ~= '' then
       end
     end
     return {'CONFLICT'}
+  end
+end
+
+-- A budget whose window has ended starts a new window.
+if redis.call('EXISTS', budget) == 1 then
+  local end_ms = tonumber(redis.call('HGET', budget, 'window_end')) or 0
+  if end_ms <= now_ms then
+    redis.call('DEL', budget)
   end
 end
 
@@ -112,7 +126,6 @@ if units > remaining then
 end
 
 redis.call('HINCRBY', budget, 'held', units)
-local now_ms = tonumber(ARGV[12])
 redis.call('HSET', reservation,
   'units', units,
   'policy', policy,

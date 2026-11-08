@@ -25,6 +25,9 @@ default = []
 # The optional Postgres backend. Off by default so no `sqlx` type enters the
 # default build.
 postgres = ["dep:sqlx-core", "dep:sqlx-postgres"]
+# The optional Redis backend. Off by default so no Redis client enters the
+# default build.
+redis = ["dep:redis"]
 
 [dependencies]
 # Declared directly: the workspace has no [workspace.dependencies], so each
@@ -55,6 +58,16 @@ sqlx-core = { version = "0.8.6", default-features = false, features = [
 sqlx-postgres = { version = "0.8.6", default-features = false, features = [
     "chrono",
     "uuid",
+], optional = true }
+# Optional, behind the `redis` feature. The caller supplies a configured
+# `ConnectionManager`; this crate never reads a URL, an environment variable, or
+# a credential, and never disables TLS. `script` provides `EVALSHA`, which is
+# what makes the reserve claim atomic.
+redis = { version = "0.27", default-features = false, features = [
+    "aio",
+    "tokio-comp",
+    "connection-manager",
+    "script",
 ], optional = true }
 
 [dev-dependencies]

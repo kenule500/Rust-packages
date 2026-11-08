@@ -959,8 +959,8 @@
       "versions": [
         {
           "id": "v1",
-          "phase": "backlog",
-          "currentStep": "specification",
+          "phase": "ongoing",
+          "currentStep": "implementation",
           "gates": {
             "specification": "approved",
             "planning": "approved",
@@ -992,6 +992,11 @@
               "event": "Gate 2 approved: technical plan and execution tasks; plan/tasks/traceability validated green across the four grouped features",
               "by": "kenule500",
               "timestamp": "2026-11-08T10:52:00Z"
+            },
+            {
+              "event": "Implementation started: spec moved from specs/backlog to specs/ongoing; crates/quota-ledger gained the redis feature, key schema, atomic reserve and settle scripts, and README docs",
+              "by": "SpecDrive",
+              "timestamp": "2026-11-08T11:10:00Z"
             }
           ]
         }

@@ -11,71 +11,115 @@
           "id": "T1.1",
           "title": "Add the redis feature and gate the module",
           "description": "Add an optional redis dependency and redis = [\"dep:redis\"] to the crate manifest, keeping default = []. Gate pub mod redis behind the feature in lib.rs and re-export RedisQuotaStore. Confirm a default build links no Redis type and the workspace still resolves.",
-          "linkedRequirements": ["FR-001", "NFR-004"],
-          "linkedAcceptanceCriteria": ["AC-007"],
-          "completed": false
+          "linkedRequirements": [
+            "FR-001",
+            "NFR-004"
+          ],
+          "linkedAcceptanceCriteria": [
+            "AC-007"
+          ],
+          "completed": true
         },
         {
           "id": "T1.2",
           "title": "Implement the key schema and window derivation",
           "description": "Add redis/keys.rs with builders for the budget hash, reservation hash, idempotency string, and window index. Every key starts with the tenant and includes provider, metric, and window start. Derive window start and reset from the configured Window, never from host midnight.",
-          "linkedRequirements": ["FR-005", "FR-006", "NFR-001"],
-          "linkedAcceptanceCriteria": ["AC-001", "AC-006"],
-          "completed": false
+          "linkedRequirements": [
+            "FR-005",
+            "FR-006",
+            "NFR-001"
+          ],
+          "linkedAcceptanceCriteria": [
+            "AC-001",
+            "AC-006"
+          ],
+          "completed": true
         }
       ]
     },
     {
       "phaseId": "P2",
       "name": "Store implementation",
-      "dependencies": ["P1"],
+      "dependencies": [
+        "P1"
+      ],
       "tasks": [
         {
           "id": "T2.1",
           "title": "Implement the atomic reserve script",
           "description": "Add redis/reserve.lua: validate the remaining-capacity predicate, write the reservation hash, increment held units, register the idempotency key, and set TTLs in one script. Return a tagged result the Rust side maps to a reservation, QuotaExceeded with the reset instant, or an idempotency conflict. Pass every caller value as an argument.",
-          "linkedRequirements": ["FR-002", "NFR-002", "NFR-003"],
-          "linkedAcceptanceCriteria": ["AC-002", "AC-005"],
-          "completed": false
+          "linkedRequirements": [
+            "FR-002",
+            "NFR-002",
+            "NFR-003"
+          ],
+          "linkedAcceptanceCriteria": [
+            "AC-002",
+            "AC-005"
+          ],
+          "completed": true
         },
         {
           "id": "T2.2",
           "title": "Implement commit and release settlement",
           "description": "Add redis/settle.lua with a mode argument. Delete the reservation key and mutate the budget only when the delete reports one key, so a repeated commit or release is a no-op rather than a second settlement.",
-          "linkedRequirements": ["FR-003"],
-          "linkedAcceptanceCriteria": ["AC-003"],
-          "completed": false
+          "linkedRequirements": [
+            "FR-003"
+          ],
+          "linkedAcceptanceCriteria": [
+            "AC-003"
+          ],
+          "completed": true
         },
         {
           "id": "T2.3",
           "title": "Implement usage and idempotent reserve replay",
           "description": "Read the budget hash for usage (limit, used, held, overage, reset). On reserve, look up the idempotency key first: the same payload returns the existing reservation, a different payload returns the typed conflict.",
-          "linkedRequirements": ["FR-003", "FR-004"],
-          "linkedAcceptanceCriteria": ["AC-004", "AC-006"],
-          "completed": false
+          "linkedRequirements": [
+            "FR-003",
+            "FR-004"
+          ],
+          "linkedAcceptanceCriteria": [
+            "AC-004",
+            "AC-006"
+          ],
+          "completed": true
         }
       ]
     },
     {
       "phaseId": "P3",
       "name": "Wiring, docs, verification",
-      "dependencies": ["P2"],
+      "dependencies": [
+        "P2"
+      ],
       "tasks": [
         {
           "id": "T3.1",
           "title": "Map errors with redaction and document the backend",
           "description": "Map Redis failures into QuotaError::Backend without rendering the connection string, and document the key schema, TLS expectation, TTLs, and the no-environment rule in the crate README and module docs. Every public item carries rustdoc.",
-          "linkedRequirements": ["FR-007", "FR-008", "NFR-005"],
-          "linkedAcceptanceCriteria": ["AC-008"],
-          "completed": false
+          "linkedRequirements": [
+            "FR-007",
+            "FR-008",
+            "NFR-005"
+          ],
+          "linkedAcceptanceCriteria": [
+            "AC-008"
+          ],
+          "completed": true
         },
         {
           "id": "T3.2",
           "title": "Run the verification checks",
           "description": "Run cargo fmt --all --check, cargo clippy --workspace --all-features -- -D warnings, cargo doc --workspace --all-features --no-deps under RUSTDOCFLAGS=-D warnings, cargo check -p quota-ledger and -p quota-ledger --no-default-features, and node .sdrive/scripts/validate-governance.js.",
-          "linkedRequirements": ["NFR-004", "NFR-005"],
-          "linkedAcceptanceCriteria": ["AC-007"],
-          "completed": false
+          "linkedRequirements": [
+            "NFR-004",
+            "NFR-005"
+          ],
+          "linkedAcceptanceCriteria": [
+            "AC-007"
+          ],
+          "completed": true
         }
       ]
     }

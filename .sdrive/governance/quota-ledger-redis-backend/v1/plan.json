@@ -4,37 +4,126 @@
   "architecture": {
     "approach": "Add a `redis` feature that implements QuotaStore over a caller-supplied ConnectionManager. The claim is one Lua script executed with EVALSHA so capacity check, hold write, and counters are atomic. Settlement runs a second script that deletes the reservation key and mutates the budget only when the delete reports one key. Keys embed tenant, provider, metric, and window start. The trait, value types, and MemoryQuotaStore are untouched, and Postgres stays the default backend.",
     "components": [
-      { "name": "crates/quota-ledger/Cargo.toml", "action": "modify", "description": "Add optional redis and redis = [\"dep:redis\"]; keep default = []." },
-      { "name": "crates/quota-ledger/src/lib.rs", "action": "modify", "description": "Gate pub mod redis behind the feature and re-export RedisQuotaStore." },
-      { "name": "crates/quota-ledger/src/redis/mod.rs", "action": "create", "description": "RedisQuotaStore: QuotaStore implementation, connection handling, error mapping, rustdoc." },
-      { "name": "crates/quota-ledger/src/redis/keys.rs", "action": "create", "description": "Key builders and window derivation; every key is tenant-prefixed." },
-      { "name": "crates/quota-ledger/src/redis/reserve.lua", "action": "create", "description": "Atomic claim: capacity predicate, hold write, counters, idempotency key, TTLs." },
-      { "name": "crates/quota-ledger/src/redis/settle.lua", "action": "create", "description": "Commit and release in one script; consumes the hold exactly once." },
-      { "name": "crates/quota-ledger/README.md", "action": "modify", "description": "Document the backend, TLS expectation, key schema, TTLs, and the no-environment rule." }
+      {
+        "name": "crates/quota-ledger/Cargo.toml",
+        "action": "modify",
+        "description": "Add optional redis and redis = [\"dep:redis\"]; keep default = []."
+      },
+      {
+        "name": "crates/quota-ledger/src/lib.rs",
+        "action": "modify",
+        "description": "Gate pub mod redis behind the feature and re-export RedisQuotaStore."
+      },
+      {
+        "name": "crates/quota-ledger/src/redis/mod.rs",
+        "action": "create",
+        "description": "RedisQuotaStore: QuotaStore implementation, connection handling, error mapping, rustdoc."
+      },
+      {
+        "name": "crates/quota-ledger/src/redis/keys.rs",
+        "action": "create",
+        "description": "Key builders and window derivation; every key is tenant-prefixed."
+      },
+      {
+        "name": "crates/quota-ledger/src/redis/reserve.lua",
+        "action": "create",
+        "description": "Atomic claim: capacity predicate, hold write, counters, idempotency key, TTLs.",
+        "resolution": {
+          "kind": "superseded",
+          "reason": "Shipped at crates/quota-ledger/src/redis/reserve.lua and embedded with include_str!, but sdrive verify only scans code extensions (lua is not one of them), so the file cannot be matched statically.",
+          "at": "2026-11-08"
+        }
+      },
+      {
+        "name": "crates/quota-ledger/src/redis/settle.lua",
+        "action": "create",
+        "description": "Commit and release in one script; consumes the hold exactly once.",
+        "resolution": {
+          "kind": "superseded",
+          "reason": "Shipped at crates/quota-ledger/src/redis/settle.lua and embedded with include_str!, but sdrive verify only scans code extensions (lua is not one of them), so the file cannot be matched statically.",
+          "at": "2026-11-08"
+        }
+      },
+      {
+        "name": "crates/quota-ledger/README.md",
+        "action": "modify",
+        "description": "Document the backend, TLS expectation, key schema, TTLs, and the no-environment rule."
+      }
     ],
-    "referencedRequirementIds": ["FR-001", "FR-002", "FR-003", "FR-004", "FR-005", "FR-006", "FR-007", "FR-008", "NFR-001", "NFR-002", "NFR-003", "NFR-004", "NFR-005"]
+    "referencedRequirementIds": [
+      "FR-001",
+      "FR-002",
+      "FR-003",
+      "FR-004",
+      "FR-005",
+      "FR-006",
+      "FR-007",
+      "FR-008",
+      "NFR-001",
+      "NFR-002",
+      "NFR-003",
+      "NFR-004",
+      "NFR-005"
+    ]
   },
   "dataModel": {
     "entities": [],
     "flowDescription": "reserve computes the key set from the QuotaKey and window, then runs reserve.lua with limit, units, and expiry as arguments; the script returns a reservation, a denial with the reset instant, or an idempotency conflict. commit and release run settle.lua, which deletes the reservation key and only mutates the budget when exactly one key was removed, so a repeated settlement is a no-op. usage reads the budget hash. The Redis record shapes are documented in plan.md rather than modelled as Rust entities, because no new public type is introduced."
   },
   "securityConsiderations": [
-    { "requirementId": "NFR-001", "description": "Every key is tenant-prefixed; the store never addresses a budget outside the QuotaKey." },
-    { "requirementId": "NFR-002", "description": "All caller values are script arguments; no command text is built by interpolation." },
-    { "requirementId": "NFR-003", "description": "Windows, metrics, and unit counts are validated and bounded before reaching Redis." },
-    { "requirementId": "NFR-005", "description": "Errors never render the connection string or a credential." }
+    {
+      "requirementId": "NFR-001",
+      "description": "Every key is tenant-prefixed; the store never addresses a budget outside the QuotaKey."
+    },
+    {
+      "requirementId": "NFR-002",
+      "description": "All caller values are script arguments; no command text is built by interpolation."
+    },
+    {
+      "requirementId": "NFR-003",
+      "description": "Windows, metrics, and unit counts are validated and bounded before reaching Redis."
+    },
+    {
+      "requirementId": "NFR-005",
+      "description": "Errors never render the connection string or a credential."
+    }
   ],
   "performanceConsiderations": [
-    { "requirementId": "NFR-002", "strategy": "One round trip per reserve and per settle because the decision is server-side." },
-    { "requirementId": "NFR-004", "strategy": "No new C-compiled dependency is expected; the Redis client is pure Rust." }
+    {
+      "requirementId": "NFR-002",
+      "strategy": "One round trip per reserve and per settle because the decision is server-side."
+    },
+    {
+      "requirementId": "NFR-004",
+      "strategy": "No new C-compiled dependency is expected; the Redis client is pure Rust."
+    }
   ],
   "dependencies": [
-    { "name": "redis", "type": "library", "action": "add", "notes": "Async, TLS-capable, behind the redis feature; must resolve on Rust 1.87. No skill available; docs-only." },
-    { "name": "tokio", "type": "library", "action": "no_change", "notes": "Already a dev-dependency." }
+    {
+      "name": "redis",
+      "type": "library",
+      "action": "add",
+      "notes": "Async, TLS-capable, behind the redis feature; must resolve on Rust 1.87. No skill available; docs-only."
+    },
+    {
+      "name": "tokio",
+      "type": "library",
+      "action": "no_change",
+      "notes": "Already a dev-dependency."
+    }
   ],
   "risks": [
-    { "description": "No Redis in CI, so concurrency proof needs an opt-in harness.", "mitigation": "AC-002 is exercised by a Redis-backed test when a server is available, and the gap is recorded in the review." },
-    { "description": "Lua expiry and settlement bugs are easy.", "mitigation": "Each script gets failure-path coverage for missing, expired, and already-settled reservations." },
-    { "description": "A redis release needing Rust 1.88 or later blocks the feature.", "mitigation": "Pin a compatible release or stop and amend CON-102; never raise the MSRV silently." }
+    {
+      "description": "No Redis in CI, so concurrency proof needs an opt-in harness.",
+      "mitigation": "AC-002 is exercised by a Redis-backed test when a server is available, and the gap is recorded in the review."
+    },
+    {
+      "description": "Lua expiry and settlement bugs are easy.",
+      "mitigation": "Each script gets failure-path coverage for missing, expired, and already-settled reservations."
+    },
+    {
+      "description": "A redis release needing Rust 1.88 or later blocks the feature.",
+      "mitigation": "Pin a compatible release or stop and amend CON-102; never raise the MSRV silently."
+    }
   ]
 }

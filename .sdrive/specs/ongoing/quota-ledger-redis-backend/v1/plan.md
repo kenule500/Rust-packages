@@ -33,9 +33,10 @@ no operation can address another tenant's budget.
 
 ## Data model
 
-- `quota:budget:{tenant}:{provider}:{metric}:{window_start}` — hash with limit, used, held, overage_units, overage_cents, window_end.
-- `quota:reservation:{tenant}:{reservation_id}` — hash with units, policy, expires_at, settled flag.
-- `quota:idem:{tenant}:{provider}:{metric}:{window_start}:{idempotency_key}` — string holding the reservation id.
+- `quota:budget:{tenant}:{provider}:{metric}:{window_start_ms}` — hash with limit, used, held, overage_units, overage_cents, window_start, window_end.
+- `quota:res:{tenant}:{reservation_id}` — hash with units, policy, unit_cost, expires, budget (the budget key), overage_cents, settled.
+- `quota:residx:{reservation_id}` — the reservation key, so `commit` and `release` can settle by id (the 0.1 trait signature) while the data key keeps the tenant.
+- `quota:idem:{tenant}:{provider}:{metric}:{window_start_ms}:{idempotency_key}` — the reservation id an idempotency key already produced.
 - `quota:index:{tenant}:{provider}:{metric}` — set of window_start values used to find the active window.
 
 TTLs are set to the window end plus a retention margin; the reservation TTL is the

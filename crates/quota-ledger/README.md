@@ -12,9 +12,11 @@ they cannot?
 | Feature | Default | Adds |
 |---|---|---|
 | `postgres` | no | `PostgresQuotaStore` and the SQL schema |
+| `redis` | no | `RedisQuotaStore` and the Lua scripts |
 
-The default build is dependency-light and uses `MemoryQuotaStore`. The
-Postgres backend is opt-in and never compiled by default.
+The default build is dependency-light and uses `MemoryQuotaStore`. Both
+backends are opt-in and neither is compiled by default; enabling one does not
+compile the other.
 
 ## Flow
 
@@ -37,7 +39,7 @@ caller's chosen result.
 
 - No process-local rate limiting; that remains the `wirekit` token bucket.
 - No billing, invoicing, currency conversion, or tax logic.
-- No Redis backend in 0.1.
+- No Redis backend in 0.1; the `redis` feature arrives in 0.2.
 - No `no_std` core in 0.1.
 
 ## Postgres
@@ -75,6 +77,44 @@ The default reservation TTL is five minutes; set it per request with
 `ReserveRequest::with_ttl`. Run `PostgresQuotaStore::reclaim_expired` from a
 periodic job. Reclaim is idempotent: the hold is settled once, recorded in
 `quota_dead_hold` once, and its units are returned once.
+
+## Redis
+
+Enable the `redis` feature. The backend implements the same `QuotaStore` trait
+over a caller-supplied `ConnectionManager`, so a service that already runs Redis
+can share quota without adding Postgres.
+
+```rust
+use quota_ledger::RedisQuotaStore;
+
+let store = RedisQuotaStore::connect("rediss://redis.example:6380/0").await?;
+// or wrap a client you already configured:
+// let store = RedisQuotaStore::from_manager(manager);
+```
+
+`connect` parses the URL but never stores or renders it, and the crate reads no
+environment variable and disables no TLS — use `rediss://` in production.
+
+Reserve is one Lua script (`EVALSHA`): the capacity check, the hold write, and
+the counters are atomic on the server, so two pods cannot both take the final
+unit. Commit and release run a second script that marks the reservation settled
+before touching the budget, so a repeated settlement is a no-op.
+
+Keys are tenant-scoped, and provider, metric, and caller keys are
+percent-escaped so a `:` cannot forge a key segment:
+
+| Key | Holds |
+|---|---|
+| `quota:budget:{tenant}:{provider}:{metric}:{window_start_ms}` | limit, used, held, overage, window bounds |
+| `quota:res:{tenant}:{reservation_id}` | units, policy, unit cost, expiry, budget key, settlement flag |
+| `quota:residx:{reservation_id}` | the reservation key, so `commit`/`release` can settle by id |
+| `quota:idem:{tenant}:{provider}:{metric}:{window_start_ms}:{key}` | the reservation an idempotency key produced |
+| `quota:index:{tenant}:{provider}:{metric}` | window starts this bucket has used |
+
+Budget keys expire at the window end plus a margin; reservation, idempotency,
+and index keys expire with the hold TTL. A reservation that outlives its TTL is
+gone, and settling it returns `QuotaError::ReservationNotFound` rather than a
+synthetic success.
 
 ## Related crates
 

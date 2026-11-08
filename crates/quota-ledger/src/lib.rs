@@ -40,12 +40,16 @@ mod memory;
 mod policy;
 #[cfg(feature = "postgres")]
 pub mod postgres;
+#[cfg(feature = "redis")]
+pub mod redis;
 mod store;
 mod types;
 mod window;
 
 pub use error::QuotaError;
 pub use memory::MemoryQuotaStore;
+#[cfg(feature = "redis")]
+pub use redis::RedisQuotaStore;
 pub use store::QuotaStore;
 pub use types::{
     Budget, ExhaustionPolicy, Metric, Period, ProviderId, QuotaExceeded, QuotaKey, Reservation,

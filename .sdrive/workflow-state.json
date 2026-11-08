@@ -804,7 +804,7 @@
           "gates": {
             "specification": "approved",
             "planning": "approved",
-            "implementation": "pending",
+            "implementation": "approved",
             "review": "pending"
           },
           "history": [
@@ -837,6 +837,13 @@
               "event": "Implementation started: spec moved from specs/backlog to specs/ongoing; crates/hookgate ported from feature/m3-substrate prior art and adapted to direct dependencies",
               "by": "SpecDrive",
               "timestamp": "2026-11-08T08:50:00Z"
+            },
+            {
+              "event": "implementation_approved",
+              "by": "kenule500",
+              "actor": "kenule500",
+              "previousValue": "pending",
+              "timestamp": "2026-11-08T09:01:23.324Z"
             }
           ]
         }

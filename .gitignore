@@ -7,6 +7,7 @@
 .sdrive/reports/tests/raw/
 .sdrive/audit-log.json
 .sdrive/.backups/
+.sdrive/handoff.json
 
 # Cargo build output and local lockfile
 target/
@@ -16,3 +17,4 @@ Cargo.lock
 
 # Local tool and command scratch logs (not project artifacts)
 .perch/
+.commandcode/

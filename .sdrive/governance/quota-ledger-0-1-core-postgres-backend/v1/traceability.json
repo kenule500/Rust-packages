@@ -1,0 +1,150 @@
+{
+  "feature": "quota-ledger-0-1-core-postgres-backend",
+  "version": 1,
+  "rows": [
+    {
+      "requirementId": "FR-001",
+      "acceptanceCriteriaIds": ["AC-001", "AC-003", "AC-010"],
+      "planSection": "P1 Crate scaffold and core types",
+      "taskIds": ["T1.1", "T1.2"],
+      "testIds": ["TEST-001", "TEST-003", "TEST-010"],
+      "status": "complete"
+    },
+    {
+      "requirementId": "FR-002",
+      "acceptanceCriteriaIds": ["AC-002"],
+      "planSection": "P1 Crate scaffold and core types",
+      "taskIds": ["T1.1"],
+      "testIds": ["TEST-002"],
+      "status": "complete"
+    },
+    {
+      "requirementId": "FR-003",
+      "acceptanceCriteriaIds": ["AC-003", "AC-004", "AC-005", "AC-010"],
+      "planSection": "P2 Memory store and reservation lifecycle",
+      "taskIds": ["T2.1", "T2.2", "T2.3", "T2.4"],
+      "testIds": ["TEST-003", "TEST-004", "TEST-005", "TEST-010"],
+      "status": "complete"
+    },
+    {
+      "requirementId": "FR-004",
+      "acceptanceCriteriaIds": ["AC-004"],
+      "planSection": "P2 Memory store and reservation lifecycle",
+      "taskIds": ["T2.2"],
+      "testIds": ["TEST-004"],
+      "status": "complete"
+    },
+    {
+      "requirementId": "FR-005",
+      "acceptanceCriteriaIds": ["AC-007", "AC-008"],
+      "planSection": "P2 Memory store and reservation lifecycle",
+      "taskIds": ["T2.3"],
+      "testIds": ["TEST-007", "TEST-008"],
+      "status": "complete"
+    },
+    {
+      "requirementId": "FR-006",
+      "acceptanceCriteriaIds": ["AC-006"],
+      "planSection": "P2 Memory store and reservation lifecycle",
+      "taskIds": ["T2.4"],
+      "testIds": ["TEST-006"],
+      "status": "complete"
+    },
+    {
+      "requirementId": "FR-007",
+      "acceptanceCriteriaIds": ["AC-009"],
+      "planSection": "P1 Crate scaffold and core types",
+      "taskIds": ["T1.2"],
+      "testIds": ["TEST-009"],
+      "status": "complete"
+    },
+    {
+      "requirementId": "FR-008",
+      "acceptanceCriteriaIds": ["AC-011"],
+      "planSection": "P2 Memory store and reservation lifecycle",
+      "taskIds": ["T2.1"],
+      "testIds": ["TEST-011"],
+      "status": "complete"
+    },
+    {
+      "requirementId": "FR-009",
+      "acceptanceCriteriaIds": ["AC-012"],
+      "planSection": "P3 Postgres backend",
+      "taskIds": ["T3.1", "T3.2"],
+      "testIds": ["TEST-012"],
+      "status": "complete"
+    },
+    {
+      "requirementId": "FR-010",
+      "acceptanceCriteriaIds": ["AC-013"],
+      "planSection": "P3 Postgres backend",
+      "taskIds": ["T3.2"],
+      "testIds": ["TEST-013"],
+      "status": "complete"
+    },
+    {
+      "requirementId": "FR-011",
+      "acceptanceCriteriaIds": ["AC-014"],
+      "planSection": "P2 Memory store and reservation lifecycle",
+      "taskIds": ["T2.1"],
+      "testIds": ["TEST-014"],
+      "status": "complete"
+    },
+    {
+      "requirementId": "FR-012",
+      "acceptanceCriteriaIds": ["AC-015"],
+      "planSection": "P4 Wiring, docs, verification",
+      "taskIds": ["T1.1", "T4.1"],
+      "testIds": ["TEST-015"],
+      "status": "complete"
+    },
+    {
+      "requirementId": "NFR-001",
+      "acceptanceCriteriaIds": ["AC-014"],
+      "planSection": "P2 Memory store and reservation lifecycle",
+      "taskIds": ["T2.1"],
+      "testIds": ["TEST-014"],
+      "status": "complete"
+    },
+    {
+      "requirementId": "NFR-002",
+      "acceptanceCriteriaIds": ["AC-015"],
+      "planSection": "P3 Postgres backend",
+      "taskIds": ["T3.2", "T5.1"],
+      "testIds": ["TEST-015"],
+      "status": "complete"
+    },
+    {
+      "requirementId": "NFR-003",
+      "acceptanceCriteriaIds": ["AC-011"],
+      "planSection": "P1 Crate scaffold and core types",
+      "taskIds": ["T1.2"],
+      "testIds": ["TEST-011"],
+      "status": "complete"
+    },
+    {
+      "requirementId": "NFR-004",
+      "acceptanceCriteriaIds": ["AC-012"],
+      "planSection": "P3 Postgres backend",
+      "taskIds": ["T3.1"],
+      "testIds": ["TEST-012"],
+      "status": "complete"
+    },
+    {
+      "requirementId": "NFR-005",
+      "acceptanceCriteriaIds": ["AC-015"],
+      "planSection": "P4 Wiring, docs, verification",
+      "taskIds": ["T4.1", "T5.2"],
+      "testIds": ["TEST-015"],
+      "status": "complete"
+    },
+    {
+      "requirementId": "NFR-006",
+      "acceptanceCriteriaIds": ["AC-015"],
+      "planSection": "P4 Wiring, docs, verification",
+      "taskIds": ["T4.1"],
+      "testIds": ["TEST-015"],
+      "status": "complete"
+    }
+  ]
+}

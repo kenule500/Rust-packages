@@ -671,6 +671,258 @@
           ]
         }
       ]
+    },
+    {
+      "name": "quota-ledger-0-1-core-postgres-backend",
+      "branch": "feature/w3-p1",
+      "base": "main",
+      "productItems": [
+        "BP-018"
+      ],
+      "currentVersion": "v1",
+      "versions": [
+        {
+          "id": "v1",
+          "phase": "ongoing",
+          "currentStep": "implementation",
+          "gates": {
+            "specification": "approved",
+            "planning": "approved",
+            "implementation": "approved",
+            "review": "approved"
+          },
+          "history": [
+            {
+              "event": "Proposed from group expression [w3 p1] on shared branch feature/w3-p1; BP-016 (publish wirekit 0.2.x) dropped from scope as a release item, leaving BP-018, BP-020, and BP-021",
+              "by": "SpecDrive",
+              "timestamp": "2026-11-02T00:00:00Z"
+            },
+            {
+              "event": "Feature branch feature/w3-p1 created from main",
+              "by": "SpecDrive",
+              "timestamp": "2026-11-02T00:00:00Z"
+            },
+            {
+              "event": "Duplicate check: m3-substrate/v1 (ongoing on feature/m3-substrate) covers the same crates. User chose new per-crate specs on feature/w3-p1, treating feature/m3-substrate as prior art only, as platform-core/BP-017 did",
+              "by": "kenule500",
+              "timestamp": "2026-11-02T00:00:00Z"
+            },
+            {
+              "event": "Specification and traceability drafted; Gate 1 awaiting human approval",
+              "by": "SpecDrive",
+              "timestamp": "2026-11-02T00:00:00Z"
+            },
+            {
+              "event": "Gate 1 approved: specification and traceability",
+              "by": "kenule500",
+              "timestamp": "2026-11-02T09:00:00Z"
+            },
+            {
+              "event": "Gate 2 approved: technical plan and execution tasks; plan/tasks/traceability validated green across the three grouped features",
+              "by": "kenule500",
+              "timestamp": "2026-11-02T09:20:00Z"
+            },
+            {
+              "event": "Implementation started: spec moved from specs/backlog to specs/ongoing on feature/w3-p1; crates/quota-ledger implemented (lib, types, error, store, memory, window, policy, postgres backend, schema.sql, README); 9 tasks and 18 traceability rows completed",
+              "by": "SpecDrive",
+              "timestamp": "2026-11-04T13:20:00Z"
+            },
+            {
+              "event": "Plan corrected after sdrive verify reported 32 matched and 25 missing: the data model was realigned to the implemented names (Reservation.units/expires_at/policy, Usage.used/overage_cents/reset_at, quota_budget and quota_reservation columns) because the settlement state lives in the store rather than on the reservation, and the five items the static scanner cannot read (schema.sql, the two licence files, the platform-core directory, the unchanged root Cargo.toml) plus the two Postgres tables were recorded as superseded with reasons. plan.md's Data model section was synced to match; planning gate reset to pending for re-approval",
+              "by": "SpecDrive",
+              "actor": "kenule500",
+              "previousValue": "approved",
+              "timestamp": "2026-11-04T13:22:00Z"
+            },
+            {
+              "event": "Verification and checks: sdrive verify pass with 0 missing, 32 withdrawn, 0 renamed, 0 extra; validate-governance green; cargo fmt --all --check clean; cargo clippy --workspace --all-features -- -D warnings clean; cargo doc --workspace --all-features --no-deps clean under RUSTDOCFLAGS=-D warnings; cargo check -p quota-ledger --no-default-features clean. The postgres feature needed CRATE_CC_NO_DEFAULTS=1 on this machine because MSVC 14.50.35717 cl.exe fails with D8050 under cc-rs's default /Z7 flags",
+              "by": "SpecDrive",
+              "timestamp": "2026-11-04T13:23:00Z"
+            },
+            {
+              "event": "planning_approved",
+              "by": "kenule500",
+              "actor": "kenule500",
+              "previousValue": "pending",
+              "timestamp": "2026-11-04T13:25:44.815Z"
+            },
+            {
+              "event": "implementation_approved",
+              "by": "kenule500",
+              "actor": "kenule500",
+              "previousValue": "pending",
+              "timestamp": "2026-11-04T13:25:55.808Z"
+            },
+            {
+              "event": "Acceptance suite added: 15 tests in crates/quota-ledger/tests/quota-ledger-0-1-core-postgres-backend (one per AC-001 to AC-015), 15 passed; workspace suite 234 passed, 0 failed, 2 skipped with exit code 0 via scripts/rust-tests.js; chrono added to dev-dependencies for the Window types; every traceability row carries its TEST-0NN id; report written to .sdrive/reports/tests/test-report-quota-ledger-0-1-core-postgres-backend-v1-2026-11-04.md; sdrive verify pass with 0 missing and validate-governance green; AC-013 proves the limit invariant on MemoryQuotaStore, not the Postgres conditional UPDATE, which still needs a database-backed harness",
+              "by": "SpecDrive",
+              "timestamp": "2026-11-04T13:38:00Z"
+            },
+            {
+              "event": "T5.2 fixed (review round 1, F2): crates/quota-ledger/Cargo.toml lowered the uuid floor from ^1.28.0 to ^1, matching platform-core, because both 1.28.0 and 1.29.0 declare rust-version 1.89 and left the crate with no version resolvable on the 1.87 MSRV. A clean resolve on Rust 1.87 now selects uuid 1.26.1 and cargo +1.87.0 build --workspace --all-features exits 0. Re-verified: cargo generate-lockfile + cargo audit exit 0 (292 crates, no advisory), fmt --all --check clean, clippy --workspace --all-features -D warnings clean, doc under RUSTDOCFLAGS=-D warnings clean, check -p quota-ledger --no-default-features clean, validate-governance green. T5.1 and T5.2 are both complete in tasks.json; the cargo +1.87.0 test half of T5.2 is deferred to sdrive test, which re-stamps the evidence the review gate reads",
+              "by": "SpecDrive",
+              "timestamp": "2026-11-05T02:05:00Z"
+            },
+            {
+              "event": "Plan corrected while closing T5.2: plan.json still declared the sqlx facade, which T5.1 had already replaced with sqlx-core + sqlx-postgres, so sdrive verify reported the facade as missing (1 missing, status fail). The facade is now recorded as superseded with its reason and the two driver crates are named; plan.md's dependency table was synced to match. sdrive verify is pass with 0 missing and 33 withdrawn. Because an approved planning artifact was edited, the planning gate was reset to pending for re-approval, as the earlier plan correction did",
+              "by": "SpecDrive",
+              "actor": "kenule500",
+              "previousValue": "approved",
+              "timestamp": "2026-11-05T02:20:00Z"
+            },
+            {
+              "event": "planning_approved",
+              "by": "kenule500",
+              "actor": "kenule500",
+              "previousValue": "pending",
+              "timestamp": "2026-11-07T14:56:55.905Z"
+            },
+            {
+              "event": "review_approved",
+              "by": "kenule500",
+              "actor": "kenule500",
+              "previousValue": "pending",
+              "timestamp": "2026-11-07T15:53:11.502Z"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "hookgate-0-1-verifiers-dedupe-replay-outbox",
+      "branch": "feature/w3-p1",
+      "base": "main",
+      "productItems": [
+        "BP-020"
+      ],
+      "currentVersion": "v1",
+      "versions": [
+        {
+          "id": "v1",
+          "phase": "ongoing",
+          "currentStep": "implementation",
+          "gates": {
+            "specification": "approved",
+            "planning": "approved",
+            "implementation": "approved",
+            "review": "approved"
+          },
+          "history": [
+            {
+              "event": "Proposed from group expression [w3 p1] on shared branch feature/w3-p1 together with quota-ledger and syncforge",
+              "by": "SpecDrive",
+              "timestamp": "2026-11-02T00:00:00Z"
+            },
+            {
+              "event": "Feature branch feature/w3-p1 created from main",
+              "by": "SpecDrive",
+              "timestamp": "2026-11-02T00:00:00Z"
+            },
+            {
+              "event": "Specification and traceability drafted; Gate 1 awaiting human approval",
+              "by": "SpecDrive",
+              "timestamp": "2026-11-02T00:00:00Z"
+            },
+            {
+              "event": "Gate 1 approved: specification and traceability",
+              "by": "kenule500",
+              "timestamp": "2026-11-02T09:00:00Z"
+            },
+            {
+              "event": "Gate 2 approved: technical plan and execution tasks; plan/tasks/traceability validated green across the three grouped features",
+              "by": "kenule500",
+              "timestamp": "2026-11-02T09:20:00Z"
+            },
+            {
+              "event": "Implementation started: spec moved from specs/backlog to specs/ongoing; crates/hookgate ported from feature/m3-substrate prior art and adapted to direct dependencies",
+              "by": "SpecDrive",
+              "timestamp": "2026-11-08T08:50:00Z"
+            },
+            {
+              "event": "implementation_approved",
+              "by": "kenule500",
+              "actor": "kenule500",
+              "previousValue": "pending",
+              "timestamp": "2026-11-08T09:01:23.324Z"
+            },
+            {
+              "event": "review_approved",
+              "by": "kenule500",
+              "actor": "kenule500",
+              "previousValue": "pending",
+              "timestamp": "2026-11-08T09:25:17.182Z"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "syncforge-0-1-queue-idempotency-conflicts-traits",
+      "branch": "feature/w3-p1",
+      "base": "main",
+      "productItems": [
+        "BP-021"
+      ],
+      "currentVersion": "v1",
+      "versions": [
+        {
+          "id": "v1",
+          "phase": "ongoing",
+          "currentStep": "implementation",
+          "gates": {
+            "specification": "approved",
+            "planning": "approved",
+            "implementation": "approved",
+            "review": "approved"
+          },
+          "history": [
+            {
+              "event": "Proposed from group expression [w3 p1] on shared branch feature/w3-p1 together with quota-ledger and hookgate",
+              "by": "SpecDrive",
+              "timestamp": "2026-11-02T00:00:00Z"
+            },
+            {
+              "event": "Feature branch feature/w3-p1 created from main",
+              "by": "SpecDrive",
+              "timestamp": "2026-11-02T00:00:00Z"
+            },
+            {
+              "event": "Specification and traceability drafted; Gate 1 awaiting human approval",
+              "by": "SpecDrive",
+              "timestamp": "2026-11-02T00:00:00Z"
+            },
+            {
+              "event": "Gate 1 approved: specification and traceability",
+              "by": "kenule500",
+              "timestamp": "2026-11-02T09:00:00Z"
+            },
+            {
+              "event": "Gate 2 approved: technical plan and execution tasks; plan/tasks/traceability validated green across the three grouped features",
+              "by": "kenule500",
+              "timestamp": "2026-11-02T09:20:00Z"
+            },
+            {
+              "event": "Implementation started: spec moved from specs/backlog to specs/ongoing; crates/syncforge ported from feature/m3-substrate prior art and realigned to the approved conflict and timestamp model",
+              "by": "SpecDrive",
+              "timestamp": "2026-11-08T09:40:00Z"
+            },
+            {
+              "event": "implementation_approved",
+              "by": "kenule500",
+              "actor": "kenule500",
+              "previousValue": "pending",
+              "timestamp": "2026-11-08T09:44:44.419Z"
+            },
+            {
+              "event": "review_approved",
+              "by": "kenule500",
+              "actor": "kenule500",
+              "previousValue": "pending",
+              "timestamp": "2026-11-08T10:08:20.610Z"
+            }
+          ]
+        }
+      ]
     }
   ]
 }

@@ -1,0 +1,60 @@
+[package]
+name = "hookgate"
+version = "0.1.0"
+edition.workspace = true
+rust-version.workspace = true
+license.workspace = true
+repository.workspace = true
+readme = "README.md"
+description = "Inbound webhook verification on raw bytes, replay windows, durable deduplication, an outbox, and dead-letter replay."
+keywords = ["webhook", "hmac", "idempotency", "outbox"]
+categories = ["web-programming", "authentication"]
+include = [
+    "Cargo.toml",
+    "README.md",
+    "LICENSE-MIT",
+    "LICENSE-APACHE",
+    "src/**",
+]
+
+[package.metadata.docs.rs]
+all-features = true
+
+[features]
+default = ["presets"]
+presets = []
+
+[dependencies]
+# Declared directly: the workspace has no [workspace.dependencies], so each
+# version lives with the crate that needs it, as `platform-core` does.
+async-trait = "0.1"
+base64 = "0.22.1"
+bytes = "1"
+chrono = { version = "0.4.45", features = ["serde"] }
+hex = "0.4.3"
+hmac = "0.12.1"
+http = "1.3.1"
+# Tenant and provider identity are consumed, not redefined.
+platform-core = { path = "../platform-core", version = "0.1.0" }
+serde_json = "1.0.140"
+sha1 = "0.10.6"
+sha2 = "0.10.9"
+subtle = "2.6"
+thiserror = "2"
+tracing = "0.1.41"
+# A caret floor of "1" as `platform-core` declares: a higher floor makes a 1.87
+# resolve impossible because 1.28+ declares rust-version 1.89.
+uuid = { version = "1", features = ["v7"] }
+
+[dev-dependencies]
+# The test agent's acceptance suite drives the async store and outbox traits.
+tokio = { version = "1", features = ["macros", "rt-multi-thread", "time"] }
+# The acceptance suite signs its own webhook payloads, so it declares the
+# signing primitives directly. All six are already crate dependencies, so no new
+# library enters the graph.
+hmac = "0.12.1"
+sha1 = "0.10.6"
+sha2 = "0.10.9"
+base64 = "0.22.1"
+hex = "0.4.3"
+http = "1.3.1"

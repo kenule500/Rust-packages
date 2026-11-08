@@ -1,0 +1,129 @@
+{
+  "feature": "quota-ledger-0-1-core-postgres-backend",
+  "version": 1,
+  "phases": [
+    {
+      "phaseId": "P1",
+      "name": "Crate scaffold and core types",
+      "dependencies": [],
+      "tasks": [
+        {
+          "id": "T1.1",
+          "title": "Scaffold the quota-ledger crate",
+          "description": "Create crates/quota-ledger with a manifest that declares dependencies directly (main has no [workspace.dependencies]), features default = [] and postgres = [dep:sqlx], the workspace-inherited edition, rust-version, licence, and repository fields, the licence files, a README, and a lib.rs carrying forbid(unsafe_code), deny(missing_docs), and crate docs stating scope and non-goals. Confirm the workspace resolves the new member.",
+          "linkedRequirements": ["FR-001", "FR-002", "FR-012"],
+          "linkedAcceptanceCriteria": ["AC-002", "AC-015"],
+          "completed": true
+        },
+        {
+          "id": "T1.2",
+          "title": "Implement core value types and the single error enum",
+          "description": "Implement types.rs with QuotaKey, Metric, Window, Period, Budget, ExhaustionPolicy, Reservation, ReservationId, ReserveRequest, ReserveOutcome, Usage, and QuotaExceeded, reusing platform-core TenantId and ProviderId. Implement error.rs as the single QuotaError enum with stable variants including denial and idempotency conflict. Implement policy.rs for ExhaustionPolicy evaluation. Validate caller-supplied windows and metrics and return a typed error rather than a guessed default.",
+          "linkedRequirements": ["FR-001", "FR-007", "NFR-003"],
+          "linkedAcceptanceCriteria": ["AC-001", "AC-002", "AC-009"],
+          "completed": true
+        }
+      ]
+    },
+    {
+      "phaseId": "P2",
+      "name": "Memory store and reservation lifecycle",
+      "dependencies": ["P1"],
+      "tasks": [
+        {
+          "id": "T2.1",
+          "title": "Define QuotaStore and window arithmetic",
+          "description": "Define the async QuotaStore trait covering reserve, commit, release, and usage, with every operation scoped by the tenant in the QuotaKey. Implement window.rs so the reset instant is computed from the configured window (daily, monthly, rolling) rather than an assumed UTC midnight.",
+          "linkedRequirements": ["FR-003", "FR-008", "FR-011", "NFR-001"],
+          "linkedAcceptanceCriteria": ["AC-003", "AC-010", "AC-011", "AC-014"],
+          "completed": true
+        },
+        {
+          "id": "T2.2",
+          "title": "Implement MemoryQuotaStore reserve, commit, and release",
+          "description": "Implement memory.rs: reserve records a hold without consuming it and returns a Reservation with an identifier; commit consumes the hold exactly once and a repeated commit never consumes twice; release returns the held amount to the available budget. Shard by key so unrelated budgets are not serialized.",
+          "linkedRequirements": ["FR-003", "FR-004"],
+          "linkedAcceptanceCriteria": ["AC-003", "AC-004", "AC-005"],
+          "completed": true
+        },
+        {
+          "id": "T2.3",
+          "title": "Add idempotent reservation handling",
+          "description": "Carry an optional caller idempotency key on a reservation. A repeated key with the same payload returns the existing reservation and takes no second hold; a repeated key with a different payload fails with a typed idempotency conflict rather than returning the wrong reservation.",
+          "linkedRequirements": ["FR-003", "FR-005"],
+          "linkedAcceptanceCriteria": ["AC-007", "AC-008"],
+          "completed": true
+        },
+        {
+          "id": "T2.4",
+          "title": "Enforce exhaustion policy and report usage",
+          "description": "Implement denial as a typed QuotaExceeded carrying the reset instant, with HardStop denying and Overage, Degrade, and Queue reporting the caller's chosen outcome. Implement usage to report limit, consumed, held, optional overage, and the next reset instant.",
+          "linkedRequirements": ["FR-003", "FR-006"],
+          "linkedAcceptanceCriteria": ["AC-006", "AC-010"],
+          "completed": true
+        }
+      ]
+    },
+    {
+      "phaseId": "P3",
+      "name": "Postgres backend",
+      "dependencies": ["P2"],
+      "tasks": [
+        {
+          "id": "T3.1",
+          "title": "Ship the Postgres schema and connection setup",
+          "description": "Add src/postgres/schema.sql with a budget row per (tenant, provider, metric, window) carrying limit, consumed, held, and window bounds, plus a reservation row keyed by ReservationId. Gate the backend behind the postgres feature so no sqlx type enters the default build. Require TLS on the connection and read no credentials from the environment.",
+          "linkedRequirements": ["FR-009", "NFR-004"],
+          "linkedAcceptanceCriteria": ["AC-012"],
+          "completed": true
+        },
+        {
+          "id": "T3.2",
+          "title": "Implement the Postgres QuotaStore with an atomic claim",
+          "description": "Implement the postgres-feature QuotaStore using only parameterized statements. Make the reserve claim a single conditional UPDATE whose WHERE clause carries the remaining-capacity predicate, so concurrent reservations cannot exceed the limit and two pods cannot both take the final unit. Reject a repeated idempotency key with a differing payload as a typed conflict.",
+          "linkedRequirements": ["FR-009", "FR-010", "NFR-002"],
+          "linkedAcceptanceCriteria": ["AC-012", "AC-013", "AC-015"],
+          "completed": true
+        }
+      ]
+    },
+    {
+      "phaseId": "P4",
+      "name": "Wiring, docs, verification",
+      "dependencies": ["P3"],
+      "tasks": [
+        {
+          "id": "T4.1",
+          "title": "Wire the crate, document it, and run the verification checks",
+          "description": "Confirm the workspace resolves the new member, write the README covering scope, features, the reserve/commit/release flow, and non-goals, ensure every public item carries rustdoc and every module states scope and non-goals, and keep the crate free of product or vendor vocabulary. Then run cargo fmt --all --check, cargo clippy --workspace --all-features -- -D warnings, cargo doc --workspace --all-features --no-deps with RUSTDOCFLAGS=-D warnings, cargo check -p quota-ledger --no-default-features, and node .sdrive/scripts/validate-governance.js. Test authoring and execution are the test agent's responsibility and are not part of this phase.",
+          "linkedRequirements": ["FR-012", "NFR-005", "NFR-006"],
+          "linkedAcceptanceCriteria": ["AC-015"],
+          "completed": true
+        }
+      ]
+    },
+    {
+      "phaseId": "P5",
+      "name": "Fixes (review round 1)",
+      "dependencies": ["P4"],
+      "tasks": [
+        {
+          "id": "T5.1",
+          "title": "Keep the new SQL dependency out of the vulnerability scan",
+          "description": "cargo generate-lockfile && cargo audit exits 1 on RUSTSEC-2023-0071 (rsa 0.9.10, medium, no fixed upgrade). The advisory is not reachable from quota-ledger at build time: it arrives because the sqlx facade resolves sqlx-mysql, which depends on rsa, into Cargo.lock even though only the postgres feature is enabled. Depend on sqlx-postgres (plus sqlx-core for the query helpers and types) instead of the sqlx facade so the MySQL and SQLite backends never enter the lockfile, or record a justified ignore in .cargo/audit.toml naming the RUSTSEC id, the reason, and the condition that removes the entry. Confirm with cargo generate-lockfile && cargo audit returning exit 0, and re-run the suite after the change.",
+          "linkedRequirements": ["NFR-002"],
+          "linkedAcceptanceCriteria": ["AC-015"],
+          "completed": true
+        },
+        {
+          "id": "T5.2",
+          "title": "Restore the 1.87 floor for the uuid dependency",
+          "description": "cargo +1.87.0 build -p quota-ledger --all-features fails with 'error: rustc 1.87.0 is not supported by the following package: uuid@1.29.0 requires rustc 1.89.0', and forcing an older resolve fails with 'failed to select a version for the requirement uuid = ^1.28.0' because uuid 1.28.0 also declares rust-version 1.89. The workspace MSRV is 1.87 (CON-102) and CI runs cargo build --workspace --all-features on 1.87 with no committed lockfile, so the MSRV job fails. Lower the requirement to a floor that still builds on 1.87 (platform-core declares uuid = 1), then confirm with a clean resolve on 1.87: delete Cargo.lock, run cargo +1.87.0 build --workspace --all-features and cargo +1.87.0 test --workspace --all-features.",
+          "linkedRequirements": ["NFR-005"],
+          "linkedAcceptanceCriteria": ["AC-015"],
+          "completed": true
+        }
+      ]
+    }
+  ]
+}

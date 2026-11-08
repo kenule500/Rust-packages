@@ -1,0 +1,109 @@
+{
+  "feature": "quota-ledger-0-1-core-postgres-backend",
+  "version": 1,
+  "architecture": {
+    "approach": "Port the quota-ledger crate from feature/m3-substrate as prior art and adapt it to the current workspace: one library crate at crates/quota-ledger, feature-gated with default = [] and an additive postgres feature. The core is a set of value types (identity, metric, window, budget, policy, key, reservation, usage), a single QuotaError enum, and an async QuotaStore trait with four operations. MemoryQuotaStore is the reference implementation and the deterministic test seam. The postgres feature adds a second QuotaStore implementation over a caller-supplied connection, whose atomicity comes from a conditional UPDATE rather than a lock held in the library. The crate depends on platform-core for tenant and provider identity so a tenant is one tenant across the stack, and never becomes a database or an HTTP client.",
+    "components": [
+      { "name": "crates/quota-ledger/src/types.rs", "action": "create", "description": "QuotaKey, Metric, Window, Period, Budget, ExhaustionPolicy, Reservation, ReservationId, ReserveRequest, ReserveOutcome, Usage, QuotaExceeded. Ported from prior art and adapted to platform-core identity types." },
+      { "name": "crates/quota-ledger/src/error.rs", "action": "create", "description": "The single QuotaError enum with stable variants including a denial and an idempotency conflict. No second error type is introduced." },
+      { "name": "crates/quota-ledger/src/store.rs", "action": "create", "description": "The async QuotaStore trait covering reserve, commit, release, and usage, scoped by the tenant carried in the key." },
+      { "name": "crates/quota-ledger/src/memory.rs", "action": "create", "description": "MemoryQuotaStore: the reference implementation, non-durable, used by tests and single-process callers." },
+      { "name": "crates/quota-ledger/src/window.rs", "action": "create", "description": "Window and Period arithmetic, including the reset instant computed from the configured window rather than an assumed UTC midnight." },
+      { "name": "crates/quota-ledger/src/policy.rs", "action": "create", "description": "ExhaustionPolicy evaluation: HardStop denies; Overage, Degrade, and Queue report the caller's chosen outcome." },
+      { "name": "crates/quota-ledger/src/postgres/mod.rs", "action": "create", "description": "The postgres-feature backend: a QuotaStore implementation over a connection using parameterized statements and an atomic conditional claim." },
+      { "name": "crates/quota-ledger/src/postgres/schema.sql", "action": "create", "description": "The shipped schema: a budget row per (tenant, provider, metric, window) with limit, used, held, and window bounds, plus a reservation row keyed by ReservationId and a dead-hold row that makes reclaim idempotent.", "resolution": { "kind": "superseded", "reason": "Shipped at crates/quota-ledger/src/postgres/schema.sql and applied by PostgresQuotaStore::apply_schema, but sdrive verify only scans code extensions (sql is not one of them), so the file cannot be matched statically.", "at": "2026-11-04" } },
+      { "name": "crates/quota-ledger/src/lib.rs", "action": "create", "description": "Module declarations, re-exports, crate docs with scope and non-goals, and the forbid(unsafe_code) and deny(missing_docs) attributes." },
+      { "name": "crates/quota-ledger/Cargo.toml", "action": "create", "description": "Manifest. Dependencies are declared directly rather than inherited, because main has no [workspace.dependencies]. Features default = [] and postgres = [dep:sqlx]." },
+      { "name": "crates/quota-ledger/README.md", "action": "create", "description": "Crate README describing scope, features, the reserve/commit/release flow, and non-goals." },
+      { "name": "crates/quota-ledger/LICENSE-MIT", "action": "reuse", "description": "Reused verbatim from the workspace root licence files.", "resolution": { "kind": "superseded", "reason": "Copied verbatim from the workspace root, but it carries no code extension so sdrive verify cannot match it as a component.", "at": "2026-11-04" } },
+      { "name": "crates/quota-ledger/LICENSE-APACHE", "action": "reuse", "description": "Reused verbatim from the workspace root licence files.", "resolution": { "kind": "superseded", "reason": "Copied verbatim from the workspace root, but it carries no code extension so sdrive verify cannot match it as a component.", "at": "2026-11-04" } },
+      { "name": "crates/platform-core", "action": "reuse", "description": "Tenant and provider identity are consumed, not redefined. Already present on main.", "resolution": { "kind": "superseded", "reason": "Reused as an existing crate directory on main; the scanner matches files, so a directory component can never be recorded as a match.", "at": "2026-11-04" } },
+      { "name": "Cargo.toml", "action": "modify", "description": "The workspace members glob crates/* already picks up the new crate; no member edit is required, but the workspace must resolve the new package.", "resolution": { "kind": "superseded", "reason": "The members glob needed no edit, so the root manifest is unchanged; it also sits outside the scanned roots (crates), so it is recorded as resolved rather than matched.", "at": "2026-11-04" } }
+    ],
+    "referencedRequirementIds": ["FR-001", "FR-002", "FR-003", "FR-004", "FR-005", "FR-006", "FR-007", "FR-008", "FR-009", "FR-010", "FR-011", "FR-012", "NFR-001", "NFR-002", "NFR-003", "NFR-004", "NFR-005", "NFR-006"]
+  },
+  "dataModel": {
+    "entities": [
+      { "name": "Budget", "action": "create", "fields": [
+        { "name": "tenant", "type": "TenantId", "action": "add" },
+        { "name": "provider", "type": "ProviderId", "action": "add" },
+        { "name": "metric", "type": "Metric", "action": "add" },
+        { "name": "limit", "type": "u64", "action": "add" },
+        { "name": "window", "type": "Window", "action": "add" },
+        { "name": "policy", "type": "ExhaustionPolicy", "action": "add" }
+      ] },
+      { "name": "Reservation", "action": "create", "fields": [
+        { "name": "id", "type": "ReservationId", "action": "add" },
+        { "name": "key", "type": "QuotaKey", "action": "add" },
+        { "name": "units", "type": "u64", "action": "add" },
+        { "name": "idempotency_key", "type": "Option<String>", "nullable": true, "action": "add" },
+        { "name": "expires_at", "type": "DateTime<Utc>", "action": "add" },
+        { "name": "policy", "type": "ExhaustionPolicy", "action": "add" }
+      ] },
+      { "name": "Usage", "action": "create", "fields": [
+        { "name": "limit", "type": "u64", "action": "add" },
+        { "name": "used", "type": "u64", "action": "add" },
+        { "name": "held", "type": "u64", "action": "add" },
+        { "name": "overage", "type": "u64", "action": "add" },
+        { "name": "overage_cents", "type": "u64", "action": "add" },
+        { "name": "reset_at", "type": "DateTime<Utc>", "action": "add" }
+      ] },
+      { "name": "quota_budget", "action": "create", "description": "Postgres budget table.", "resolution": { "kind": "superseded", "reason": "Declared in crates/quota-ledger/src/postgres/schema.sql as quota_budget; the scanner reads no SQL files, so neither the table nor its columns can be matched", "at": "2026-11-04" }, "fields": [
+        { "name": "tenant_id", "type": "uuid", "action": "add" },
+        { "name": "provider_id", "type": "text", "action": "add" },
+        { "name": "metric", "type": "text", "action": "add" },
+        { "name": "window_start", "type": "timestamptz", "action": "add" },
+        { "name": "window_end", "type": "timestamptz", "action": "add" },
+        { "name": "limit_units", "type": "bigint", "action": "add" },
+        { "name": "policy", "type": "text", "action": "add" },
+        { "name": "unit_cost_cents", "type": "bigint", "action": "add" },
+        { "name": "used_units", "type": "bigint", "action": "add" },
+        { "name": "held_units", "type": "bigint", "action": "add" },
+        { "name": "overage_units", "type": "bigint", "action": "add" },
+        { "name": "overage_cents", "type": "bigint", "action": "add" }
+      ] },
+      { "name": "quota_reservation", "action": "create", "description": "Postgres reservation table.", "resolution": { "kind": "superseded", "reason": "Declared in crates/quota-ledger/src/postgres/schema.sql as quota_reservation, keyed by a composite foreign key rather than a budget_id, and the scanner reads no SQL files", "at": "2026-11-04" }, "fields": [
+        { "name": "reservation_id", "type": "uuid", "action": "add" },
+        { "name": "tenant_id", "type": "uuid", "action": "add" },
+        { "name": "provider_id", "type": "text", "action": "add" },
+        { "name": "metric", "type": "text", "action": "add" },
+        { "name": "window_start", "type": "timestamptz", "action": "add" },
+        { "name": "units", "type": "bigint", "action": "add" },
+        { "name": "idempotency_key", "type": "text", "nullable": true, "action": "add" },
+        { "name": "expires_at", "type": "timestamptz", "action": "add" },
+        { "name": "policy", "type": "text", "action": "add" },
+        { "name": "overage_units", "type": "bigint", "action": "add" },
+        { "name": "overage_cents", "type": "bigint", "action": "add" },
+        { "name": "settled_at", "type": "timestamptz", "nullable": true, "action": "add" },
+        { "name": "created_at", "type": "timestamptz", "action": "add" }
+      ] }
+    ],
+    "flowDescription": "A caller derives a QuotaKey from the authenticated tenant and the provider, then reserves before the outbound call. reserve checks capacity and records a hold atomically, returning a Reservation or a typed QuotaExceeded. On success the caller commits, which consumes the hold exactly once; on a definite provider rejection the caller releases it, returning the held amount to the budget. usage reports limit, consumed, held, and the next reset. In the Postgres backend the claim is a single conditional UPDATE whose WHERE clause includes the remaining-capacity predicate, so the database serializes concurrent claims and two pods cannot both take the final unit. Instrumentation events are emitted for reserved, denied, committed, and released."
+  },
+  "securityConsiderations": [
+    { "requirementId": "NFR-001", "description": "Every store operation is keyed by the tenant in the QuotaKey, so no read or write can cross a tenant boundary." },
+    { "requirementId": "NFR-002", "description": "Every Postgres statement is parameterized; caller values never reach SQL text, which keeps the ledger clear of injection." },
+    { "requirementId": "NFR-003", "description": "Caller-supplied windows, metrics, and keys are validated and an invalid window produces a typed error rather than a guessed default." },
+    { "requirementId": "NFR-004", "description": "The crate reads no credentials from the environment or a file; the caller supplies the connection, and a Postgres connection must use TLS." }
+  ],
+  "performanceConsiderations": [
+    { "requirementId": "NFR-002", "strategy": "The reserve path is a single conditional statement rather than a read-then-write pair, which removes both a round trip and the lost-update race." },
+    { "requirementId": "NFR-005", "strategy": "The memory backend uses interior sharding by key so the reference implementation does not serialize unrelated budgets during tests." }
+  ],
+  "dependencies": [
+    { "name": "platform-core", "type": "internal", "action": "no_change", "notes": "Internal path dependency already on main; supplies TenantId and ProviderId." },
+    { "name": "async-trait", "type": "library", "action": "add", "notes": "Declared directly because main has no [workspace.dependencies]. No skill available for Rust crate dependencies; docs-only per the workspace precedent." },
+    { "name": "chrono", "type": "library", "action": "add", "notes": "Windows and the reset instant. No skill available." },
+    { "name": "thiserror", "type": "library", "action": "add", "notes": "The single error enum. No skill available." },
+    { "name": "uuid", "type": "library", "action": "add", "notes": "TenantId payload and ReservationId. No skill available." },
+    { "name": "sqlx", "type": "library", "action": "add", "notes": "Originally declared as the optional backend behind the postgres feature.", "resolution": { "kind": "superseded", "reason": "The sqlx facade was dropped in T5.1: it declares sqlx-mysql and sqlx-sqlite as optional dependencies on itself, so Cargo resolved them into Cargo.lock regardless of features and dragged rsa (RUSTSEC-2023-0071) into the audit of a build that never compiled it. Replaced by the two driver crates below, so the facade is no longer a dependency.", "at": "2026-11-05" } },
+    { "name": "sqlx-core", "type": "library", "action": "add", "notes": "Optional, behind the postgres feature (T5.1). Query helpers and types; forwards the runtime/TLS/chrono/uuid features the facade used to. No skill available." },
+    { "name": "sqlx-postgres", "type": "library", "action": "add", "notes": "Optional, behind the postgres feature (T5.1). Parameterized queries and TLS, replacing the sqlx facade so no other backend enters the lockfile. No skill available." },
+    { "name": "tokio", "type": "library", "action": "add", "notes": "Dev-dependency only, for the test agent's async store tests." }
+  ],
+  "risks": [
+    { "description": "The postgres backend is the hardest part to verify without a live database, so a defect in the atomic claim may pass review.", "mitigation": "AC-013 asserts the concurrency invariant directly, and the prior art ships a Postgres test harness to adapt." },
+    { "description": "Porting stale code may drag in manifests using workspace inheritance that main does not define.", "mitigation": "Adapt the manifest to declare dependencies directly, as platform-core did, and let the MSRV and clippy jobs prove it." },
+    { "description": "A quota ledger invites scope creep into billing and pricing.", "mitigation": "The out-of-scope list and NFR-005 are enforced at review." }
+  ]
+}

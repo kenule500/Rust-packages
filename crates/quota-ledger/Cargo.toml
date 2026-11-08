@@ -1,0 +1,64 @@
+[package]
+name = "quota-ledger"
+version = "0.1.0"
+edition.workspace = true
+rust-version.workspace = true
+license.workspace = true
+repository.workspace = true
+readme = "README.md"
+description = "Per-tenant, per-provider quota reservations with commit, release, exhaustion policies, and an optional Postgres ledger."
+keywords = ["quota", "multi-tenant", "postgres", "rate-limit"]
+categories = ["database", "development-tools"]
+include = [
+    "Cargo.toml",
+    "README.md",
+    "LICENSE-MIT",
+    "LICENSE-APACHE",
+    "src/**",
+]
+
+[package.metadata.docs.rs]
+all-features = true
+
+[features]
+default = []
+# The optional Postgres backend. Off by default so no `sqlx` type enters the
+# default build.
+postgres = ["dep:sqlx-core", "dep:sqlx-postgres"]
+
+[dependencies]
+# Declared directly: the workspace has no [workspace.dependencies], so each
+# version lives with the crate that needs it, as `platform-core` does.
+async-trait = "0.1.92"
+chrono = { version = "0.4.45", features = ["serde"] }
+thiserror = "2.0.21"
+# A caret floor of "1" (as `platform-core` declares) rather than "1.28.0": both
+# 1.28.0 and 1.29.0 declare rust-version = 1.89, so any floor in that range
+# makes a 1.87 resolve impossible and fails the CI MSRV job. The crate needs
+# only the v4, v7, and serde features, all of which predate the 1.89 floor.
+uuid = { version = "1", features = ["v4", "v7", "serde"] }
+# Tenant and provider identity are consumed, not redefined.
+platform-core = { path = "../platform-core", version = "0.1.0" }
+# Optional, behind the `postgres` feature. The driver crates are depended on
+# directly rather than through the `sqlx` facade: the facade declares the MySQL
+# and SQLite drivers as optional dependencies on itself, and Cargo resolves
+# those into `Cargo.lock` regardless of the features in play, which drags `rsa`
+# (RUSTSEC-2023-0071) into an audit of a crate the build never compiles. `ring`
+# (via rustls) is already in the graph through `wirekit`, so these add no new
+# C-compiling dependency.
+sqlx-core = { version = "0.8.6", default-features = false, features = [
+    "_rt-tokio",
+    "_tls-rustls-ring-webpki",
+    "chrono",
+    "uuid",
+], optional = true }
+sqlx-postgres = { version = "0.8.6", default-features = false, features = [
+    "chrono",
+    "uuid",
+], optional = true }
+
+[dev-dependencies]
+# `Window::fixed` and `Window::rolling` take chrono types, so the acceptance
+# tests need chrono on their own dependency edge. Already a normal dependency.
+chrono = { version = "0.4.45", features = ["serde"] }
+tokio = { version = "1.54.0", features = ["macros", "rt-multi-thread"] }

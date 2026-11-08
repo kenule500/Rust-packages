@@ -1,0 +1,158 @@
+{
+  "feature": "hookgate-0-1-verifiers-dedupe-replay-outbox",
+  "title": "hookgate 0.1 - verifiers, dedupe, replay, outbox",
+  "version": 1,
+  "overview": {
+    "problemStatement": "Inbound provider webhooks arrive at an HTTP edge that must survive a restart, and the four guarantees that matter - the signature is genuine, the event is not a replay, the same delivery is not processed twice, and a verified event is not lost between verification and handling - all require durable state that a per-provider client cannot own. wirekit verifies signatures for the providers it wraps, but it holds no delivery record, no replay window, and no outbox, so every edge service re-implements dedupe and retry slightly differently and loses an event the first time it crashes mid-delivery.",
+    "proposedSolution": "Port and adapt the hookgate crate from feature/m3-substrate as prior art: DeliveryId, IdempotencyKey, InboundRequest, VerifiedEvent, DeliveryRecord, InsertOutcome, DeadLetterRecord, and the Verifier, DeliveryStore, and Outbox traits, plus a redacting error type and provider verifier presets. Establish the load-bearing rule that verification runs over the exact received bytes and never over a re-serialization. Ship MemoryDeliveryStore for tests and single-process callers, and verifier presets for Meta, Stripe, Shopify, Twilio, Slack, GitHub, and a configurable generic HMAC. No axum integration, no SendGrid ECDSA verifier, and no standalone binary in 0.1.",
+    "targetAudience": "Rust teams running a webhook ingress edge, and this project's service layer that now receives every provider's events.",
+    "assumptions": [
+      "A working implementation exists on feature/m3-substrate (20 files, features default and presets) and is ported and adapted rather than redesigned.",
+      "main has no [workspace.dependencies], and the branch manifests use *.workspace = true, so every dependency is declared directly in the crate manifest.",
+      "The contract is at-least-once delivery with idempotent handlers, not exactly-once; this is documented rather than implied.",
+      "The branch tests are not ported; the test agent authors tests against this specification.",
+      "The unmerged m3-substrate/v1 spec covers four crates and is not reused as governance here."
+    ],
+    "outOfScope": [
+      "A provider client and any outbound HTTP.",
+      "An HTTP server or axum integration in 0.1.",
+      "A SendGrid ECDSA verifier in 0.1.",
+      "A standalone ingress binary in 0.1.",
+      "A queue implementation; the Outbox trait writes to the caller's choice of queue.",
+      "Domain handling of any event type; hookgate does not know what an event means.",
+      "Tenant resolution and authentication; the caller supplies the tenant.",
+      "Outbound webhooks (signing, retries, customer endpoints)."
+    ]
+  },
+  "userStories": [
+    {
+      "id": "US-001",
+      "title": "Verify a signature over the raw bytes",
+      "role": "edge service author",
+      "want": "to verify a provider signature against the exact received body",
+      "benefit": "a tampered or re-serialized payload is rejected rather than trusted",
+      "acceptanceCriteria": [
+        { "id": "AC-001", "text": "Given an InboundRequest carrying raw body bytes, when a Verifier::verify runs, then it computes the signature over those exact bytes and never over a re-serialization of parsed parameters." },
+        { "id": "AC-002", "text": "Given a valid signature, when verify runs, then it returns a VerifiedEvent carrying the provider, delivery id, event id if present, event type, parsed payload, and the raw bytes." }
+      ]
+    },
+    {
+      "id": "US-002",
+      "title": "Reject tampered and stale requests",
+      "role": "security reviewer",
+      "want": "tampered or replayed requests refused",
+      "benefit": "an attacker cannot forge or replay a webhook",
+      "acceptanceCriteria": [
+        { "id": "AC-003", "text": "Given a body whose bytes were changed after signing, when verify runs, then it fails with a typed verification error and no event is produced." },
+        { "id": "AC-004", "text": "Given a valid signature whose timestamp is outside the allowed skew, when verify runs, then it is rejected as stale rather than accepted." }
+      ]
+    },
+    {
+      "id": "US-003",
+      "title": "Deduplicate deliveries",
+      "role": "edge service author",
+      "want": "the same event processed once",
+      "benefit": "a provider retry does not double-apply an event",
+      "acceptanceCriteria": [
+        { "id": "AC-005", "text": "Given a delivery already stored for a provider and event id, when it is inserted again, then the outcome is Duplicate rather than a second insert." },
+        { "id": "AC-006", "text": "Given the same event id arriving for two different tenants, when both are stored, then they are not duplicates of each other because the uniqueness key includes the tenant." }
+      ]
+    },
+    {
+      "id": "US-004",
+      "title": "Hand off through an outbox",
+      "role": "edge service author",
+      "want": "a verified event persisted and enqueued before acknowledging",
+      "benefit": "a crash between verification and handling does not lose the event",
+      "acceptanceCriteria": [
+        { "id": "AC-007", "text": "Given a new verified event, when it is accepted, then the delivery record and the outbox entry are written before success is reported, so a crash afterwards leaves the event recoverable." },
+        { "id": "AC-008", "text": "Given a stored delivery, when it is marked processed or failed, then the terminal state is recorded and a failure can be dead-lettered with its error and raw body." }
+      ]
+    },
+    {
+      "id": "US-005",
+      "title": "Replay a dead-lettered delivery",
+      "role": "operator",
+      "want": "to inspect and replay a failed delivery",
+      "benefit": "a poison message is recoverable instead of lost",
+      "acceptanceCriteria": [
+        { "id": "AC-009", "text": "Given a dead-lettered record, when it is read, then the raw body and the failure reason are available, and replaying it is idempotent against the delivery store." }
+      ]
+    },
+    {
+      "id": "US-006",
+      "title": "Ship provider verifier presets",
+      "role": "edge service author",
+      "want": "correct verifiers for the common providers",
+      "benefit": "I do not re-implement each provider's signature quirk",
+      "acceptanceCriteria": [
+        { "id": "AC-010", "text": "Given the presets feature, when it is enabled, then verifiers are provided for Meta, Stripe, Shopify, Twilio, Slack, and GitHub, and a configurable generic HMAC verifier covers an unlisted provider." },
+        { "id": "AC-011", "text": "Given the crate built without the presets feature, when it compiles, then the core types, traits, and memory store are present and the preset verifiers are absent." }
+      ]
+    },
+    {
+      "id": "US-007",
+      "title": "Isolate tenants and never leak secrets",
+      "role": "security reviewer",
+      "want": "tenant scoping and redaction enforced",
+      "benefit": "one tenant's delivery cannot be read by another and no secret reaches a log",
+      "acceptanceCriteria": [
+        { "id": "AC-012", "text": "Given a stored delivery, when it is read, then the tenant scoping prevents another tenant from reading it." },
+        { "id": "AC-013", "text": "Given a verification or store failure, when it is formatted and logged, then the error is redacted and carries no secret material such as a signature or a shared secret." },
+        { "id": "AC-014", "text": "Given the crate, when it is built with all features on Rust 1.87, then it compiles with forbid(unsafe_code) and deny(missing_docs) and ships the licence files." }
+      ]
+    }
+  ],
+  "functionalRequirements": [
+    { "id": "FR-001", "text": "The crate MUST expose DeliveryId, IdempotencyKey, InboundRequest, VerifiedEvent, DeliveryRecord, InsertOutcome, DeadLetterRecord, and the Verifier, DeliveryStore, and Outbox traits per catalogue/30_webhook_gateway.md.", "linkedAcceptanceCriteria": ["AC-001", "AC-002", "AC-008"] },
+    { "id": "FR-002", "text": "Verification MUST operate on the raw received bytes and MUST NOT re-serialize the body before verifying (CON-215).", "linkedAcceptanceCriteria": ["AC-001", "AC-003"] },
+    { "id": "FR-003", "text": "Verification MUST be constant-time and MUST fail closed on a mismatch.", "linkedAcceptanceCriteria": ["AC-003"] },
+    { "id": "FR-004", "text": "A timestamp tolerance MUST be enforced and a request outside it MUST be rejected as stale.", "linkedAcceptanceCriteria": ["AC-004"] },
+    { "id": "FR-005", "text": "DeliveryStore MUST provide insert_if_new returning an outcome, mark_processed, and mark_failed, and insert_if_new MUST be idempotent per tenant and event id.", "linkedAcceptanceCriteria": ["AC-005", "AC-006"] },
+    { "id": "FR-006", "text": "The delivery and outbox writes for a new event MUST complete before success is reported.", "linkedAcceptanceCriteria": ["AC-007"] },
+    { "id": "FR-007", "text": "A failed delivery MUST be recordable as dead-lettered with its error and raw body, and MUST be replayable idempotently.", "linkedAcceptanceCriteria": ["AC-008", "AC-009"] },
+    { "id": "FR-008", "text": "A presets feature MUST ship verifiers for Meta, Stripe, Shopify, Twilio, Slack, and GitHub plus a configurable generic HMAC verifier, and MUST be absent when the feature is off.", "linkedAcceptanceCriteria": ["AC-010", "AC-011"] },
+    { "id": "FR-009", "text": "The crate MUST NOT contain a provider client, an outbound HTTP call, an HTTP server, or an axum integration.", "linkedAcceptanceCriteria": ["AC-011"] },
+    { "id": "FR-010", "text": "Errors MUST be redacted and MUST NOT expose a signature, a secret, or raw credential material.", "linkedAcceptanceCriteria": ["AC-013"] },
+    { "id": "FR-011", "text": "The crate MUST declare forbid(unsafe_code) and deny(missing_docs).", "linkedAcceptanceCriteria": ["AC-014"] }
+  ],
+  "nonFunctionalRequirements": [
+    { "id": "NFR-001", "text": "Every delivery read and write MUST be scoped by tenant, so no tenant can observe another's delivery (CON-512).", "linkedAcceptanceCriteria": ["AC-012"] },
+    { "id": "NFR-002", "text": "Stored secrets and signature material MUST be redacted in Debug, Display, logs, and error payloads (CON-214).", "linkedAcceptanceCriteria": ["AC-013"] },
+    { "id": "NFR-003", "text": "Untrusted input - headers, raw body, and event ids - MUST be validated and bounded before use, and an oversized or malformed request MUST produce a typed error rather than a panic (CON-515).", "linkedAcceptanceCriteria": ["AC-003"] },
+    { "id": "NFR-004", "text": "The crate MUST NOT read secrets from the environment; the caller supplies the verifier's secret (CON-519).", "linkedAcceptanceCriteria": ["AC-013"] },
+    { "id": "NFR-005", "text": "The crate MUST compile on Rust 1.87 with all features and MUST contain no product vocabulary (CON-102, CON-106).", "linkedAcceptanceCriteria": ["AC-014"] },
+    { "id": "NFR-006", "text": "Every public item MUST carry rustdoc and every module MUST state its scope and non-goals (CON-202, CON-203).", "linkedAcceptanceCriteria": ["AC-014"] }
+  ],
+  "edgeCases": [
+    { "id": "EC-001", "description": "A JSON body is parsed and re-serialized before verification", "expectedBehavior": "Verification fails, because the canonical string no longer matches the received bytes." },
+    { "id": "EC-002", "description": "The same event id arrives from two tenants", "expectedBehavior": "Both are stored; they are not duplicates because the uniqueness key includes the tenant." },
+    { "id": "EC-003", "description": "Crash after insert but before outbox enqueue", "expectedBehavior": "The contract requires both to commit before success; a partial write must be detectable and replayable." },
+    { "id": "EC-004", "description": "An unlisted provider with a custom HMAC header and prefix", "expectedBehavior": "The generic verifier accepts the caller's header name, encoding, and prefix." },
+    { "id": "EC-005", "description": "A poison delivery that always fails handling", "expectedBehavior": "It is dead-lettered with its raw body rather than blocking the outbox forever." },
+    { "id": "EC-006", "description": "Build with --no-default-features", "expectedBehavior": "Core compiles; no preset verifier is present." }
+  ],
+  "dependencies": [
+    { "name": "platform-core", "type": "internal", "notes": "Tenant identity, so a delivery is scoped to the same tenant across the stack." },
+    { "name": "async-trait", "type": "library", "notes": "Async DeliveryStore and Outbox methods." },
+    { "name": "bytes", "type": "library", "notes": "Raw body bytes preserved verbatim for verification." },
+    { "name": "http", "type": "library", "notes": "HeaderMap for InboundRequest." },
+    { "name": "hmac", "type": "library", "notes": "Provider signature presets." },
+    { "name": "sha1", "type": "library", "notes": "Twilio's signature uses HMAC-SHA1." },
+    { "name": "sha2", "type": "library", "notes": "HMAC-SHA256 presets." },
+    { "name": "subtle", "type": "library", "notes": "Constant-time comparison for signatures." },
+    { "name": "base64", "type": "library", "notes": "Shopify and generic base64 signatures." },
+    { "name": "hex", "type": "library", "notes": "Hex-encoded signatures." },
+    { "name": "chrono", "type": "library", "notes": "Received-at and timestamp tolerance." },
+    { "name": "serde_json", "type": "library", "notes": "Parsed payload after verification." },
+    { "name": "uuid", "type": "library", "notes": "DeliveryId." },
+    { "name": "thiserror", "type": "library", "notes": "Redacting error type." },
+    { "name": "tracing", "type": "library", "notes": "Received, verified, duplicate, rejected, processed, dead-lettered." },
+    { "name": "tokio", "type": "library", "notes": "Dev only, for async store tests written later by the test agent." }
+  ],
+  "risks": [
+    { "id": "RISK-001", "description": "The raw-body rule is easy to violate accidentally by a well-meaning refactor that parses first, which silently breaks every signature.", "mitigation": "AC-001 and AC-003 assert it directly, and EC-001 names the failure so a test can pin it." },
+    { "id": "RISK-002", "description": "The delivery-and-outbox-before-acknowledge guarantee is weak when the two writes are not transactional in the memory store.", "mitigation": "State the guarantee explicitly for the store contract and pin it with AC-007 and EC-003." },
+    { "id": "RISK-003", "description": "Porting stale code may drag in manifests using workspace inheritance the current workspace does not define, and the branch dev-depends on quota-ledger.", "mitigation": "Adapt the manifest to declare dependencies directly and drop the cross-crate dev-dependency unless the test needs it." }
+  ]
+}

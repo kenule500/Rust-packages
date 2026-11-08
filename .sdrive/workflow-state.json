@@ -883,7 +883,7 @@
       "versions": [
         {
           "id": "v1",
-          "phase": "ongoing",
+          "phase": "completed",
           "currentStep": "implementation",
           "gates": {
             "specification": "approved",
@@ -935,6 +935,14 @@
               "actor": "kenule500",
               "previousValue": "pending",
               "timestamp": "2026-11-08T10:08:20.610Z"
+            },
+            {
+              "event": "feature_archived",
+              "by": "kenule500",
+              "from": "ongoing",
+              "version": "v1",
+              "mergeCommit": "0d887853b2c84d912a44e3bd55815976f9b08fca",
+              "timestamp": "2026-11-08T10:28:03.742Z"
             }
           ]
         }

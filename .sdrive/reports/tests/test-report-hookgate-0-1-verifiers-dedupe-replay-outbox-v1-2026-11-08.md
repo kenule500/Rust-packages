@@ -41,6 +41,6 @@
 - **Store tests (AC-005 to AC-009, AC-012)** drive `MemoryDeliveryStore` through the `DeliveryStore` and `Outbox` traits: duplicate insert leaves the outbox at one row, tenant isolation covers both `get` and `dead_letters`, and dead-letter capture keeps the raw body and the redacted reason.
 - **Redaction (AC-013).** `redact_error` masks `secret=`, `token=`, and `signature=` values, and `Debug` for a preset renders `[REDACTED]` instead of the shared secret.
 - **Hygiene (AC-014).** The test reads `src/lib.rs` and `Cargo.toml` from `CARGO_MANIFEST_DIR` and asserts the lint attributes, both licence files, and the workspace-inherited edition and MSRV.
-- **Test quality.** 14 tests named `ac_0NN_*`, 78 assertions, no `.only`/`xit`/`#[ignore]`, no empty assertions. Red-before-green is not enabled in `config.json`.
+- **Test quality.** 14 tests named `ac_0NN_*`, 64 assertions, no `.only`/`xit`/`#[ignore]`, no empty assertions. Red-before-green is not enabled in `config.json`.
 - **Dev-dependencies added for the suite:** `hmac`, `sha1`, `sha2`, `base64`, `hex`, `http` — all already crate dependencies, so no new library enters the graph. `tokio` was already a dev-dependency.
 - **Machine note.** The `postgres` feature of the sibling `quota-ledger` crate needs `CRATE_CC_NO_DEFAULTS=1` on this host (MSVC `cl.exe` D8050); hookgate itself has no C-compiled dependency.

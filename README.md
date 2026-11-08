@@ -130,18 +130,18 @@ burden for a package nobody else can use.
 
 ## Status
 
-Three crates are implemented and tested in this workspace; none is published to
-crates.io yet. `dado-yaml` 0.1.0, `platform-core` 0.1.0, and `wirekit` 0.1.0 all
-build, lint, and pass their suites (`cargo test --workspace --all-features`:
-175 passed, 0 failed, plus 2 ignored pending publish and tag checks).
+Five crates are implemented and tested in this workspace; none is published to
+crates.io yet. `dado-yaml` 0.1.0, `platform-core` 0.1.0, `wirekit` 0.1.0,
+`quota-ledger` 0.1.0, and `hookgate` 0.1.0 all build, lint, and pass their
+suites (`cargo test --workspace --all-features`).
 
-`wirekit` ships the shared HTTP core plus nine provider modules behind additive
+`wirekit` ships the shared HTTP core plus eleven provider modules behind additive
 features: `noaa`, `twilio`, `sendgrid`, `slack`, `google-oauth`, `meta`, `angi`,
-`google-lsa`, and `sage-intacct`. The `adp` feature is declared but has no module:
-its documentation could not be obtained, so no client was written. Stripe is
-deliberately not wrapped; see the Payments section in
+`google-lsa`, `sage-intacct`, `eagleview`, and `quickbooks`. The `adp` feature is
+declared but has no module: its documentation could not be obtained, so no client
+was written. Stripe is deliberately not wrapped; see the Payments section in
 [`crates/wirekit/README.md`](crates/wirekit/README.md).
 
-`syncforge`, `quota-ledger`, `hookgate`, `ffscene`, `mixbus`, `replay-recorder`,
-`studio-protocol`, `rtmp-publish`, and `signedlink` remain blueprints. The media
-and link packages are public candidates whose APIs must freeze before publish.
+`syncforge`, `ffscene`, `mixbus`, `replay-recorder`, `studio-protocol`,
+`rtmp-publish`, and `signedlink` remain blueprints. The media and link packages
+are public candidates whose APIs must freeze before publish.

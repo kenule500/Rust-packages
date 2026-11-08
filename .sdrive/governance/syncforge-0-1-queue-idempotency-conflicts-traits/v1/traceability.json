@@ -59,6 +59,7 @@
     {
       "requirementId": "FR-004",
       "acceptanceCriteriaIds": [
+        "AC-004",
         "AC-005"
       ],
       "planSection": "P2 Queue, storage, and replay",
@@ -67,6 +68,7 @@
         "T2.3"
       ],
       "testIds": [
+        "TEST-004",
         "TEST-005"
       ],
       "status": "complete"

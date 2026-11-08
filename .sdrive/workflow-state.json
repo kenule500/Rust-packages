@@ -964,7 +964,7 @@
           "gates": {
             "specification": "approved",
             "planning": "approved",
-            "implementation": "pending",
+            "implementation": "approved",
             "review": "pending"
           },
           "history": [
@@ -997,6 +997,13 @@
               "event": "Implementation started: spec moved from specs/backlog to specs/ongoing; crates/quota-ledger gained the redis feature, key schema, atomic reserve and settle scripts, and README docs",
               "by": "SpecDrive",
               "timestamp": "2026-11-08T11:10:00Z"
+            },
+            {
+              "event": "implementation_approved",
+              "by": "kenule500",
+              "actor": "kenule500",
+              "previousValue": "pending",
+              "timestamp": "2026-11-08T11:33:03.232Z"
             }
           ]
         }

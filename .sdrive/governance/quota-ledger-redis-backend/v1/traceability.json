@@ -1,0 +1,167 @@
+{
+  "feature": "quota-ledger-redis-backend",
+  "version": 1,
+  "rows": [
+    {
+      "requirementId": "FR-001",
+      "acceptanceCriteriaIds": [
+        "AC-001",
+        "AC-007"
+      ],
+      "planSection": "P1 Feature wiring and key schema",
+      "taskIds": [
+        "T1.1"
+      ],
+      "testIds": [],
+      "status": "not_started"
+    },
+    {
+      "requirementId": "FR-002",
+      "acceptanceCriteriaIds": [
+        "AC-002"
+      ],
+      "planSection": "P2 Store implementation",
+      "taskIds": [
+        "T2.1"
+      ],
+      "testIds": [],
+      "status": "not_started"
+    },
+    {
+      "requirementId": "FR-003",
+      "acceptanceCriteriaIds": [
+        "AC-003"
+      ],
+      "planSection": "P2 Store implementation",
+      "taskIds": [
+        "T2.2",
+        "T2.3"
+      ],
+      "testIds": [],
+      "status": "not_started"
+    },
+    {
+      "requirementId": "FR-004",
+      "acceptanceCriteriaIds": [
+        "AC-004"
+      ],
+      "planSection": "P2 Store implementation",
+      "taskIds": [
+        "T2.3"
+      ],
+      "testIds": [],
+      "status": "not_started"
+    },
+    {
+      "requirementId": "FR-005",
+      "acceptanceCriteriaIds": [
+        "AC-001",
+        "AC-005"
+      ],
+      "planSection": "P1 Feature wiring and key schema",
+      "taskIds": [
+        "T1.2"
+      ],
+      "testIds": [],
+      "status": "not_started"
+    },
+    {
+      "requirementId": "FR-006",
+      "acceptanceCriteriaIds": [
+        "AC-006"
+      ],
+      "planSection": "P1 Feature wiring and key schema",
+      "taskIds": [
+        "T1.2"
+      ],
+      "testIds": [],
+      "status": "not_started"
+    },
+    {
+      "requirementId": "FR-007",
+      "acceptanceCriteriaIds": [
+        "AC-008"
+      ],
+      "planSection": "P3 Wiring, docs, verification",
+      "taskIds": [
+        "T3.1"
+      ],
+      "testIds": [],
+      "status": "not_started"
+    },
+    {
+      "requirementId": "FR-008",
+      "acceptanceCriteriaIds": [
+        "AC-008"
+      ],
+      "planSection": "P3 Wiring, docs, verification",
+      "taskIds": [
+        "T3.1"
+      ],
+      "testIds": [],
+      "status": "not_started"
+    },
+    {
+      "requirementId": "NFR-001",
+      "acceptanceCriteriaIds": [
+        "AC-001"
+      ],
+      "planSection": "P1 Feature wiring and key schema",
+      "taskIds": [
+        "T1.2"
+      ],
+      "testIds": [],
+      "status": "not_started"
+    },
+    {
+      "requirementId": "NFR-002",
+      "acceptanceCriteriaIds": [
+        "AC-002"
+      ],
+      "planSection": "P2 Store implementation",
+      "taskIds": [
+        "T2.1"
+      ],
+      "testIds": [],
+      "status": "not_started"
+    },
+    {
+      "requirementId": "NFR-003",
+      "acceptanceCriteriaIds": [
+        "AC-005"
+      ],
+      "planSection": "P2 Store implementation",
+      "taskIds": [
+        "T2.1"
+      ],
+      "testIds": [],
+      "status": "not_started"
+    },
+    {
+      "requirementId": "NFR-004",
+      "acceptanceCriteriaIds": [
+        "AC-007"
+      ],
+      "planSection": "P1 Feature wiring and key schema",
+      "taskIds": [
+        "T1.1",
+        "T3.2"
+      ],
+      "testIds": [],
+      "status": "not_started"
+    },
+    {
+      "requirementId": "NFR-005",
+      "acceptanceCriteriaIds": [
+        "AC-007"
+      ],
+      "planSection": "P3 Wiring, docs, verification",
+      "taskIds": [
+        "T3.1",
+        "T3.2"
+      ],
+      "testIds": [],
+      "status": "not_started"
+    }
+  ]
+}

@@ -1,0 +1,83 @@
+{
+  "feature": "docs-site-and-provider-matrix",
+  "version": 1,
+  "phases": [
+    {
+      "phaseId": "P1",
+      "name": "Book scaffold and generators",
+      "dependencies": [],
+      "tasks": [
+        {
+          "id": "T1.1",
+          "title": "Scaffold the mdBook and its pages",
+          "description": "Add docs/book.toml, docs/src/SUMMARY.md, docs/src/introduction.md, and docs/src/upgrading.md. No remote theme or asset; the summary exposes every page from the landing page.",
+          "linkedRequirements": ["FR-001", "NFR-004"],
+          "linkedAcceptanceCriteria": ["AC-001"],
+          "completed": false
+        },
+        {
+          "id": "T1.2",
+          "title": "Implement the matrix and crate-index generator",
+          "description": "Add scripts/docs-matrix.js: read catalogue/00_provider_index.md and each crate manifest, write docs/src/crates.md and docs/src/provider-matrix.md deterministically, and support --check to fail when the generated text differs from disk.",
+          "linkedRequirements": ["FR-002", "FR-007", "NFR-002"],
+          "linkedAcceptanceCriteria": ["AC-002", "AC-006"],
+          "completed": false
+        },
+        {
+          "id": "T1.3",
+          "title": "Implement the error-reference generator",
+          "description": "Add scripts/docs-errors.js: scan the crates' error enums for documented stable codes and generate docs/src/errors.md, supporting --check.",
+          "linkedRequirements": ["FR-003"],
+          "linkedAcceptanceCriteria": ["AC-005"],
+          "completed": false
+        }
+      ]
+    },
+    {
+      "phaseId": "P2",
+      "name": "Checks and CI",
+      "dependencies": ["P1"],
+      "tasks": [
+        {
+          "id": "T2.1",
+          "title": "Implement the drift and link checker",
+          "description": "Add scripts/docs-check.js: run both generators in check mode and validate every relative link in docs/src, failing on a broken link or an http:// external link.",
+          "linkedRequirements": ["FR-004", "FR-007"],
+          "linkedAcceptanceCriteria": ["AC-003", "AC-002"],
+          "completed": false
+        },
+        {
+          "id": "T2.2",
+          "title": "Wire the docs job into CI",
+          "description": "Add a docs job to .github/workflows/ci.yml: install a pinned mdBook (prebuilt, cached), run mdbook build docs, then node scripts/docs-check.js. The job fails if either step fails.",
+          "linkedRequirements": ["FR-005", "NFR-001", "NFR-003"],
+          "linkedAcceptanceCriteria": ["AC-004", "AC-006"],
+          "completed": false
+        }
+      ]
+    },
+    {
+      "phaseId": "P3",
+      "name": "Wiring and verification",
+      "dependencies": ["P2"],
+      "tasks": [
+        {
+          "id": "T3.1",
+          "title": "Link the site from the README and document the upgrade policy",
+          "description": "Add the docs-site link to the README and finish docs/src/upgrading.md with the 0.x-to-1.0 policy and where breaking changes will be recorded.",
+          "linkedRequirements": ["FR-008"],
+          "linkedAcceptanceCriteria": ["AC-001"],
+          "completed": false
+        },
+        {
+          "id": "T3.2",
+          "title": "Run the verification checks",
+          "description": "Run mdbook build docs, node scripts/docs-check.js, node .sdrive/scripts/validate-governance.js, and cargo fmt --all --check to confirm the repository baseline is untouched.",
+          "linkedRequirements": ["NFR-002", "NFR-003"],
+          "linkedAcceptanceCriteria": ["AC-001", "AC-004"],
+          "completed": false
+        }
+      ]
+    }
+  ]
+}

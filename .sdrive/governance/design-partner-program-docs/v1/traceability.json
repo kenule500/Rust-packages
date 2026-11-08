@@ -1,0 +1,139 @@
+{
+  "feature": "design-partner-program-docs",
+  "version": 1,
+  "rows": [
+    {
+      "requirementId": "FR-001",
+      "acceptanceCriteriaIds": [
+        "AC-001",
+        "AC-006"
+      ],
+      "planSection": "P1 Program documents",
+      "taskIds": [
+        "T1.1"
+      ],
+      "testIds": [],
+      "status": "not_started"
+    },
+    {
+      "requirementId": "FR-002",
+      "acceptanceCriteriaIds": [
+        "AC-002"
+      ],
+      "planSection": "P1 Program documents",
+      "taskIds": [
+        "T1.2"
+      ],
+      "testIds": [],
+      "status": "not_started"
+    },
+    {
+      "requirementId": "FR-003",
+      "acceptanceCriteriaIds": [
+        "AC-003"
+      ],
+      "planSection": "P1 Program documents",
+      "taskIds": [
+        "T1.3"
+      ],
+      "testIds": [],
+      "status": "not_started"
+    },
+    {
+      "requirementId": "FR-004",
+      "acceptanceCriteriaIds": [
+        "AC-004"
+      ],
+      "planSection": "P2 Wiring and verification",
+      "taskIds": [
+        "T2.1"
+      ],
+      "testIds": [],
+      "status": "not_started"
+    },
+    {
+      "requirementId": "FR-005",
+      "acceptanceCriteriaIds": [
+        "AC-005"
+      ],
+      "planSection": "P2 Wiring and verification",
+      "taskIds": [
+        "T2.1"
+      ],
+      "testIds": [],
+      "status": "not_started"
+    },
+    {
+      "requirementId": "FR-006",
+      "acceptanceCriteriaIds": [
+        "AC-003"
+      ],
+      "planSection": "P1 Program documents",
+      "taskIds": [
+        "T1.3"
+      ],
+      "testIds": [],
+      "status": "not_started"
+    },
+    {
+      "requirementId": "FR-007",
+      "acceptanceCriteriaIds": [
+        "AC-005"
+      ],
+      "planSection": "P2 Wiring and verification",
+      "taskIds": [
+        "T2.1"
+      ],
+      "testIds": [],
+      "status": "not_started"
+    },
+    {
+      "requirementId": "FR-008",
+      "acceptanceCriteriaIds": [
+        "AC-006"
+      ],
+      "planSection": "P1 Program documents",
+      "taskIds": [
+        "T1.1"
+      ],
+      "testIds": [],
+      "status": "not_started"
+    },
+    {
+      "requirementId": "NFR-001",
+      "acceptanceCriteriaIds": [
+        "AC-001"
+      ],
+      "planSection": "P2 Wiring and verification",
+      "taskIds": [
+        "T2.2"
+      ],
+      "testIds": [],
+      "status": "not_started"
+    },
+    {
+      "requirementId": "NFR-002",
+      "acceptanceCriteriaIds": [
+        "AC-002"
+      ],
+      "planSection": "P1 Program documents",
+      "taskIds": [
+        "T1.2"
+      ],
+      "testIds": [],
+      "status": "not_started"
+    },
+    {
+      "requirementId": "NFR-003",
+      "acceptanceCriteriaIds": [
+        "AC-005"
+      ],
+      "planSection": "P2 Wiring and verification",
+      "taskIds": [
+        "T2.1"
+      ],
+      "testIds": [],
+      "status": "not_started"
+    }
+  ]
+}

@@ -947,6 +947,202 @@
           ]
         }
       ]
+    },
+    {
+      "name": "quota-ledger-redis-backend",
+      "branch": "feature/w4",
+      "base": "main",
+      "productItems": [
+        "BP-019"
+      ],
+      "currentVersion": "v1",
+      "versions": [
+        {
+          "id": "v1",
+          "phase": "backlog",
+          "currentStep": "specification",
+          "gates": {
+            "specification": "approved",
+            "planning": "approved",
+            "implementation": "pending",
+            "review": "pending"
+          },
+          "history": [
+            {
+              "event": "Feature branch feature/w4 created from main",
+              "by": "SpecDrive",
+              "timestamp": "2026-11-08T10:45:00Z"
+            },
+            {
+              "event": "Proposed from group expression [w4] on the shared branch feature/w4",
+              "by": "SpecDrive",
+              "timestamp": "2026-11-08T10:45:00Z"
+            },
+            {
+              "event": "Specification and traceability drafted; Gate 1 awaiting human approval",
+              "by": "SpecDrive",
+              "timestamp": "2026-11-08T10:45:00Z"
+            },
+            {
+              "event": "Gate 1 approved: specification and traceability",
+              "by": "kenule500",
+              "timestamp": "2026-11-08T10:52:00Z"
+            },
+            {
+              "event": "Gate 2 approved: technical plan and execution tasks; plan/tasks/traceability validated green across the four grouped features",
+              "by": "kenule500",
+              "timestamp": "2026-11-08T10:52:00Z"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "wirekit-self-serve-provider-modules",
+      "branch": "feature/w4",
+      "base": "main",
+      "productItems": [
+        "BP-028"
+      ],
+      "currentVersion": "v1",
+      "versions": [
+        {
+          "id": "v1",
+          "phase": "backlog",
+          "currentStep": "specification",
+          "gates": {
+            "specification": "approved",
+            "planning": "approved",
+            "implementation": "pending",
+            "review": "pending"
+          },
+          "history": [
+            {
+              "event": "Feature branch feature/w4 created from main",
+              "by": "SpecDrive",
+              "timestamp": "2026-11-08T10:45:00Z"
+            },
+            {
+              "event": "Proposed from group expression [w4] on the shared branch feature/w4; partner-gated providers stay needs discovery",
+              "by": "SpecDrive",
+              "timestamp": "2026-11-08T10:45:00Z"
+            },
+            {
+              "event": "Specification and traceability drafted; Gate 1 awaiting human approval",
+              "by": "SpecDrive",
+              "timestamp": "2026-11-08T10:45:00Z"
+            },
+            {
+              "event": "Gate 1 approved: specification and traceability",
+              "by": "kenule500",
+              "timestamp": "2026-11-08T10:52:00Z"
+            },
+            {
+              "event": "Gate 2 approved: technical plan and execution tasks; plan/tasks/traceability validated green across the four grouped features",
+              "by": "kenule500",
+              "timestamp": "2026-11-08T10:52:00Z"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "docs-site-and-provider-matrix",
+      "branch": "feature/w4",
+      "base": "main",
+      "productItems": [
+        "BP-029"
+      ],
+      "currentVersion": "v1",
+      "versions": [
+        {
+          "id": "v1",
+          "phase": "backlog",
+          "currentStep": "specification",
+          "gates": {
+            "specification": "approved",
+            "planning": "approved",
+            "implementation": "pending",
+            "review": "pending"
+          },
+          "history": [
+            {
+              "event": "Feature branch feature/w4 created from main",
+              "by": "SpecDrive",
+              "timestamp": "2026-11-08T10:45:00Z"
+            },
+            {
+              "event": "Proposed from group expression [w4] on the shared branch feature/w4",
+              "by": "SpecDrive",
+              "timestamp": "2026-11-08T10:45:00Z"
+            },
+            {
+              "event": "Specification and traceability drafted; Gate 1 awaiting human approval",
+              "by": "SpecDrive",
+              "timestamp": "2026-11-08T10:45:00Z"
+            },
+            {
+              "event": "Gate 1 approved: specification and traceability",
+              "by": "kenule500",
+              "timestamp": "2026-11-08T10:52:00Z"
+            },
+            {
+              "event": "Gate 2 approved: technical plan and execution tasks; plan/tasks/traceability validated green across the four grouped features",
+              "by": "kenule500",
+              "timestamp": "2026-11-08T10:52:00Z"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "design-partner-program-docs",
+      "branch": "feature/w4",
+      "base": "main",
+      "productItems": [
+        "BP-030"
+      ],
+      "currentVersion": "v1",
+      "versions": [
+        {
+          "id": "v1",
+          "phase": "backlog",
+          "currentStep": "specification",
+          "gates": {
+            "specification": "approved",
+            "planning": "approved",
+            "implementation": "pending",
+            "review": "pending"
+          },
+          "history": [
+            {
+              "event": "Feature branch feature/w4 created from main",
+              "by": "SpecDrive",
+              "timestamp": "2026-11-08T10:45:00Z"
+            },
+            {
+              "event": "Proposed from group expression [w4] on the shared branch feature/w4 as a documentation feature",
+              "by": "SpecDrive",
+              "timestamp": "2026-11-08T10:45:00Z"
+            },
+            {
+              "event": "Specification and traceability drafted; Gate 1 awaiting human approval",
+              "by": "SpecDrive",
+              "timestamp": "2026-11-08T10:45:00Z"
+            },
+            {
+              "event": "Gate 1 approved: specification and traceability",
+              "by": "kenule500",
+              "timestamp": "2026-11-08T10:52:00Z"
+            },
+            {
+              "event": "Gate 2 approved: technical plan and execution tasks; plan/tasks/traceability validated green across the four grouped features",
+              "by": "kenule500",
+              "timestamp": "2026-11-08T10:52:00Z"
+            }
+          ]
+        }
+      ]
     }
   ]
 }

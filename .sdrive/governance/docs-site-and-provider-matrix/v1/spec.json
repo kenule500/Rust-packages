@@ -1,0 +1,190 @@
+{
+  "feature": "docs-site-and-provider-matrix",
+  "title": "Docs site and provider matrix",
+  "version": 1,
+  "overview": {
+    "problemStatement": "The repository has no single place a developer can browse. Discovery is the README table plus catalogue files, there is no provider matrix, and the README status paragraph has already gone stale once. docs.rs will host API docs at publish time but cannot answer what exists, which providers are supported, and how to upgrade.",
+    "proposedSolution": "Add an in-repo mdBook under docs/, built by CI and publishable as a static site: landing page, crate index, provider matrix generated from the catalogue and manifests, error-code reference generated from source, and an upgrade guide. A drift check and a link check run in CI.",
+    "targetAudience": "Developers evaluating or adopting the packages, and maintainers who need a canonical status page.",
+    "assumptions": [
+      "mdBook is the toolchain: a Rust binary installed in CI, no Node or bundler for the site.",
+      "Node is already used by the test wrapper, so a Node matrix script adds no new runtime for consumers.",
+      "The site is static; no search service beyond mdBook's built-in search.",
+      "Publishing is a deployment decision recorded but not required for the feature to pass."
+    ]
+  },
+  "userStories": [
+    {
+      "id": "US-001",
+      "title": "Find what exists and how to use it",
+      "role": "developer evaluating the packages",
+      "want": "one browsable site",
+      "benefit": "I can see the crates, providers, and status without reading the repository tree",
+      "acceptanceCriteria": [
+        {
+          "id": "AC-001",
+          "text": "Given the repository, when I run mdbook build docs, then it produces a static site with a landing page, a crate index, a provider matrix, an error-code reference, and an upgrade guide."
+        },
+        {
+          "id": "AC-002",
+          "text": "Given a crate whose status changes in Cargo.toml or its catalogue file, when the matrix is regenerated, then the provider matrix and crate index reflect that status and a stale hand-written status fails the drift check."
+        },
+        {
+          "id": "AC-003",
+          "text": "Given the built site, when internal links are checked, then every link resolves and the check fails CI on a broken one."
+        },
+        {
+          "id": "AC-004",
+          "text": "Given the CI workflow, when it runs on a pull request, then it builds the book and runs the drift and link checks, and the job fails if either fails."
+        },
+        {
+          "id": "AC-005",
+          "text": "Given a published API, when a developer reads the error-reference page, then every documented WirekitError code and every crate's stable error codes are listed from source rather than typed by hand."
+        },
+        {
+          "id": "AC-006",
+          "text": "Given the site, when it is built, then it requires no JavaScript bundle, no Node build step for the pages themselves, and no external service."
+        }
+      ]
+    }
+  ],
+  "functionalRequirements": [
+    {
+      "id": "FR-001",
+      "text": "A docs/ mdBook MUST exist with book.toml and the five required pages.",
+      "linkedAcceptanceCriteria": [
+        "AC-001"
+      ]
+    },
+    {
+      "id": "FR-002",
+      "text": "The provider matrix MUST be generated from the catalogue and crate manifests by a committed script, and a check MUST fail when the generated file is stale.",
+      "linkedAcceptanceCriteria": [
+        "AC-002"
+      ]
+    },
+    {
+      "id": "FR-003",
+      "text": "The error-code reference MUST be generated from the crates' source, not hand-maintained.",
+      "linkedAcceptanceCriteria": [
+        "AC-005"
+      ]
+    },
+    {
+      "id": "FR-004",
+      "text": "A link check MUST run over the built site and fail on a broken internal link.",
+      "linkedAcceptanceCriteria": [
+        "AC-003"
+      ]
+    },
+    {
+      "id": "FR-005",
+      "text": "CI MUST build the book and run both checks on every pull request.",
+      "linkedAcceptanceCriteria": [
+        "AC-004"
+      ]
+    },
+    {
+      "id": "FR-006",
+      "text": "The site MUST NOT introduce a JavaScript build step or a Node runtime dependency for consumers.",
+      "linkedAcceptanceCriteria": [
+        "AC-006"
+      ]
+    },
+    {
+      "id": "FR-007",
+      "text": "The site MUST NOT claim a crate or provider status that the source contradicts.",
+      "linkedAcceptanceCriteria": [
+        "AC-002"
+      ]
+    },
+    {
+      "id": "FR-008",
+      "text": "The upgrade guide MUST document the 0.x-to-1.0 policy and where breaking changes will be recorded.",
+      "linkedAcceptanceCriteria": [
+        "AC-001"
+      ]
+    }
+  ],
+  "nonFunctionalRequirements": [
+    {
+      "id": "NFR-001",
+      "text": "mdbook build MUST run without a network connection once mdBook is installed (no remote theme or asset fetch).",
+      "linkedAcceptanceCriteria": [
+        "AC-006"
+      ]
+    },
+    {
+      "id": "NFR-002",
+      "text": "The generated pages MUST be reproducible: same input, same bytes, no timestamps in content.",
+      "linkedAcceptanceCriteria": [
+        "AC-002"
+      ]
+    },
+    {
+      "id": "NFR-003",
+      "text": "The docs MUST build within the existing CI job budget (target: under two minutes for the docs job).",
+      "linkedAcceptanceCriteria": [
+        "AC-004"
+      ]
+    },
+    {
+      "id": "NFR-004",
+      "text": "Every page MUST be reachable from the landing page within two clicks (SUMMARY structure).",
+      "linkedAcceptanceCriteria": [
+        "AC-001"
+      ]
+    }
+  ],
+  "edgeCases": [
+    {
+      "id": "EC-001",
+      "description": "A crate is added to the workspace but not to the matrix",
+      "expectedBehavior": "the drift check names the missing crate and fails."
+    },
+    {
+      "id": "EC-002",
+      "description": "A provider is withdrawn from a crate but its catalogue file remains",
+      "expectedBehavior": "the matrix shows the catalogue status and the crate status separately rather than guessing."
+    },
+    {
+      "id": "EC-003",
+      "description": "mdBook is missing in CI",
+      "expectedBehavior": "the job installs it explicitly and fails loudly rather than silently skipping the build."
+    },
+    {
+      "id": "EC-004",
+      "description": "A relative link points outside docs/src",
+      "expectedBehavior": "the link check reports it as broken instead of resolving silently."
+    }
+  ],
+  "dependencies": [
+    {
+      "name": "mdbook",
+      "type": "external",
+      "notes": "CI tool, pinned; not a crate dependency."
+    },
+    {
+      "name": "node",
+      "type": "external",
+      "notes": "Already present for scripts/; the site pages themselves need no Node build."
+    }
+  ],
+  "risks": [
+    {
+      "id": "RISK-001",
+      "description": "cargo install mdbook is slow in CI.",
+      "mitigation": "Use a pinned prebuilt binary action or a cached install, and record the pin."
+    },
+    {
+      "id": "RISK-002",
+      "description": "Generated documentation can drift from source.",
+      "mitigation": "The drift check runs in CI, not just locally."
+    },
+    {
+      "id": "RISK-003",
+      "description": "A docs site can over-scope into a marketing site.",
+      "mitigation": "The out-of-scope list and AC-006 keep it a static book."
+    }
+  ]
+}

@@ -1,0 +1,60 @@
+{
+  "feature": "design-partner-program-docs",
+  "version": 1,
+  "phases": [
+    {
+      "phaseId": "P1",
+      "name": "Program documents",
+      "dependencies": [],
+      "tasks": [
+        {
+          "id": "T1.1",
+          "title": "Write the program page",
+          "description": "Add docs/design-partners/program.md defining eligibility, what a partner receives, what a partner commits to, what in production means (live for at least 30 days), and the G5 gate (three external projects plus GIA in production). State that missing evidence blocks 1.0.",
+          "linkedRequirements": ["FR-001", "FR-008"],
+          "linkedAcceptanceCriteria": ["AC-001", "AC-006"],
+          "completed": false
+        },
+        {
+          "id": "T1.2",
+          "title": "Write the empty tracker template",
+          "description": "Add docs/design-partners/tracker.md with the seven columns, the four status values, and no invented partner. Mark every cell that requires real data as a placeholder.",
+          "linkedRequirements": ["FR-002", "NFR-002"],
+          "linkedAcceptanceCriteria": ["AC-002", "AC-005"],
+          "completed": false
+        },
+        {
+          "id": "T1.3",
+          "title": "Write the case-study template",
+          "description": "Add docs/design-partners/case-study-template.md with a written-consent statement, a redaction checklist, and a measured-outcomes section that requires numbers rather than adjectives.",
+          "linkedRequirements": ["FR-003", "FR-006"],
+          "linkedAcceptanceCriteria": ["AC-003"],
+          "completed": false
+        }
+      ]
+    },
+    {
+      "phaseId": "P2",
+      "name": "Wiring and verification",
+      "dependencies": ["P1"],
+      "tasks": [
+        {
+          "id": "T2.1",
+          "title": "Link the program and add the checker",
+          "description": "Link the program page from the README and add scripts/docs-partners.js, which asserts the three required sections, the tracker columns and status values, that placeholders use <...>, and that no row names a partner without an evidence link.",
+          "linkedRequirements": ["FR-004", "FR-005", "FR-007", "NFR-003"],
+          "linkedAcceptanceCriteria": ["AC-004", "AC-005"],
+          "completed": false
+        },
+        {
+          "id": "T2.2",
+          "title": "Run the verification checks",
+          "description": "Run node scripts/docs-partners.js and node .sdrive/scripts/validate-governance.js, and confirm the three pages render on GitHub without a build step.",
+          "linkedRequirements": ["NFR-001", "NFR-003"],
+          "linkedAcceptanceCriteria": ["AC-001", "AC-004"],
+          "completed": false
+        }
+      ]
+    }
+  ]
+}

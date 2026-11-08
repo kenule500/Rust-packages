@@ -1,0 +1,99 @@
+{
+  "feature": "wirekit-self-serve-provider-modules",
+  "version": 1,
+  "phases": [
+    {
+      "phaseId": "P1",
+      "name": "Feature wiring",
+      "dependencies": [],
+      "tasks": [
+        {
+          "id": "T1.1",
+          "title": "Add six additive features and module gates",
+          "description": "Add accuweather, lob, pagerduty, deepgram, yelp, and klarna to the manifest, each enabling only its own module. Declare each mod behind its feature in lib.rs and document the feature table. Confirm the default build compiles none of them and each feature compiles exactly its module.",
+          "linkedRequirements": ["FR-001", "FR-007"],
+          "linkedAcceptanceCriteria": ["AC-001", "AC-006"],
+          "completed": false
+        }
+      ]
+    },
+    {
+      "phaseId": "P2",
+      "name": "Provider modules",
+      "dependencies": ["P1"],
+      "tasks": [
+        {
+          "id": "T2.1",
+          "title": "Implement the AccuWeather module",
+          "description": "Implement accuweather.rs from catalogue/08_accuweather.md: location search, current conditions, and forecast, using the shared API-key auth, retry, and rate limiter.",
+          "linkedRequirements": ["FR-002", "FR-003", "FR-004"],
+          "linkedAcceptanceCriteria": ["AC-001", "AC-002", "AC-004"],
+          "completed": false
+        },
+        {
+          "id": "T2.2",
+          "title": "Implement the Lob module",
+          "description": "Implement lob.rs from catalogue/18_lob.md: create and retrieve letters and postcards, verification, and the error.message envelope mapped into WirekitError.",
+          "linkedRequirements": ["FR-002", "FR-003", "FR-005"],
+          "linkedAcceptanceCriteria": ["AC-001", "AC-002", "AC-003"],
+          "completed": false
+        },
+        {
+          "id": "T2.3",
+          "title": "Implement the PagerDuty module",
+          "description": "Implement pagerduty.rs from catalogue/22_pagerduty.md: incidents, alerts, and on-calls, with the body-level error.message envelope treated as an error on HTTP 200.",
+          "linkedRequirements": ["FR-002", "FR-003", "FR-005"],
+          "linkedAcceptanceCriteria": ["AC-001", "AC-002", "AC-003"],
+          "completed": false
+        },
+        {
+          "id": "T2.4",
+          "title": "Implement the Deepgram module",
+          "description": "Implement deepgram.rs from catalogue/24_deepgram.md: transcription and project listing, using bearer auth and the shared retry policy.",
+          "linkedRequirements": ["FR-002", "FR-003", "FR-004"],
+          "linkedAcceptanceCriteria": ["AC-001", "AC-002", "AC-004"],
+          "completed": false
+        },
+        {
+          "id": "T2.5",
+          "title": "Implement the Yelp module",
+          "description": "Implement yelp.rs from catalogue/19_yelp.md: business search and reviews. If the catalogue marks the leads endpoint partner-only, withdraw that surface with a citation instead of faking it.",
+          "linkedRequirements": ["FR-002", "FR-003", "FR-005"],
+          "linkedAcceptanceCriteria": ["AC-001", "AC-002", "AC-003"],
+          "completed": false
+        },
+        {
+          "id": "T2.6",
+          "title": "Implement the Klarna module",
+          "description": "Implement klarna.rs from catalogue/25_klarna.md: session and order calls with the shared auth and rate limiter.",
+          "linkedRequirements": ["FR-002", "FR-003", "FR-004"],
+          "linkedAcceptanceCriteria": ["AC-001", "AC-002", "AC-004"],
+          "completed": false
+        }
+      ]
+    },
+    {
+      "phaseId": "P3",
+      "name": "Contract, docs, verification",
+      "dependencies": ["P2"],
+      "tasks": [
+        {
+          "id": "T3.1",
+          "title": "Verify the shared contract across the six modules",
+          "description": "Confirm each module maps into WirekitError, honours Retry-After, never retries other 4xx, redacts its secret, validates provider JSON into typed values, and emits the shared tracing events. Update the crate docs and README provider table, and state that partner-gated providers are out of scope.",
+          "linkedRequirements": ["FR-002", "FR-004", "FR-006", "NFR-001", "NFR-003", "NFR-004"],
+          "linkedAcceptanceCriteria": ["AC-002", "AC-004", "AC-005", "AC-007"],
+          "completed": false
+        },
+        {
+          "id": "T3.2",
+          "title": "Run the verification checks",
+          "description": "Run cargo fmt --all --check, cargo clippy --workspace --all-features -- -D warnings, cargo doc --workspace --all-features --no-deps under RUSTDOCFLAGS=-D warnings, cargo check -p wirekit with default and all features, and node .sdrive/scripts/validate-governance.js.",
+          "linkedRequirements": ["NFR-001", "NFR-002", "FR-007"],
+          "linkedAcceptanceCriteria": ["AC-006", "AC-007"],
+          "completed": false
+        }
+      ]
+    }
+  ]
+}

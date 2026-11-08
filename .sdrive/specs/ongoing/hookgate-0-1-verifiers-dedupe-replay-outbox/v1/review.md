@@ -2,11 +2,11 @@
 status: PASS
 feature: hookgate-0-1-verifiers-dedupe-replay-outbox
 version: v1
-commit: 5634be1bc59f835f1b86adae5b5c37602af7fe35
+commit: f0faef498d87de017022b36c75fac49a72be7038
 branch: feature/w3-p1
 base: main
 reviewedBy: kenule500
-reviewedAt: 2026-11-08T09:23:43Z
+reviewedAt: 2026-11-08T10:16:52Z
 coverage: 100
 evidence: .sdrive/governance/hookgate-0-1-verifiers-dedupe-replay-outbox/v1/test-evidence.json
 ---
@@ -18,7 +18,7 @@ evidence: .sdrive/governance/hookgate-0-1-verifiers-dedupe-replay-outbox/v1/test
 - **Date:** 2026-11-08
 - **Reviewer:** kenule500 (independent: no — this agent line wrote the code; the human reviewer confirmed the verdict explicitly, which is the escalation the independence rule requires)
 - **Version:** v1
-- **Commit:** 5634be1bc59f835f1b86adae5b5c37602af7fe35
+- **Commit:** f0faef498d87de017022b36c75fac49a72be7038 (re-confirmed at the wave-wide review HEAD; the audited code is unchanged since the original round)
 - **Branch / base:** feature/w3-p1 / main
 - **Round:** 1 of 3
 

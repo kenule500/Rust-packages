@@ -2,11 +2,11 @@
 status: PASS
 feature: syncforge-0-1-queue-idempotency-conflicts-traits
 version: v1
-commit: 49d34f73a9a63717d7e6c3b196ddd2a9160acaa4
+commit: f0faef498d87de017022b36c75fac49a72be7038
 branch: feature/w3-p1
 base: main
 reviewedBy: kenule500
-reviewedAt: 2026-11-08T09:58:24Z
+reviewedAt: 2026-11-08T10:16:52Z
 coverage: 100
 evidence: .sdrive/governance/syncforge-0-1-queue-idempotency-conflicts-traits/v1/test-evidence.json
 ---
@@ -18,7 +18,7 @@ evidence: .sdrive/governance/syncforge-0-1-queue-idempotency-conflicts-traits/v1
 - **Date:** 2026-11-08
 - **Reviewer:** kenule500 (independent: no — this agent line wrote the code; the human reviewer confirmed the verdict explicitly)
 - **Version:** v1
-- **Commit:** 49d34f73a9a63717d7e6c3b196ddd2a9160acaa4
+- **Commit:** f0faef498d87de017022b36c75fac49a72be7038 (re-confirmed at the wave-wide review HEAD; the audited code is unchanged since the original round)
 - **Branch / base:** feature/w3-p1 / main
 - **Round:** 1 of 3
 

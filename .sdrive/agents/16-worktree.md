@@ -104,3 +104,20 @@ The Product Plan is a dependency graph. A wave is a build layer, not a deadline.
 - "Add BP-004 to the shared branch": if BP-004 is gated (access from outside the repository) or is not a `build`, creating that branch would freeze every other member, so the script refuses it. Show the reason from `topologies.rejected` and offer BP-004 its own branch.
 - "BP-003 turned out fine, prepare it again": a record still marked `present` keeps the item ineligible. That is correct while the branch exists - the next step is `/sdrive:propose` there, or `/sdrive:archive` once it is done, or `remove` if the preparation should be undone.
 </decision_examples>
+
+<!-- specdrive-next-action -->
+<next-action>
+End every reply with the next action, as the last lines of the response:
+
+```
+Next Action: <command>
+where: on the <chat|terminal>
+```
+
+- `/sdrive:*` runs on the **chat**. The user sends it; no agent can start another command (CON-715).
+- `sdrive ...` runs on the **terminal**. An agent with a shell runs it itself and reports the result — do not tell the user to type a command you could have run.
+- `sdrive approve ...` runs on the terminal, but only the user gives it: it is the governance sign-off.
+- Record the same step on disk with `sdrive next <feature> --write` before ending a session.
+
+Name the one action that comes next. Do not list a menu of possibilities.
+</next-action>

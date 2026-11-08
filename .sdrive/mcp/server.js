@@ -123,16 +123,23 @@ function currentVersion(feature) {
   return versions.find((version) => version.id === feature.currentVersion) || versions[0] || null;
 }
 
+// Where the command runs: a /sdrive:* prompt is sent from the chat, an sdrive
+// command runs in the terminal. The CLI prints the same distinction.
+function action(command, reason) {
+  return {
+    command,
+    where: /^\/sdrive:/.test(command) ? "chat" : "terminal",
+    reason
+  };
+}
+
 // Mirrors the CLI's `sdrive status` next-action rule so an AI client can ask
 // "what now?" instead of guessing from the gates.
 function nextAction(feature) {
   const version = currentVersion(feature);
 
   if (!version) {
-    return {
-      command: `sdrive version:new ${feature.name}`,
-      reason: "The feature has no versions."
-    };
+    return action(`sdrive version:new ${feature.name}`, "The feature has no versions.");
   }
 
   const order = gateRules
@@ -144,23 +151,23 @@ function nextAction(feature) {
     : order[0];
 
   if (!pending) {
-    return {
-      command: `sdrive archive:check ${feature.name}`,
-      reason: "Every gate is approved; check whether the feature can be archived."
-    };
+    return action(
+      `sdrive archive:check ${feature.name}`,
+      "Every gate is approved; check whether the feature can be archived."
+    );
   }
 
   if (pending === "review") {
-    return {
-      command: `sdrive test ${feature.name}`,
-      reason: "Review needs passing test evidence; run the tests, then approve review."
-    };
+    return action(
+      `sdrive test ${feature.name}`,
+      "Review needs passing test evidence; run the tests, then approve review."
+    );
   }
 
-  return {
-    command: `sdrive approve ${feature.name} ${pending}`,
-    reason: `The "${pending}" gate is ${gates[pending] || "pending"}.`
-  };
+  return action(
+    `sdrive approve ${feature.name} ${pending}`,
+    `The "${pending}" gate is ${gates[pending] || "pending"}.`
+  );
 }
 
 function featureStatus(feature) {

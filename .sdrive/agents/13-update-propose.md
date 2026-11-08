@@ -267,3 +267,20 @@ If this command already committed and pushed its own work (for example `/sdrive:
 
 Never force-push. Never amend a commit you did not create in this run. Never commit work whose required human approval has not been granted. If Git is unavailable or the repository has no remote, report that and leave the working tree intact.
 </git-commit-and-push>
+
+<!-- specdrive-next-action -->
+<next-action>
+End every reply with the next action, as the last lines of the response:
+
+```
+Next Action: <command>
+where: on the <chat|terminal>
+```
+
+- `/sdrive:*` runs on the **chat**. The user sends it; no agent can start another command (CON-715).
+- `sdrive ...` runs on the **terminal**. An agent with a shell runs it itself and reports the result — do not tell the user to type a command you could have run.
+- `sdrive approve ...` runs on the terminal, but only the user gives it: it is the governance sign-off.
+- Record the same step on disk with `sdrive next <feature> --write` before ending a session.
+
+Name the one action that comes next. Do not list a menu of possibilities.
+</next-action>

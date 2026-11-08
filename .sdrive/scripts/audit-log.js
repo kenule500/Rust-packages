@@ -44,7 +44,7 @@ function saveAuditLog(log) {
   fs.renameSync(temp, auditLogPath);
 }
 
-function logEvent(event, details = {}) {
+function logEvent(event, details = {}, options = {}) {
   const log = loadAuditLog();
 
   appendEvent(log, {
@@ -55,7 +55,12 @@ function logEvent(event, details = {}) {
   });
 
   saveAuditLog(log);
-  console.log(`📝 Audit: ${event}`);
+
+  // A human wants to see what was recorded; a `--json` caller is parsing stdout
+  // and cannot read a stray line before the payload.
+  if (!options.quiet) {
+    console.log(`📝 Audit: ${event}`);
+  }
 }
 
 function getRecentEvents(count = 10) {

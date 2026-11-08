@@ -290,3 +290,20 @@ At the end of your work, provide:
 7. ✅ (If conflicts occurred) The conflicted files, the resolution commit, and the verification commands that passed — or the reason the archive stopped and aborted the merge.
 8. ✅ (If `--all`) The pre-flight plan and merge order, the aggregate report at `.sdrive/reports/reviews/archive-report-all-<date>.md` covering every ongoing feature, and (where the recorded `base` disagreed with the range check) which one was trusted.
 </deliverables>
+
+<!-- specdrive-next-action -->
+<next-action>
+End every reply with the next action, as the last lines of the response:
+
+```
+Next Action: <command>
+where: on the <chat|terminal>
+```
+
+- `/sdrive:*` runs on the **chat**. The user sends it; no agent can start another command (CON-715).
+- `sdrive ...` runs on the **terminal**. An agent with a shell runs it itself and reports the result — do not tell the user to type a command you could have run.
+- `sdrive approve ...` runs on the terminal, but only the user gives it: it is the governance sign-off.
+- Record the same step on disk with `sdrive next <feature> --write` before ending a session.
+
+Name the one action that comes next. Do not list a menu of possibilities.
+</next-action>

@@ -1,6 +1,6 @@
----
+﻿---
 title: hookgate 0.1 - verifiers, dedupe, replay, outbox
-status: backlog
+status: ongoing
 version: v1
 created: 2026-11-02
 updated: 2026-11-02
@@ -10,7 +10,7 @@ updated: 2026-11-02
 
 ## Overview
 
-- **Problem Statement**: Inbound provider webhooks arrive at an HTTP edge that must survive a restart, and the four guarantees that matter — the signature is genuine, the event is not a replay, the same delivery is not processed twice, and a verified event is not lost between verification and handling — all require durable state that a per-provider client cannot own. `wirekit` verifies signatures for the providers it wraps, but it holds no delivery record, no replay window, and no outbox, so every edge service re-implements dedupe and retry slightly differently and loses an event the first time it crashes mid-delivery.
+- **Problem Statement**: Inbound provider webhooks arrive at an HTTP edge that must survive a restart, and the four guarantees that matter â€” the signature is genuine, the event is not a replay, the same delivery is not processed twice, and a verified event is not lost between verification and handling â€” all require durable state that a per-provider client cannot own. `wirekit` verifies signatures for the providers it wraps, but it holds no delivery record, no replay window, and no outbox, so every edge service re-implements dedupe and retry slightly differently and loses an event the first time it crashes mid-delivery.
 - **Proposed Solution**: Port and adapt the `hookgate` crate from `feature/m3-substrate` as prior art: `DeliveryId`, `IdempotencyKey`, `InboundRequest`, `VerifiedEvent`, `DeliveryRecord`, `InsertOutcome`, `DeadLetterRecord`, and the `Verifier`, `DeliveryStore`, and `Outbox` traits, plus a redacting error type and provider verifier presets. Establish the load-bearing rule that verification runs over the exact received bytes and never over a re-serialization. Ship `MemoryDeliveryStore` for tests and single-process callers, and verifier presets for Meta, Stripe, Shopify, Twilio, Slack, GitHub, and a configurable generic HMAC. No axum integration, no SendGrid ECDSA verifier, and no standalone binary in 0.1.
 - **Target Audience**: Rust teams running a webhook ingress edge, and this project's service layer that now receives every provider's events.
 - **Assumptions**:
@@ -89,7 +89,7 @@ As a security reviewer, I want tenant scoping and redaction enforced, so that on
 ### Non-Functional Requirements
 - NFR-001: Every delivery read and write MUST be scoped by tenant, so no tenant can observe another's delivery (CON-512).
 - NFR-002: Stored secrets and signature material MUST be redacted in `Debug`, `Display`, logs, and error payloads (CON-214).
-- NFR-003: Untrusted input — headers, raw body, and event ids — MUST be validated and bounded before use, and an oversized or malformed request MUST produce a typed error rather than a panic (CON-515).
+- NFR-003: Untrusted input â€” headers, raw body, and event ids â€” MUST be validated and bounded before use, and an oversized or malformed request MUST produce a typed error rather than a panic (CON-515).
 - NFR-004: The crate MUST NOT read secrets from the environment; the caller supplies the verifier's secret (CON-519).
 - NFR-005: The crate MUST compile on Rust 1.87 with all features and MUST contain no product vocabulary (CON-102, CON-106).
 - NFR-006: Every public item MUST carry rustdoc and every module MUST state its scope and non-goals (CON-202, CON-203).
@@ -101,12 +101,12 @@ As a security reviewer, I want tenant scoping and redaction enforced, so that on
 
 ## Edge Cases & Error States
 
-- EC-001: A JSON body is parsed and re-serialized before verification → verification fails, because the canonical string no longer matches the received bytes.
-- EC-002: The same event id arrives from two tenants → both are stored; they are not duplicates because the uniqueness key includes the tenant.
-- EC-003: Crash after insert but before outbox enqueue → the contract requires both to commit before success; a partial write must be detectable and replayable.
-- EC-004: An unlisted provider with a custom HMAC header and prefix → the generic verifier accepts the caller's header name, encoding, and prefix.
-- EC-005: A poison delivery that always fails handling → it is dead-lettered with its raw body rather than blocking the outbox forever.
-- EC-006: Build with `--no-default-features` → core compiles; no preset verifier is present.
+- EC-001: A JSON body is parsed and re-serialized before verification â†’ verification fails, because the canonical string no longer matches the received bytes.
+- EC-002: The same event id arrives from two tenants â†’ both are stored; they are not duplicates because the uniqueness key includes the tenant.
+- EC-003: Crash after insert but before outbox enqueue â†’ the contract requires both to commit before success; a partial write must be detectable and replayable.
+- EC-004: An unlisted provider with a custom HMAC header and prefix â†’ the generic verifier accepts the caller's header name, encoding, and prefix.
+- EC-005: A poison delivery that always fails handling â†’ it is dead-lettered with its raw body rather than blocking the outbox forever.
+- EC-006: Build with `--no-default-features` â†’ core compiles; no preset verifier is present.
 
 ## Out of Scope
 

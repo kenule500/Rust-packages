@@ -799,8 +799,8 @@
       "versions": [
         {
           "id": "v1",
-          "phase": "backlog",
-          "currentStep": "specification",
+          "phase": "ongoing",
+          "currentStep": "implementation",
           "gates": {
             "specification": "approved",
             "planning": "approved",
@@ -832,6 +832,11 @@
               "event": "Gate 2 approved: technical plan and execution tasks; plan/tasks/traceability validated green across the three grouped features",
               "by": "kenule500",
               "timestamp": "2026-11-02T09:20:00Z"
+            },
+            {
+              "event": "Implementation started: spec moved from specs/backlog to specs/ongoing; crates/hookgate ported from feature/m3-substrate prior art and adapted to direct dependencies",
+              "by": "SpecDrive",
+              "timestamp": "2026-11-08T08:50:00Z"
             }
           ]
         }

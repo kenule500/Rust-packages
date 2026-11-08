@@ -1,6 +1,6 @@
----
+﻿---
 title: hookgate 0.1 - technical plan
-status: backlog
+status: ongoing
 version: v1
 created: 2026-11-02
 updated: 2026-11-02
@@ -31,24 +31,24 @@ Port the `hookgate` crate from `feature/m3-substrate` as prior art and adapt it 
 
 ## Data model
 
-- **`InboundRequest`** — provider, headers (`HeaderMap`), body (`Bytes`, verbatim), received_at.
-- **`VerifiedEvent`** — delivery, provider, optional event id, event type, parsed payload, raw bytes.
-- **`DeliveryRecord`** — id, tenant, provider, optional event id, event type, raw bytes, received_at, state.
-- **`DeadLetterRecord`** — delivery, raw bytes, reason, attempts.
+- **`InboundRequest`** â€” provider, headers (`HeaderMap`), body (`Bytes`, verbatim), received_at.
+- **`VerifiedEvent`** â€” delivery, provider, optional event id, event type, parsed payload, raw bytes.
+- **`DeliveryRecord`** â€” id, tenant, provider, optional event id, event type, raw bytes, received_at, state.
+- **`DeadLetterRecord`** â€” delivery, raw bytes, reason, attempts.
 
-**Flow.** Receive the raw bytes → resolve the tenant and provider → verify the signature against those exact bytes with a constant-time comparison → reject a timestamp outside the tolerance as stale → insert the delivery if it is new → enqueue the verified event → only then report success. A duplicate insert returns `InsertOutcome::Duplicate` rather than a second row, and uniqueness includes the tenant so the same event id from two tenants is not a duplicate. The processor consumes the outbox, marks the delivery processed, or dead-letters it with the raw body and reason. Replay is idempotent against the delivery store.
+**Flow.** Receive the raw bytes â†’ resolve the tenant and provider â†’ verify the signature against those exact bytes with a constant-time comparison â†’ reject a timestamp outside the tolerance as stale â†’ insert the delivery if it is new â†’ enqueue the verified event â†’ only then report success. A duplicate insert returns `InsertOutcome::Duplicate` rather than a second row, and uniqueness includes the tenant so the same event id from two tenants is not a duplicate. The processor consumes the outbox, marks the delivery processed, or dead-letters it with the raw body and reason. Replay is idempotent against the delivery store.
 
 ## Security considerations
 
-- **NFR-001** — every delivery read and write is scoped by tenant; another tenant cannot observe or replay a delivery that is not theirs.
-- **NFR-002** — signature material and shared secrets never render; the error type is redacted and `InboundRequest` holds raw bytes without a secret field.
-- **NFR-003** — headers, raw bodies, and event ids are validated and bounded before use; an oversized or malformed request is a typed error rather than a panic.
-- **NFR-004** — the crate reads no secret from the environment; the caller constructs each verifier with its own secret.
+- **NFR-001** â€” every delivery read and write is scoped by tenant; another tenant cannot observe or replay a delivery that is not theirs.
+- **NFR-002** â€” signature material and shared secrets never render; the error type is redacted and `InboundRequest` holds raw bytes without a secret field.
+- **NFR-003** â€” headers, raw bodies, and event ids are validated and bounded before use; an oversized or malformed request is a typed error rather than a panic.
+- **NFR-004** â€” the crate reads no secret from the environment; the caller constructs each verifier with its own secret.
 
 ## Performance considerations
 
-- **NFR-003** — signature comparison is constant-time (`subtle`) so verification cost does not leak the expected value through timing.
-- **NFR-005** — `InboundRequest` keeps the body as `Bytes` and clones by reference counting, so the raw bytes are not copied per verification stage.
+- **NFR-003** â€” signature comparison is constant-time (`subtle`) so verification cost does not leak the expected value through timing.
+- **NFR-005** â€” `InboundRequest` keeps the body as `Bytes` and clones by reference counting, so the raw bytes are not copied per verification stage.
 
 ## Dependencies
 

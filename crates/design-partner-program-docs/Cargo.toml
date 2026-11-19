@@ -1,0 +1,29 @@
+[package]
+name = "design-partner-program-docs"
+version = "0.1.0"
+edition = "2021"
+publish = false
+description = "Acceptance tests for the design-partner program and case-study docs (AC-001..AC-006)."
+
+# No library and no binary: this package exists only for its acceptance tests.
+[dependencies]
+
+# Cargo only discovers integration tests directly under tests/, while CON-406
+# requires them nested under a folder that matches the SpecDrive feature name.
+# Declaring each target by path satisfies both: Cargo sees them, and the source
+# stays at tests/docs_partners/<subfeature>.rs.
+[[test]]
+name = "program"
+path = "tests/docs_partners/program.rs"
+
+[[test]]
+name = "tracker"
+path = "tests/docs_partners/tracker.rs"
+
+[[test]]
+name = "case_study"
+path = "tests/docs_partners/case_study.rs"
+
+[[test]]
+name = "readme"
+path = "tests/docs_partners/readme.rs"

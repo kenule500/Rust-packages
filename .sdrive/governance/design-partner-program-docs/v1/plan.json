@@ -1,0 +1,34 @@
+{
+  "feature": "design-partner-program-docs",
+  "version": 1,
+  "architecture": {
+    "approach": "Add three Markdown documents under docs/design-partners/ and link them from the README. The program page defines eligibility, obligations, the production definition, and the G5 gate; the tracker is an empty template with fixed columns and no invented partner; the case-study template carries consent, a redaction checklist, and measured outcomes. A small Node check validates the required sections and that no placeholder row claims a partner.",
+    "components": [
+      { "name": "docs/design-partners/program.md", "action": "create", "description": "Eligibility, benefits, obligations, production definition, G5 gate." },
+      { "name": "docs/design-partners/tracker.md", "action": "create", "description": "Empty template with seven columns; no fabricated partner." },
+      { "name": "docs/design-partners/case-study-template.md", "action": "create", "description": "Consent, redaction checklist, measured outcomes." },
+      { "name": "scripts/docs-partners.js", "action": "create", "description": "Validates required sections, tracker columns, placeholders, and the evidence-link rule." },
+      { "name": "README.md", "action": "modify", "description": "Link to the program page." }
+    ],
+    "referencedRequirementIds": ["FR-001", "FR-002", "FR-003", "FR-004", "FR-005", "FR-006", "FR-007", "FR-008", "NFR-001", "NFR-002", "NFR-003"]
+  },
+  "dataModel": {
+    "entities": [],
+    "flowDescription": "The maintainer adds a tracker row only after a partner consents, records an evidence link, and sets status to prospect, active, case study published, or declined. A case study is drafted from the template, redacted against the checklist, and published only with written approval. There is no runtime data and no storage."
+  },
+  "securityConsiderations": [
+    { "requirementId": "NFR-003", "description": "Documents use placeholders such as <project-name> and follow the repository writing conventions." },
+    { "requirementId": "NFR-001", "description": "Pages are plain Markdown rendered by GitHub; no build step and no executable content." }
+  ],
+  "performanceConsiderations": [
+    { "requirementId": "NFR-002", "strategy": "A Markdown table is the source of truth; the checker is one linear pass over three small files." }
+  ],
+  "dependencies": [
+    { "name": "node", "type": "external", "action": "no_change", "notes": "Already present for scripts/." }
+  ],
+  "risks": [
+    { "description": "Adoption is external and may not materialise.", "mitigation": "The feature makes the requirement visible and auditable, not guaranteed." },
+    { "description": "A thin documentation feature can become a filing exercise.", "mitigation": "The empty-template and sourcing rules keep it honest." },
+    { "description": "Partner data is personal.", "mitigation": "The tracker records roles rather than people and the template mandates redaction." }
+  ]
+}

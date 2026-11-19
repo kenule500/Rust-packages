@@ -145,3 +145,14 @@ was written. Stripe is deliberately not wrapped; see the Payments section in
 `ffscene`, `mixbus`, `replay-recorder`, `studio-protocol`, `rtmp-publish`, and
 `signedlink` remain blueprints. The media and link packages are public candidates
 whose APIs must freeze before publish.
+
+## The 1.0 gate
+
+1.0 is a decision about evidence, not a date: three external projects using the
+crates in production (G5), plus GIA in production (G6). Missing evidence blocks
+1.0 rather than softening it. The
+[design partner program](docs/design-partners/program.md) defines eligibility, what a
+partner receives and commits to, what "in production" means, and how the gate is
+judged. The [tracker](docs/design-partners/tracker.md) is the record of partners; no
+partner is listed yet.
+

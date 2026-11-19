@@ -13,3 +13,12 @@ edition = "2021"
 rust-version = "1.87"
 license = "MIT OR Apache-2.0"
 repository = "https://github.com/kenule500/Rust-packages"
+
+# MSVC 14.50 (VS 18 BuildTools) rejects the `/Z7` debug records that ring's
+# build script passes to cl.exe, failing with `D8050: cannot execute c1.dll`
+# even though c1.dll is present. Disabling debug info for ring alone keeps the
+# dev profile (and `cargo test --workspace --all-features`) buildable without
+# changing a dependency or the test command. Remove once ring/cc-rs is bumped.
+[profile.dev.package.ring]
+debug = false
+

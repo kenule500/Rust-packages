@@ -104,7 +104,12 @@ const CANDIDATE_ROOTS = [
   "messages",
   "locales",
   "i18n",
-  "content"
+  "content",
+  // Documentation and tooling roots. A docs or adapter feature ships files that
+  // no source folder (src, crates, app) holds; without these, every planned
+  // component of such a feature is reported Missing no matter how complete it is.
+  "docs",
+  "scripts"
 ];
 
 const IGNORED_DIRS = new Set([
@@ -216,6 +221,23 @@ function scanCode() {
   const files = [];
   roots.forEach((root) => {
     walkDirectory(path.join(projectRoot, root), files);
+  });
+
+  // Top-level files of the repository itself belong to the scan too. A plan names
+  // such a file by its bare basename ("README.md"), but the root is not one of the
+  // roots above, so it never entered `files` -- and the item then fell through to
+  // the rename branch, which happily reported it as a rename of the first nested
+  // README.md in the tree. Only the root's FILES are added (no recursion): its
+  // DIRECTORIES are either the roots already walked or things like target/ and
+  // .git/ that must not be traversed.
+  fs.readdirSync(projectRoot, { withFileTypes: true }).forEach((entry) => {
+    if (!entry.isFile()) return;
+    if (IGNORED_DIRS.has(entry.name)) return;
+    if (IGNORED_FILES.has(entry.name)) return;
+    if (!CODE_EXTENSIONS.some((ext) => entry.name.endsWith(ext))) return;
+
+    const fullPath = path.join(projectRoot, entry.name);
+    if (!files.includes(fullPath)) files.push(fullPath);
   });
 
   console.log(`📄 Found ${files.length} source files.\n`);
@@ -642,20 +664,31 @@ function diffPlanAgainstCode(planItems, code) {
         // `crates/dado/src/diag.rs` (both begin "crate"), and one file could be
         // claimed by several items. A rename now needs a similar *basename* and a file
         // no other item has claimed; otherwise the item is honestly missing.
+        //
+        // "Similar" is a shared stem AND the same extension. A shared stem alone is
+        // not enough: `docs/design-partners/program.md` and
+        // `crates/.../tests/docs_partners/program.rs` both stem `program` but are
+        // different files, and calling the document a rename of its own test buries
+        // a genuinely missing deliverable behind a rename.
+        const basename = path.basename(item.name).toLowerCase();
         const stem = path.basename(item.name, path.extname(item.name)).toLowerCase();
+        const extension = path.extname(item.name).toLowerCase();
 
         const similar = codeComponents.find((c) => {
           if (c.isPath !== true) return false;
           if (claimedFiles.has(c.file)) return false;
 
+          const candidateBasename = path.basename(c.name).toLowerCase();
           const candidateStem = path.basename(c.name, path.extname(c.name)).toLowerCase();
+          const candidateExtension = path.extname(c.name).toLowerCase();
 
           if (!candidateStem || !stem) return false;
 
+          if (candidateBasename === basename) return true;
+
           return (
-            candidateStem === stem ||
-            candidateStem.startsWith(stem) ||
-            stem.startsWith(candidateStem)
+            candidateExtension === extension &&
+            (candidateStem.startsWith(stem) || stem.startsWith(candidateStem))
           );
         });
 

@@ -1,0 +1,179 @@
+{
+  "feature": "design-partner-program-docs",
+  "title": "Design partner program and case-study docs",
+  "version": 1,
+  "overview": {
+    "problemStatement": "The 1.0 gate is adoption evidence (three external projects plus GIA in production), but the repository has no program, no tracker, and no case-study format. Adoption is the roadmap's hardest and most-deferred item, so without a written program it stays a conversation with no evidence trail.",
+    "proposedSolution": "Add a documentation set under docs/design-partners/: a program page defining eligibility, benefits, obligations and the G5 gate; an empty template tracker; and a case-study template with consent and redaction rules. Link it from the README and never claim a partner who has not consented.",
+    "targetAudience": "The maintainer recruiting partners, and prospective partners deciding whether to join.",
+    "assumptions": [
+      "This is a documentation feature: no runtime code and no crate changes.",
+      "The tracker starts empty; partners are added only after written consent (CON-704).",
+      "In production means a live environment for at least 30 days, as the program page defines.",
+      "Publishing a case study is optional and needs written approval per partner."
+    ]
+  },
+  "userStories": [
+    {
+      "id": "US-001",
+      "title": "Recruit and track design partners honestly",
+      "role": "maintainer",
+      "want": "a written program and tracker",
+      "benefit": "adoption work is repeatable and the 1.0 evidence gate has a record instead of a memory",
+      "acceptanceCriteria": [
+        {
+          "id": "AC-001",
+          "text": "Given docs/design-partners/program.md, when it is read, then it states eligibility, what a partner receives, what a partner commits to, and how in-production and the three-project gate are judged."
+        },
+        {
+          "id": "AC-002",
+          "text": "Given docs/design-partners/tracker.md, when it is read, then it is an empty, labelled template with columns for project, contact, crate in use, environment, start date, status, and evidence link, and it contains no invented partner."
+        },
+        {
+          "id": "AC-003",
+          "text": "Given docs/design-partners/case-study-template.md, when it is read, then it includes a consent statement, a redaction checklist, and a section for measured outcomes rather than adjectives."
+        },
+        {
+          "id": "AC-004",
+          "text": "Given the repository README, when a developer looks for adoption information, then it links to the program page."
+        },
+        {
+          "id": "AC-005",
+          "text": "Given any page in the set, when it mentions a partner or a metric, then the claim is either sourced to a recorded evidence link or explicitly marked as a template placeholder."
+        },
+        {
+          "id": "AC-006",
+          "text": "Given the 1.0 decision gate, when the program page is read, then it names the G5 rule (three external projects plus GIA in production) and says that missing evidence blocks 1.0."
+        }
+      ]
+    }
+  ],
+  "functionalRequirements": [
+    {
+      "id": "FR-001",
+      "text": "docs/design-partners/program.md MUST exist and define eligibility, benefits, obligations, the production definition, and the G5 gate.",
+      "linkedAcceptanceCriteria": [
+        "AC-001",
+        "AC-006"
+      ]
+    },
+    {
+      "id": "FR-002",
+      "text": "docs/design-partners/tracker.md MUST exist as a template with the seven named columns and MUST contain no fabricated partner.",
+      "linkedAcceptanceCriteria": [
+        "AC-002"
+      ]
+    },
+    {
+      "id": "FR-003",
+      "text": "docs/design-partners/case-study-template.md MUST exist with consent, redaction, and measured-outcome sections.",
+      "linkedAcceptanceCriteria": [
+        "AC-003"
+      ]
+    },
+    {
+      "id": "FR-004",
+      "text": "The README MUST link to the program page.",
+      "linkedAcceptanceCriteria": [
+        "AC-004"
+      ]
+    },
+    {
+      "id": "FR-005",
+      "text": "Every partner fact MUST be sourced or marked as a placeholder (CON-704).",
+      "linkedAcceptanceCriteria": [
+        "AC-005"
+      ]
+    },
+    {
+      "id": "FR-006",
+      "text": "Case studies MUST require written consent and MUST NOT include customer data without redaction (CON-501).",
+      "linkedAcceptanceCriteria": [
+        "AC-003"
+      ]
+    },
+    {
+      "id": "FR-007",
+      "text": "The documents MUST NOT contain credentials, private contact details, or unredacted customer data.",
+      "linkedAcceptanceCriteria": [
+        "AC-005"
+      ]
+    },
+    {
+      "id": "FR-008",
+      "text": "The program page MUST state that missing evidence blocks 1.0 rather than softening the gate.",
+      "linkedAcceptanceCriteria": [
+        "AC-006"
+      ]
+    }
+  ],
+  "nonFunctionalRequirements": [
+    {
+      "id": "NFR-001",
+      "text": "The pages MUST be Markdown, render on GitHub, and need no build step.",
+      "linkedAcceptanceCriteria": [
+        "AC-001"
+      ]
+    },
+    {
+      "id": "NFR-002",
+      "text": "The tracker MUST be usable without a database: a Markdown table is the source of truth until a partner consents to more.",
+      "linkedAcceptanceCriteria": [
+        "AC-002"
+      ]
+    },
+    {
+      "id": "NFR-003",
+      "text": "The documents MUST follow the repository's writing conventions and use placeholders such as <project-name>.",
+      "linkedAcceptanceCriteria": [
+        "AC-005"
+      ]
+    }
+  ],
+  "edgeCases": [
+    {
+      "id": "EC-001",
+      "description": "A partner asks to be removed",
+      "expectedBehavior": "the tracker row is deleted and the case study unpublished; the program page says removal is honoured."
+    },
+    {
+      "id": "EC-002",
+      "description": "A partner declines a case study",
+      "expectedBehavior": "the row may still count toward G5 with a private evidence link and no public study is written."
+    },
+    {
+      "id": "EC-003",
+      "description": "A partner has a dev-only integration",
+      "expectedBehavior": "it does not count as production, and the program page says so."
+    },
+    {
+      "id": "EC-004",
+      "description": "A partner row is added without an evidence link",
+      "expectedBehavior": "the template marks it incomplete and the G5 rule refuses it."
+    }
+  ],
+  "dependencies": [
+    {
+      "name": "none",
+      "type": "internal",
+      "notes": "Markdown only; no code dependency."
+    }
+  ],
+  "risks": [
+    {
+      "id": "RISK-001",
+      "description": "Adoption is external and may not materialise.",
+      "mitigation": "The feature makes the requirement visible and auditable, not guaranteed."
+    },
+    {
+      "id": "RISK-002",
+      "description": "A thin documentation feature can become a filing exercise.",
+      "mitigation": "The empty-template rule and the sourcing rule keep it honest."
+    },
+    {
+      "id": "RISK-003",
+      "description": "Partner data is personal.",
+      "mitigation": "The tracker records roles rather than people and the case-study template mandates redaction."
+    }
+  ]
+}

@@ -1023,6 +1023,55 @@
           ]
         }
       ]
+    },
+    {
+      "name": "quota-ledger-redis-backend",
+      "branch": "feature/quota-ledger-redis-backend",
+      "base": "main",
+      "productItems": [
+        "BP-019"
+      ],
+      "currentVersion": "v1",
+      "versions": [
+        {
+          "id": "v1",
+          "phase": "ongoing",
+          "currentStep": "review",
+          "gates": {
+            "specification": "approved",
+            "planning": "approved",
+            "implementation": "approved",
+            "review": "pending"
+          },
+          "history": [
+            {
+              "event": "Ported from feature/w4 prior art (v1 spec, plan, tasks, PASS review, Redis backend, and 8 acceptance tests) onto a dedicated branch from main. The review gate is reset because the commit changed; re-audit is required at the new HEAD.",
+              "by": "SpecDrive",
+              "timestamp": "2026-11-22T21:15:00Z"
+            },
+            {
+              "event": "Feature branch feature/quota-ledger-redis-backend created from main",
+              "by": "SpecDrive",
+              "timestamp": "2026-11-22T21:15:00Z"
+            },
+            {
+              "event": "Gate 1 approved (carried from feature/w4 v1): specification and traceability",
+              "by": "kenule500",
+              "timestamp": "2026-11-22T21:15:00Z"
+            },
+            {
+              "event": "Gate 2 approved (carried from feature/w4 v1): technical plan and execution tasks",
+              "by": "kenule500",
+              "timestamp": "2026-11-22T21:15:00Z"
+            },
+            {
+              "event": "implementation_approved (carried from feature/w4 v1)",
+              "by": "kenule500",
+              "timestamp": "2026-11-22T21:15:00Z"
+            }
+          ]
+        }
+      ]
     }
   ]
 }

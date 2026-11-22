@@ -1,0 +1,213 @@
+{
+  "feature": "quota-ledger-redis-backend",
+  "title": "quota-ledger 0.2 - Redis backend",
+  "version": 1,
+  "overview": {
+    "problemStatement": "quota-ledger 0.1 ships a Postgres backend. Services that already run Redis but not Postgres cannot share quota state without adding a database, so they fall back to a per-process counter that resets on deploy and lets two pods spend the same last unit.",
+    "proposedSolution": "Add an additive `redis` feature to quota-ledger that implements the existing QuotaStore trait over a caller-supplied Redis connection. The atomic claim is a server-side Lua script so concurrent reservations cannot exceed a budget, and every operation keeps the 0.1 contract: tenant-scoped keys, commit-once, release, idempotency conflict, and a typed QuotaExceeded carrying the reset instant.",
+    "targetAudience": "Rust services that already operate Redis and need shared provider quota without a relational database.",
+    "assumptions": [
+      "The 0.1 QuotaStore contract is stable enough to implement against; no trait change is expected.",
+      "The caller supplies a connected redis client; the crate reads no environment variable or connection string.",
+      "The redis crate version must resolve on Rust 1.87; otherwise the feature stops rather than raising the MSRV.",
+      "Redis 7 or later, so EVALSHA and TIME are available.",
+      "No live Redis is available in CI, so concurrency proof needs an opt-in harness recorded as a risk."
+    ]
+  },
+  "userStories": [
+    {
+      "id": "US-001",
+      "title": "Share quota state through Redis",
+      "role": "service author",
+      "want": "the ledger to live in Redis",
+      "benefit": "quota survives restarts and is consistent across pods without adding Postgres",
+      "acceptanceCriteria": [
+        {
+          "id": "AC-001",
+          "text": "Given a redis feature build and a caller-supplied connection, when reserve is called with remaining capacity, then it records a hold and returns a reservation with an identifier, using only Redis keys scoped by tenant, provider, metric, and window."
+        },
+        {
+          "id": "AC-002",
+          "text": "Given concurrent reserve calls against one limited budget, when all complete, then the total committed never exceeds the limit because the claim is one server-side script."
+        },
+        {
+          "id": "AC-003",
+          "text": "Given an open reservation, when commit is called twice, then the hold is consumed exactly once and a repeated commit is rejected or idempotent."
+        },
+        {
+          "id": "AC-004",
+          "text": "Given a caller idempotency key already used with a different payload, when reserve is called again, then it fails with the typed idempotency conflict and takes no second hold."
+        },
+        {
+          "id": "AC-005",
+          "text": "Given no capacity and HardStop, when reserve is called, then it returns a typed QuotaExceeded carrying the reset instant and creates no reservation."
+        },
+        {
+          "id": "AC-006",
+          "text": "Given a key with reservations, when usage is read, then it reports limit, consumed, held, and the next reset instant computed from the configured window."
+        },
+        {
+          "id": "AC-007",
+          "text": "Given the crate built with default features, when it compiles, then no Redis type is present; and with all features on Rust 1.87 it compiles with forbid(unsafe_code) and deny(missing_docs)."
+        },
+        {
+          "id": "AC-008",
+          "text": "Given a Redis failure or a malformed payload, when an operation runs, then it returns a typed QuotaError and the error never renders the connection string or a credential."
+        }
+      ]
+    }
+  ],
+  "functionalRequirements": [
+    {
+      "id": "FR-001",
+      "text": "A `redis` feature MUST add a QuotaStore implementation backed by a caller-supplied connection and MUST be absent when the feature is off.",
+      "linkedAcceptanceCriteria": [
+        "AC-001",
+        "AC-007"
+      ]
+    },
+    {
+      "id": "FR-002",
+      "text": "The reserve claim MUST be a single server-side script so concurrent claims cannot exceed the limit.",
+      "linkedAcceptanceCriteria": [
+        "AC-002"
+      ]
+    },
+    {
+      "id": "FR-003",
+      "text": "commit MUST consume a hold exactly once; release MUST return held units.",
+      "linkedAcceptanceCriteria": [
+        "AC-003"
+      ]
+    },
+    {
+      "id": "FR-004",
+      "text": "Idempotency keys MUST be honored per tenant, provider, metric, and window, and a conflicting payload MUST return a typed conflict.",
+      "linkedAcceptanceCriteria": [
+        "AC-004"
+      ]
+    },
+    {
+      "id": "FR-005",
+      "text": "Budget and reservation keys MUST embed the tenant, so no operation can read or spend another tenant's quota (CON-512).",
+      "linkedAcceptanceCriteria": [
+        "AC-001",
+        "AC-005"
+      ]
+    },
+    {
+      "id": "FR-006",
+      "text": "Windows MUST support daily, monthly, and rolling resets computed from the window, not from host midnight.",
+      "linkedAcceptanceCriteria": [
+        "AC-006"
+      ]
+    },
+    {
+      "id": "FR-007",
+      "text": "The crate MUST NOT read environment variables, connection strings, or credential files (CON-519).",
+      "linkedAcceptanceCriteria": [
+        "AC-008"
+      ]
+    },
+    {
+      "id": "FR-008",
+      "text": "Errors MUST NOT render a connection string, a password, or a Redis URI (CON-214).",
+      "linkedAcceptanceCriteria": [
+        "AC-008"
+      ]
+    }
+  ],
+  "nonFunctionalRequirements": [
+    {
+      "id": "NFR-001",
+      "text": "Every Redis key MUST be namespaced by tenant and MUST NOT collide across providers or metrics (CON-512).",
+      "linkedAcceptanceCriteria": [
+        "AC-001"
+      ]
+    },
+    {
+      "id": "NFR-002",
+      "text": "The script and every command MUST pass caller values as arguments, never as interpolated command text (CON-516).",
+      "linkedAcceptanceCriteria": [
+        "AC-002"
+      ]
+    },
+    {
+      "id": "NFR-003",
+      "text": "Caller-supplied windows, metrics, and unit counts MUST be validated and bounded before reaching Redis (CON-515).",
+      "linkedAcceptanceCriteria": [
+        "AC-005"
+      ]
+    },
+    {
+      "id": "NFR-004",
+      "text": "The crate MUST compile on Rust 1.87 with all features (CON-102).",
+      "linkedAcceptanceCriteria": [
+        "AC-007"
+      ]
+    },
+    {
+      "id": "NFR-005",
+      "text": "Every public item MUST carry rustdoc and every module MUST state its scope and non-goals (CON-202, CON-203).",
+      "linkedAcceptanceCriteria": [
+        "AC-007"
+      ]
+    }
+  ],
+  "edgeCases": [
+    {
+      "id": "EC-001",
+      "description": "Two pods reserve the final unit simultaneously",
+      "expectedBehavior": "exactly one script call succeeds; the other returns QuotaExceeded."
+    },
+    {
+      "id": "EC-002",
+      "description": "Redis restarts between reserve and commit",
+      "expectedBehavior": "a missing reservation returns a typed not-found error, never a synthetic success."
+    },
+    {
+      "id": "EC-003",
+      "description": "A reservation outlives its window",
+      "expectedBehavior": "it settles against the window it was created in; the reset instant is derived from the key, not the clock."
+    },
+    {
+      "id": "EC-004",
+      "description": "Feature off",
+      "expectedBehavior": "the crate compiles and links no Redis client, and sqlx stays the only optional backend."
+    },
+    {
+      "id": "EC-005",
+      "description": "Connection failure mid-call",
+      "expectedBehavior": "typed QuotaError::Backend, redacted, with no partial hold."
+    }
+  ],
+  "dependencies": [
+    {
+      "name": "redis",
+      "type": "library",
+      "notes": "Async, TLS-capable, behind the redis feature; must resolve on Rust 1.87."
+    },
+    {
+      "name": "tokio",
+      "type": "library",
+      "notes": "Dev-dependency only, for the opt-in Redis harness."
+    }
+  ],
+  "risks": [
+    {
+      "id": "RISK-001",
+      "description": "No Redis in CI, so the concurrency proof needs an opt-in harness.",
+      "mitigation": "AC-002 asserts the script's atomicity through a Redis-backed test when a server is available, and the gap is documented in the review rather than implied to be covered."
+    },
+    {
+      "id": "RISK-002",
+      "description": "Lua scripts are easy to get subtly wrong around expiry and settlement.",
+      "mitigation": "The script is the review's focus and gets its own failure-path tests for missing, expired, and already-settled reservations."
+    },
+    {
+      "id": "RISK-003",
+      "description": "A redis release that needs Rust 1.88 or later blocks the feature.",
+      "mitigation": "Pin a compatible release, or stop and amend CON-102; never raise the MSRV silently."
+    }
+  ]
+}

@@ -32,3 +32,8 @@ updated: 2026-11-08
   Add the docs-site link to the README and finish `docs/src/upgrading.md` with the 0.x-to-1.0 policy and where breaking changes will be recorded.
 - [x] **T3.2 - Run the verification checks** (`NFR-002`, `NFR-003` / `AC-001`, `AC-004`)
   Run `mdbook build docs`, `node scripts/docs-check.js`, `node .sdrive/scripts/validate-governance.js`, and the existing `cargo fmt --all --check` to confirm the repository baseline is untouched.
+
+## P4 - Review fixes
+
+- [ ] **T4.1 - Make the generated-page drift check line-ending agnostic** (`FR-002`, `FR-007`, `NFR-002` / `AC-002`, `AC-005`)
+  R1-1: `docs-matrix.js` and `docs-errors.js` write and compare LF-only content, so a CRLF checkout (the `windows-latest` runner defaults to `core.autocrlf=true`, and the repository has no `.gitattributes`) reports the committed pages stale and fails `ac_005`. Normalise line endings on write and on comparison, and add a repository `.gitattributes` so a Windows and a Linux checkout produce the same working tree.

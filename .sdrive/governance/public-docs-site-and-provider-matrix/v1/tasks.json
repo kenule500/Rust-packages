@@ -121,6 +121,30 @@
           "completed": true
         }
       ]
+    },
+    {
+      "phaseId": "P4",
+      "name": "Review fixes",
+      "dependencies": [
+        "P3"
+      ],
+      "tasks": [
+        {
+          "id": "T4.1",
+          "title": "Make the generated-page drift check line-ending agnostic",
+          "description": "R1-1: docs-matrix.js and docs-errors.js write and compare LF-only content, so a CRLF checkout (windows-latest defaults to core.autocrlf=true and the repo has no .gitattributes) reports the committed pages stale and fails the acceptance tests. Normalise line endings on write and on comparison, and add a repository .gitattributes so a Windows and a Linux checkout produce the same working tree.",
+          "linkedRequirements": [
+            "FR-002",
+            "FR-007",
+            "NFR-002"
+          ],
+          "linkedAcceptanceCriteria": [
+            "AC-002",
+            "AC-005"
+          ],
+          "completed": false
+        }
+      ]
     }
   ]
 }

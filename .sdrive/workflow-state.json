@@ -1104,7 +1104,7 @@
           "gates": {
             "specification": "approved",
             "planning": "approved",
-            "implementation": "pending",
+            "implementation": "approved",
             "review": "pending"
           },
           "history": [
@@ -1132,6 +1132,13 @@
               "event": "Lifecycle transition: moved specs/backlog/public-docs-site-and-provider-matrix to specs/ongoing/; phase set to ongoing, currentStep set to implementation.",
               "by": "SpecDrive",
               "timestamp": "2026-11-23T14:42:03.163Z"
+            },
+            {
+              "event": "implementation_approved",
+              "by": "kenule500",
+              "actor": "kenule500",
+              "previousValue": "pending",
+              "timestamp": "2026-11-23T15:31:22.096Z"
             }
           ]
         }

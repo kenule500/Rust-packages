@@ -1087,6 +1087,113 @@
           ]
         }
       ]
+    },
+    {
+      "name": "public-docs-site-and-provider-matrix",
+      "branch": "feature/public-docs-site-and-provider-matrix",
+      "base": "main",
+      "productItems": [
+        "BP-029"
+      ],
+      "currentVersion": "v1",
+      "versions": [
+        {
+          "id": "v1",
+          "phase": "ongoing",
+          "currentStep": "implementation",
+          "gates": {
+            "specification": "approved",
+            "planning": "approved",
+            "implementation": "approved",
+            "review": "approved"
+          },
+          "history": [
+            {
+              "event": "Ported from feature/w4 prior art (v1 spec, plan, tasks; Gates 1 and 2 approved) onto a dedicated branch from main.",
+              "by": "SpecDrive",
+              "timestamp": "2026-11-23T14:40:00Z"
+            },
+            {
+              "event": "Feature branch feature/public-docs-site-and-provider-matrix created from main",
+              "by": "SpecDrive",
+              "timestamp": "2026-11-23T14:40:00Z"
+            },
+            {
+              "event": "Gate 1 approved (carried from feature/w4 v1): specification and traceability",
+              "by": "kenule500",
+              "timestamp": "2026-11-23T14:40:00Z"
+            },
+            {
+              "event": "Gate 2 approved (carried from feature/w4 v1): technical plan and execution tasks",
+              "by": "kenule500",
+              "timestamp": "2026-11-23T14:40:00Z"
+            },
+            {
+              "event": "Lifecycle transition: moved specs/backlog/public-docs-site-and-provider-matrix to specs/ongoing/; phase set to ongoing, currentStep set to implementation.",
+              "by": "SpecDrive",
+              "timestamp": "2026-11-23T14:42:03.163Z"
+            },
+            {
+              "event": "implementation_approved",
+              "by": "kenule500",
+              "actor": "kenule500",
+              "previousValue": "pending",
+              "timestamp": "2026-11-23T15:31:22.096Z"
+            },
+            {
+              "event": "review_approved",
+              "by": "kenule500",
+              "actor": "kenule500",
+              "previousValue": "pending",
+              "timestamp": "2026-11-23T16:35:57.226Z"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "wirekit-self-serve-provider-modules",
+      "branch": "feature/wirekit-self-serve-provider-modules",
+      "base": "main",
+      "productItems": [
+        "BP-028"
+      ],
+      "currentVersion": "v1",
+      "versions": [
+        {
+          "id": "v1",
+          "phase": "backlog",
+          "currentStep": "specification",
+          "gates": {
+            "specification": "approved",
+            "planning": "approved",
+            "implementation": "pending",
+            "review": "pending"
+          },
+          "history": [
+            {
+              "event": "Ported from feature/w4 prior art (v1 spec, plan, tasks; Gates 1 and 2 approved) onto a dedicated branch from main.",
+              "by": "SpecDrive",
+              "timestamp": "2026-11-23T14:40:00Z"
+            },
+            {
+              "event": "Feature branch feature/wirekit-self-serve-provider-modules created from main",
+              "by": "SpecDrive",
+              "timestamp": "2026-11-23T14:40:00Z"
+            },
+            {
+              "event": "Gate 1 approved (carried from feature/w4 v1): specification and traceability",
+              "by": "kenule500",
+              "timestamp": "2026-11-23T14:40:00Z"
+            },
+            {
+              "event": "Gate 2 approved (carried from feature/w4 v1): technical plan and execution tasks",
+              "by": "kenule500",
+              "timestamp": "2026-11-23T14:40:00Z"
+            }
+          ]
+        }
+      ]
     }
   ]
 }

@@ -18,6 +18,24 @@ repository root; `catalogue/` holds only the provider and design Markdown docs.
 The provider docs in `catalogue/` are the current integration contract; the GIA
 catalog copy is pending.
 
+## Browse the documentation site
+
+[`docs/`](docs/src/introduction.md) is a browsable mdBook: a crate index, the
+provider matrix, the error-code reference, and the upgrade guide. Run it locally
+with `mdbook serve docs`.
+
+```sh
+mdbook serve docs     # preview at http://localhost:3000
+mdbook build docs     # static site in docs/book
+node scripts/docs-check.js
+```
+
+The crate index, the provider matrix, and the error-code reference are generated
+from `catalogue/` and the crates' own manifests and source, so they cannot claim
+a status the code contradicts. `node scripts/docs-check.js` fails when a
+generated page is stale or an internal link does not resolve, and the CI docs job
+runs it together with `mdbook build docs`.
+
 | # | Package | What it is | Doc |
 |---|---|---|---|
 | 00 | Provider index | All 26 provider docs, status, and “already online?” answers | [00_provider_index.md](catalogue/00_provider_index.md) |

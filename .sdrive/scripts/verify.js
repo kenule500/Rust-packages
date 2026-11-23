@@ -109,7 +109,13 @@ const CANDIDATE_ROOTS = [
   // no source folder (src, crates, app) holds; without these, every planned
   // component of such a feature is reported Missing no matter how complete it is.
   "docs",
-  "scripts"
+  "scripts",
+  // CI roots. A feature that adds or changes a workflow declares
+  // `.github/workflows/<name>.yml`, and no other root reaches it, so the file was
+  // reported Missing while it sat in the working tree fully implemented
+  // (public-docs-site-and-provider-matrix, T2.2). Only `.yml`/`.yaml` live here,
+  // so this widens what the scan can see without loosening any check.
+  ".github"
 ];
 
 const IGNORED_DIRS = new Set([

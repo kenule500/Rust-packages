@@ -1,0 +1,39 @@
+# mdBook configuration for the public docs site.
+#
+# No remote theme, font, or asset is referenced: once mdBook is installed the
+# book builds without a network connection (NFR-001), and the site ships no
+# JavaScript bundle of its own beyond mdBook's bundled search and highlight
+# assets (AC-006). The theme is mdBook's default (CON-303 records that this
+# repository has no design system).
+
+[book]
+title = "GIA Packages"
+authors = ["GIA Packages maintainers"]
+language = "en"
+src = "src"
+description = "The public Rust packages GIA and other projects build and consume: crates, provider modules, error codes, and the upgrade path."
+
+[build]
+build-dir = "book"
+# A chapter listed in SUMMARY.md but missing on disk is a build failure rather
+# than a silently created stub (EC-001). The three generated pages are produced
+# by scripts/docs-matrix.js and scripts/docs-errors.js.
+create-missing = false
+
+[output.html]
+default-theme = "light"
+preferred-dark-theme = "navy"
+git-repository-url = "https://github.com/kenule500/Rust-packages"
+# `{path}` already carries the book's `src` segment, so the prefix stops at
+# `docs/`.
+edit-url-template = "https://github.com/kenule500/Rust-packages/edit/main/docs/{path}"
+no-section-label = false
+
+[output.html.search]
+enable = true
+limit-results = 30
+teaser-word-count = 30
+
+[output.html.playground]
+editable = false
+copyable = true

@@ -11,6 +11,8 @@
 
 # Cargo build output and local lockfile
 target/
+# mdBook output. The site is built from docs/src by CI; only the source is tracked.
+docs/book/
 **/*.rs.bk
 Cargo.lock
 .DS_Store

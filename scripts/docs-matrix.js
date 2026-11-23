@@ -43,6 +43,14 @@ function read(file) {
   return fs.readFileSync(file, 'utf8');
 }
 
+// A checkout may hand us CRLF: `core.autocrlf=true` is the normal setting on
+// Windows and on GitHub's windows-latest runner. This script always emits LF, so
+// comparing raw bytes would report every generated page stale on such a clone
+// even though the content is identical (R1-1). Line endings are not content.
+function normaliseNewlines(text) {
+  return text.replace(/\r\n/g, '\n');
+}
+
 function byName(a, b) {
   if (a.name < b.name) return -1;
   if (a.name > b.name) return 1;
@@ -459,11 +467,11 @@ function main(argv) {
       if (current === null) {
         console.error(`${relative} is missing — run: node scripts/docs-matrix.js`);
         failures += 1;
-      } else if (current !== output.content) {
+      } else if (normaliseNewlines(current) !== output.content) {
         console.error(`${relative} is stale — run: node scripts/docs-matrix.js`);
         failures += 1;
       }
-    } else if (current !== output.content) {
+    } else if (normaliseNewlines(current) !== output.content) {
       fs.writeFileSync(output.file, output.content, 'utf8');
       console.log(`wrote ${relative}`);
     }

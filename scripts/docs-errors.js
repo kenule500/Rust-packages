@@ -45,6 +45,14 @@ function read(file) {
   return fs.readFileSync(file, 'utf8');
 }
 
+// A checkout may hand us CRLF: `core.autocrlf=true` is the normal setting on
+// Windows and on GitHub's windows-latest runner. This script always emits LF, so
+// comparing raw bytes would report the page stale on such a clone even though the
+// content is identical (R1-1). Line endings are not content.
+function normaliseNewlines(text) {
+  return text.replace(/\r\n/g, '\n');
+}
+
 function compareText(a, b) {
   if (a < b) return -1;
   if (a > b) return 1;
@@ -347,7 +355,7 @@ function main(argv) {
       console.error(`${relative} is missing — run: node scripts/docs-errors.js`);
       return 1;
     }
-    if (current !== content) {
+    if (normaliseNewlines(current) !== content) {
       console.error(`${relative} is stale — run: node scripts/docs-errors.js`);
       return 1;
     }
@@ -355,7 +363,7 @@ function main(argv) {
     return 0;
   }
 
-  if (current !== content) {
+  if (normaliseNewlines(current) !== content) {
     fs.writeFileSync(OUTPUT, content, 'utf8');
     console.log(`wrote ${relative}`);
   }

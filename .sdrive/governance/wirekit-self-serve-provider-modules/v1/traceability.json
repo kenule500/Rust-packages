@@ -30,7 +30,7 @@
         "T2.6"
       ],
       "testIds": [],
-      "status": "not_started"
+      "status": "in_progress"
     },
     {
       "requirementId": "FR-003",
@@ -48,7 +48,7 @@
         "T2.6"
       ],
       "testIds": [],
-      "status": "not_started"
+      "status": "in_progress"
     },
     {
       "requirementId": "FR-004",

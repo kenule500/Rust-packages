@@ -17,7 +17,7 @@ updated: 2026-11-08
 
 ## P2 - Provider modules
 
-- [ ] **T2.1 - Implement the AccuWeather module** (`FR-002`, `FR-003`, `FR-004` / `AC-001`, `AC-002`, `AC-004`)
+- [x] **T2.1 - Implement the AccuWeather module** (`FR-002`, `FR-003`, `FR-004` / `AC-001`, `AC-002`, `AC-004`)
   Implement `accuweather.rs` from `catalogue/08_accuweather.md`: location search, current conditions, and forecast, using the shared API-key auth, retry, and rate limiter.
 - [ ] **T2.2 - Implement the Lob module** (`FR-002`, `FR-003`, `FR-005` / `AC-001`, `AC-002`, `AC-003`)
   Implement `lob.rs` from `catalogue/18_lob.md`: create and retrieve letters and postcards, verification, and the `error.message` envelope mapped into `WirekitError`.

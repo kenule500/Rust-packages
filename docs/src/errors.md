@@ -118,5 +118,6 @@ listed, in source order. Regenerate with `node scripts/docs-errors.js`;
 These crates declare no stable error code in their `src/`:
 
 - `design-partner-program-docs`
+- `public-docs-site-and-provider-matrix`
 
 Total: 60 stable codes across 6 crate(s).

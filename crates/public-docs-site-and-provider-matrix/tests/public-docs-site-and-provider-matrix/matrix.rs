@@ -35,10 +35,10 @@ fn ac_002_matrix_is_generated_from_source_and_drift_fails() {
         "adp is reported without a module but crates/wirekit/src/adp.rs exists"
     );
 
-    let documented_only = table_row(&matrix, "wirekit::accuweather");
+    let documented_only = table_row(&matrix, "wirekit::google_business");
     assert!(
         documented_only.ends_with("| documented only |"),
-        "accuweather must be reported as documented only, got: {documented_only}"
+        "google_business must be reported as documented only, got: {documented_only}"
     );
 
     // 3. The crate index reports the workspace, including the version it declares.

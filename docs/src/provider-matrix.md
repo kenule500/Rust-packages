@@ -8,7 +8,7 @@ Every provider below is a **module inside `wirekit`**, not a separate crate
 claim a module the source does not contain (FR-007). Regenerate it with
 `node scripts/docs-matrix.js`.
 
-11 of 26 providers are implemented. A
+17 of 26 providers are implemented. A
 provider counts as **implemented** only when all three hold: the Cargo
 feature is declared, the module source file exists, and `lib.rs` declares
 the module behind that feature.
@@ -20,7 +20,7 @@ the module behind that feature.
 | [Meta Graph](https://github.com/kenule500/Rust-packages/blob/main/catalogue/05_meta.md) | `wirekit::meta` | Messenger, Instagram, WhatsApp | App review / business verification | `meta` | [`src/meta.rs`](https://github.com/kenule500/Rust-packages/blob/main/crates/wirekit/src/meta.rs) | implemented |
 | [Google Business Profile](https://github.com/kenule500/Rust-packages/blob/main/catalogue/06_google_business.md) | `wirekit::google_business` | Listings, reviews, posts | Google API approval | `google-business` (missing) | — | documented only |
 | [NOAA](https://github.com/kenule500/Rust-packages/blob/main/catalogue/07_noaa.md) | `wirekit::noaa` | Forecasts, alerts, radar | No auth | `noaa` | [`src/noaa.rs`](https://github.com/kenule500/Rust-packages/blob/main/crates/wirekit/src/noaa.rs) | implemented |
-| [AccuWeather](https://github.com/kenule500/Rust-packages/blob/main/catalogue/08_accuweather.md) | `wirekit::accuweather` | Forecasts, alerts, history | Commercial API key | `accuweather` (missing) | — | documented only |
+| [AccuWeather](https://github.com/kenule500/Rust-packages/blob/main/catalogue/08_accuweather.md) | `wirekit::accuweather` | Forecasts, alerts, history | Commercial API key | `accuweather` | [`src/accuweather.rs`](https://github.com/kenule500/Rust-packages/blob/main/crates/wirekit/src/accuweather.rs) | implemented |
 | [ATTOM](https://github.com/kenule500/Rust-packages/blob/main/catalogue/09_attom.md) | `wirekit::attom` | Property records, valuations | Commercial contract | `attom` (missing) | — | documented only |
 | [CoreLogic](https://github.com/kenule500/Rust-packages/blob/main/catalogue/10_corelogic.md) | `wirekit::corelogic` | Property records, valuations | Commercial contract | `corelogic` (missing) | — | documented only |
 | [BuildZoom](https://github.com/kenule500/Rust-packages/blob/main/catalogue/11_buildzoom.md) | `wirekit::buildzoom` | Permit data, contractors | Commercial/partner | `buildzoom` (missing) | — | documented only |
@@ -30,14 +30,14 @@ the module behind that feature.
 | [Sage Intacct](https://github.com/kenule500/Rust-packages/blob/main/catalogue/15_sage_intacct.md) | `wirekit::sage_intacct` | Accounting | Partner/company credentials | `sage-intacct` | [`src/sage_intacct.rs`](https://github.com/kenule500/Rust-packages/blob/main/crates/wirekit/src/sage_intacct.rs) | implemented |
 | [ADP](https://github.com/kenule500/Rust-packages/blob/main/catalogue/16_adp.md) | `wirekit::adp` | Payroll | Enterprise/partner | `adp` | — | feature declared, no module |
 | [Gusto](https://github.com/kenule500/Rust-packages/blob/main/catalogue/17_gusto.md) | `wirekit::gusto` | Payroll | OAuth app approval | `gusto` (missing) | — | documented only |
-| [Lob](https://github.com/kenule500/Rust-packages/blob/main/catalogue/18_lob.md) | `wirekit::lob` | Direct mail | Standard account | `lob` (missing) | — | documented only |
-| [Yelp](https://github.com/kenule500/Rust-packages/blob/main/catalogue/19_yelp.md) | `wirekit::yelp` | Business search, reviews, leads | Fusion API; leads may be partner-only | `yelp` (missing) | — | documented only |
+| [Lob](https://github.com/kenule500/Rust-packages/blob/main/catalogue/18_lob.md) | `wirekit::lob` | Direct mail | Standard account | `lob` | [`src/lob.rs`](https://github.com/kenule500/Rust-packages/blob/main/crates/wirekit/src/lob.rs) | implemented |
+| [Yelp](https://github.com/kenule500/Rust-packages/blob/main/catalogue/19_yelp.md) | `wirekit::yelp` | Business search, reviews, leads | Fusion API; leads may be partner-only | `yelp` | [`src/yelp.rs`](https://github.com/kenule500/Rust-packages/blob/main/crates/wirekit/src/yelp.rs) | implemented |
 | [Angi](https://github.com/kenule500/Rust-packages/blob/main/catalogue/20_angi.md) | `wirekit::angi` | Lead import | **No public API** — manual/partner | `angi` | [`src/angi.rs`](https://github.com/kenule500/Rust-packages/blob/main/crates/wirekit/src/angi.rs) | implemented |
 | [Google LSA](https://github.com/kenule500/Rust-packages/blob/main/catalogue/21_google_lsa.md) | `wirekit::google_lsa` | Local Services Ads leads | Google Ads API access | `google-lsa` | [`src/google_lsa.rs`](https://github.com/kenule500/Rust-packages/blob/main/crates/wirekit/src/google_lsa.rs) | implemented |
-| [PagerDuty](https://github.com/kenule500/Rust-packages/blob/main/catalogue/22_pagerduty.md) | `wirekit::pagerduty` | Incidents, alerts, on-call | Standard account | `pagerduty` (missing) | — | documented only |
+| [PagerDuty](https://github.com/kenule500/Rust-packages/blob/main/catalogue/22_pagerduty.md) | `wirekit::pagerduty` | Incidents, alerts, on-call | Standard account | `pagerduty` | [`src/pagerduty.rs`](https://github.com/kenule500/Rust-packages/blob/main/crates/wirekit/src/pagerduty.rs) | implemented |
 | [Slack](https://github.com/kenule500/Rust-packages/blob/main/catalogue/23_slack.md) | `wirekit::slack` | Notifications, channels | OAuth app | `slack` | [`src/slack.rs`](https://github.com/kenule500/Rust-packages/blob/main/crates/wirekit/src/slack.rs) | implemented |
-| [Deepgram](https://github.com/kenule500/Rust-packages/blob/main/catalogue/24_deepgram.md) | `wirekit::deepgram` | Speech-to-text | Standard account | `deepgram` (missing) | — | documented only |
-| [Klarna](https://github.com/kenule500/Rust-packages/blob/main/catalogue/25_klarna.md) | `wirekit::klarna` | Consumer financing | Merchant account | `klarna` (missing) | — | documented only |
+| [Deepgram](https://github.com/kenule500/Rust-packages/blob/main/catalogue/24_deepgram.md) | `wirekit::deepgram` | Speech-to-text | Standard account | `deepgram` | [`src/deepgram.rs`](https://github.com/kenule500/Rust-packages/blob/main/crates/wirekit/src/deepgram.rs) | implemented |
+| [Klarna](https://github.com/kenule500/Rust-packages/blob/main/catalogue/25_klarna.md) | `wirekit::klarna` | Consumer financing | Merchant account | `klarna` | [`src/klarna.rs`](https://github.com/kenule500/Rust-packages/blob/main/crates/wirekit/src/klarna.rs) | implemented |
 | [Wisetack](https://github.com/kenule500/Rust-packages/blob/main/catalogue/26_wisetack.md) | `wirekit::wisetack` | Consumer financing | Partner account | `wisetack` (missing) | — | documented only |
 | [LeadPerfection](https://github.com/kenule500/Rust-packages/blob/main/catalogue/27_leadperfection.md) | `wirekit::leadperfection` | Calendar booking | Partner/API key | `leadperfection` (missing) | — | documented only |
 | [Google OAuth](https://github.com/kenule500/Rust-packages/blob/main/catalogue/28_google_oauth.md) | `wirekit::google_oauth` | Shared OAuth helper | Google Cloud project | `google-oauth` | [`src/google_oauth.rs`](https://github.com/kenule500/Rust-packages/blob/main/crates/wirekit/src/google_oauth.rs) | implemented |
@@ -46,9 +46,9 @@ the module behind that feature.
 
 | Status | Meaning | Providers |
 |---|---|---|
-| implemented | Feature declared, module source present, module wired in `lib.rs`. | `wirekit::twilio`, `wirekit::sendgrid`, `wirekit::meta`, `wirekit::noaa`, `wirekit::eagleview`, `wirekit::quickbooks`, `wirekit::sage_intacct`, `wirekit::angi`, `wirekit::google_lsa`, `wirekit::slack`, `wirekit::google_oauth` |
+| implemented | Feature declared, module source present, module wired in `lib.rs`. | `wirekit::twilio`, `wirekit::sendgrid`, `wirekit::meta`, `wirekit::noaa`, `wirekit::accuweather`, `wirekit::eagleview`, `wirekit::quickbooks`, `wirekit::sage_intacct`, `wirekit::lob`, `wirekit::yelp`, `wirekit::angi`, `wirekit::google_lsa`, `wirekit::pagerduty`, `wirekit::slack`, `wirekit::deepgram`, `wirekit::klarna`, `wirekit::google_oauth` |
 | feature declared, no module | The Cargo feature exists but enables nothing. | `wirekit::adp` |
-| documented only | A design note exists; no feature and no module. | `wirekit::google_business`, `wirekit::accuweather`, `wirekit::attom`, `wirekit::corelogic`, `wirekit::buildzoom`, `wirekit::jobber`, `wirekit::gusto`, `wirekit::lob`, `wirekit::yelp`, `wirekit::pagerduty`, `wirekit::deepgram`, `wirekit::klarna`, `wirekit::wisetack`, `wirekit::leadperfection` |
+| documented only | A design note exists; no feature and no module. | `wirekit::google_business`, `wirekit::attom`, `wirekit::corelogic`, `wirekit::buildzoom`, `wirekit::jobber`, `wirekit::gusto`, `wirekit::wisetack`, `wirekit::leadperfection` |
 
 Each provider needs its own feature for its own module, and enabling one
 feature never enables another (CON-204). The catalogue note is the design

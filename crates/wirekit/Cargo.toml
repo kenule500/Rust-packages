@@ -63,6 +63,19 @@ meta = []
 # sha2, serde, serde_json, and url are already compiled in.
 quickbooks = []
 
+# BP-028. Self-serve providers: the six providers whose APIs a developer can
+# register for without a partner contract. Each module implements only the
+# surface in its catalogue design file and each feature is independent
+# (CON-204), so enabling one never enables another. No new dependency: the
+# shared client, retry, rate limit, secret, auth, and tracing machinery is
+# already compiled in.
+accuweather = []
+lob = []
+pagerduty = []
+deepgram = []
+yelp = []
+klarna = []
+
 [dependencies]
 reqwest = { version = "0.12.23", default-features = false, features = [
     "rustls-tls",
@@ -120,6 +133,10 @@ wiremock = "=0.6.3"
 # `tokio` or `tracing` dependencies, so the test harness declares them itself.
 tokio = { version = "1.44.2", features = ["macros", "rt", "time"] }
 tracing = "0.1.41"
+
+[[test]]
+name = "wirekit-self-serve-provider-modules"
+required-features = ["accuweather", "lob", "pagerduty", "deepgram", "yelp", "klarna"]
 
 [[test]]
 name = "google-oauth-shared-helper"

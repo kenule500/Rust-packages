@@ -27,9 +27,18 @@
 //! | `twilio` | `wirekit::twilio` | Basic or API key | `https://api.twilio.com/2010-04-01` |
 //! | `sendgrid` | `wirekit::sendgrid` | Bearer API key | `https://api.sendgrid.com/v3` |
 //! | `slack` | `wirekit::slack` | Bot token | `https://slack.com/api` |
+//! | `accuweather` | `wirekit::accuweather` | API key (query) | `https://dataservice.accuweather.com` |
+//! | `lob` | `wirekit::lob` | Basic API key | `https://api.lob.com/v1` |
+//! | `pagerduty` | `wirekit::pagerduty` | API key (header) or routing key | `https://api.pagerduty.com`, `https://events.pagerduty.com/v2` |
+//! | `deepgram` | `wirekit::deepgram` | Bearer API key | `https://api.deepgram.com/v1` |
+//! | `yelp` | `wirekit::yelp` | Bearer token | `https://api.yelp.com/v3` |
+//! | `klarna` | `wirekit::klarna` | Basic merchant credentials | `https://api.klarna.com` |
 //!
 //! Features are additive (CON-204): enabling one provider never enables or
-//! disables another. Enabling all four costs one crate.
+//! disables another. Enabling every feature costs one crate. Partner-gated
+//! providers (ATTOM, CoreLogic, BuildZoom, ADP, Gusto, Google Business, Jobber,
+//! Wisetack, and LeadPerfection) are out of scope: a route that cannot be
+//! verified against a contract is not shipped.
 //!
 //! # I/O boundary
 //!
@@ -68,8 +77,14 @@ pub mod retry;
 pub mod secret;
 pub mod trace;
 
+#[cfg(feature = "accuweather")]
+pub mod accuweather;
+
 #[cfg(feature = "angi")]
 pub mod angi;
+
+#[cfg(feature = "deepgram")]
+pub mod deepgram;
 
 #[cfg(feature = "eagleview")]
 pub mod eagleview;
@@ -80,11 +95,20 @@ pub mod google_lsa;
 #[cfg(feature = "google-oauth")]
 pub mod google_oauth;
 
+#[cfg(feature = "klarna")]
+pub mod klarna;
+
+#[cfg(feature = "lob")]
+pub mod lob;
+
 #[cfg(feature = "meta")]
 pub mod meta;
 
 #[cfg(feature = "noaa")]
 pub mod noaa;
+
+#[cfg(feature = "pagerduty")]
+pub mod pagerduty;
 
 #[cfg(feature = "quickbooks")]
 pub mod quickbooks;
@@ -100,6 +124,9 @@ pub mod slack;
 
 #[cfg(feature = "twilio")]
 pub mod twilio;
+
+#[cfg(feature = "yelp")]
+pub mod yelp;
 
 pub use auth::{
     ApiKeyHeader, ApiKeyQuery, AuthScheme, BasicAuth, BearerAuth, HmacAuth, OAuth2ClientCredentials,

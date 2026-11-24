@@ -1,0 +1,196 @@
+{
+  "feature": "wirekit-self-serve-provider-modules",
+  "title": "wirekit - self-serve provider modules",
+  "version": 1,
+  "overview": {
+    "problemStatement": "wirekit ships eleven provider modules, but six providers with self-serve access (AccuWeather, Lob, PagerDuty, Deepgram, Yelp, Klarna) have catalogue designs and no client, so developers hand-roll an HTTP client and a second error type. Partner-gated providers cannot be verified without contracts and are excluded.",
+    "proposedSolution": "Add six provider modules to wirekit, each behind its own additive feature, each mapping into the shared WirekitError, retry policy, rate limiter, and auth layer, implementing only the surface in its catalogue design file.",
+    "targetAudience": "Rust developers using these providers who want one client, one error model, and one retry policy.",
+    "assumptions": [
+      "The catalogue design files 08, 18, 19, 22, 24 and 25 are the contract; no endpoint is invented.",
+      "Sandbox credentials exist for providers with free tiers; others are verified against recorded fixtures.",
+      "Partner-gated providers stay needs discovery and are not part of this feature.",
+      "Each provider feature is additive and independent (CON-204)."
+    ]
+  },
+  "userStories": [
+    {
+      "id": "US-001",
+      "title": "Use a self-serve provider through the shared client",
+      "role": "Rust developer",
+      "want": "a typed client for my provider",
+      "benefit": "I get the workspace error, retry, rate-limit, and auth behaviour without writing my own",
+      "acceptanceCriteria": [
+        {
+          "id": "AC-001",
+          "text": "Given the accuweather, lob, pagerduty, deepgram, yelp, or klarna feature, when the module is enabled, then it exposes the request and response types listed in its catalogue design file and no endpoint the file does not list."
+        },
+        {
+          "id": "AC-002",
+          "text": "Given any of the six modules, when a provider call fails, then the failure is a WirekitError variant and no module introduces a second error type."
+        },
+        {
+          "id": "AC-003",
+          "text": "Given a provider that returns a body-level error with HTTP 200, when the call is parsed, then it is reported as an error, not a success."
+        },
+        {
+          "id": "AC-004",
+          "text": "Given a 429 with Retry-After, when the call is retried, then the delay honours the header; a 4xx other than 429 is never retried."
+        },
+        {
+          "id": "AC-005",
+          "text": "Given each module, when the client is built, then the provider's rate limiter is applied and its secret is redacted in Debug, logs, and errors."
+        },
+        {
+          "id": "AC-006",
+          "text": "Given the default feature set, when the crate builds, then none of the six modules is compiled, and each feature enables exactly its own module."
+        },
+        {
+          "id": "AC-007",
+          "text": "Given the crate with all features on Rust 1.87, when it builds, then it compiles with forbid(unsafe_code) and deny(missing_docs) and every module states its scope and non-goals."
+        }
+      ]
+    }
+  ],
+  "functionalRequirements": [
+    {
+      "id": "FR-001",
+      "text": "wirekit MUST gain accuweather, lob, pagerduty, deepgram, yelp, and klarna modules, each behind its own additive feature.",
+      "linkedAcceptanceCriteria": [
+        "AC-001",
+        "AC-006"
+      ]
+    },
+    {
+      "id": "FR-002",
+      "text": "Every module MUST map failures into WirekitError (CON-207).",
+      "linkedAcceptanceCriteria": [
+        "AC-002"
+      ]
+    },
+    {
+      "id": "FR-003",
+      "text": "Auth MUST use the shared auth layer (API key header or query, bearer, basic) and MUST NOT hand-roll a header.",
+      "linkedAcceptanceCriteria": [
+        "AC-001",
+        "AC-005"
+      ]
+    },
+    {
+      "id": "FR-004",
+      "text": "Retry and rate limiting MUST use the shared policy; Retry-After MUST be honored (CON-208, CON-209).",
+      "linkedAcceptanceCriteria": [
+        "AC-004"
+      ]
+    },
+    {
+      "id": "FR-005",
+      "text": "A provider body-level error with HTTP 200 MUST be an error (CON-213).",
+      "linkedAcceptanceCriteria": [
+        "AC-003"
+      ]
+    },
+    {
+      "id": "FR-006",
+      "text": "Secrets MUST be redacted everywhere they could render (CON-214).",
+      "linkedAcceptanceCriteria": [
+        "AC-005"
+      ]
+    },
+    {
+      "id": "FR-007",
+      "text": "The default feature set MUST remain empty and features MUST be independent (CON-204).",
+      "linkedAcceptanceCriteria": [
+        "AC-006"
+      ]
+    },
+    {
+      "id": "FR-008",
+      "text": "The modules MUST NOT add application or vendor workflow vocabulary (CON-106).",
+      "linkedAcceptanceCriteria": [
+        "AC-007"
+      ]
+    }
+  ],
+  "nonFunctionalRequirements": [
+    {
+      "id": "NFR-001",
+      "text": "The crate MUST compile on Rust 1.87 with all features (CON-102).",
+      "linkedAcceptanceCriteria": [
+        "AC-007"
+      ]
+    },
+    {
+      "id": "NFR-002",
+      "text": "Every public item MUST carry rustdoc and every module MUST state scope and non-goals (CON-202, CON-203).",
+      "linkedAcceptanceCriteria": [
+        "AC-007"
+      ]
+    },
+    {
+      "id": "NFR-003",
+      "text": "Untrusted provider JSON MUST be validated into typed values; a malformed body MUST be a typed error, not a panic (CON-515).",
+      "linkedAcceptanceCriteria": [
+        "AC-003"
+      ]
+    },
+    {
+      "id": "NFR-004",
+      "text": "Every outbound call MUST emit request start, finish, retry, rate-limit, and error tracing events (CON-211).",
+      "linkedAcceptanceCriteria": [
+        "AC-004"
+      ]
+    }
+  ],
+  "edgeCases": [
+    {
+      "id": "EC-001",
+      "description": "A provider returns 200 with an error envelope",
+      "expectedBehavior": "typed error (e.g. Yelp error, PagerDuty error.message)."
+    },
+    {
+      "id": "EC-002",
+      "description": "A paginated endpoint runs past the last page",
+      "expectedBehavior": "an empty typed page, never an infinite loop."
+    },
+    {
+      "id": "EC-003",
+      "description": "A provider rotates its API key",
+      "expectedBehavior": "the client is rebuilt; no credential is cached in the crate."
+    },
+    {
+      "id": "EC-004",
+      "description": "A feature is enabled alone",
+      "expectedBehavior": "only that module compiles; no other module's dependency appears."
+    },
+    {
+      "id": "EC-005",
+      "description": "An upstream 5xx survives the retry budget",
+      "expectedBehavior": "WirekitError with the final status and request id, no secret."
+    }
+  ],
+  "dependencies": [
+    {
+      "name": "wirekit existing stack",
+      "type": "internal",
+      "notes": "reqwest, serde, serde_json, hmac, sha2, sha1, base64 and hex are already crate dependencies; no new library expected."
+    }
+  ],
+  "risks": [
+    {
+      "id": "RISK-001",
+      "description": "Yelp's leads endpoint may be partner-only.",
+      "mitigation": "If the catalogue marks it restricted, the leads surface is withdrawn with a citation rather than faked."
+    },
+    {
+      "id": "RISK-002",
+      "description": "Six modules in one feature is a large review unit.",
+      "mitigation": "Each module is reviewed against its catalogue file and can be withdrawn independently without touching the others."
+    },
+    {
+      "id": "RISK-003",
+      "description": "Sandbox access may be missing for some providers.",
+      "mitigation": "Acceptance tests use recorded fixtures and the report names which providers were not exercised live."
+    }
+  ]
+}

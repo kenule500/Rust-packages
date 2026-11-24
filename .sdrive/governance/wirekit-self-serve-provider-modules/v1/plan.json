@@ -1,0 +1,41 @@
+{
+  "feature": "wirekit-self-serve-provider-modules",
+  "version": 1,
+  "architecture": {
+    "approach": "Add six modules to wirekit, each behind its own additive feature and each implementing only the surface in its catalogue design file. All six reuse the existing reqwest client, WirekitError, retry with Retry-After, per-provider token bucket, auth schemes, tracing, and secret redaction. The default feature set stays empty, so a consumer pays only for the providers it enables.",
+    "components": [
+      { "name": "crates/wirekit/Cargo.toml", "action": "modify", "description": "Six additive features; default stays empty." },
+      { "name": "crates/wirekit/src/lib.rs", "action": "modify", "description": "Gate six modules and document the feature table." },
+      { "name": "crates/wirekit/src/accuweather.rs", "action": "create", "description": "Forecast, conditions, and location lookup per catalogue/08_accuweather.md." },
+      { "name": "crates/wirekit/src/lob.rs", "action": "create", "description": "Letters, postcards, and verification per catalogue/18_lob.md." },
+      { "name": "crates/wirekit/src/pagerduty.rs", "action": "create", "description": "Incidents, alerts, and on-calls per catalogue/22_pagerduty.md, including body-level errors." },
+      { "name": "crates/wirekit/src/deepgram.rs", "action": "create", "description": "Transcription and project calls per catalogue/24_deepgram.md." },
+      { "name": "crates/wirekit/src/yelp.rs", "action": "create", "description": "Business search and reviews per catalogue/19_yelp.md; leads only if available." },
+      { "name": "crates/wirekit/src/klarna.rs", "action": "create", "description": "Session and order calls per catalogue/25_klarna.md." },
+      { "name": "crates/wirekit/README.md", "action": "modify", "description": "Provider table, feature list, and the partner-gated note." }
+    ],
+    "referencedRequirementIds": ["FR-001", "FR-002", "FR-003", "FR-004", "FR-005", "FR-006", "FR-007", "FR-008", "NFR-001", "NFR-002", "NFR-003", "NFR-004"]
+  },
+  "dataModel": {
+    "entities": [],
+    "flowDescription": "Client::builder builds the shared client; a module constructor takes it plus the provider credential; a typed call flows through the shared auth, rate limit, retry, and tracing pipeline; the response decodes into a typed value or maps into WirekitError. Request and response structs are per module and in-memory; there is no persistence and no new shared type."
+  },
+  "securityConsiderations": [
+    { "requirementId": "NFR-003", "description": "Provider JSON is validated into typed values; a malformed body is a typed error, not a panic." },
+    { "requirementId": "NFR-004", "description": "Every call emits the shared tracing events for start, finish, retry, rate limit, and error." },
+    { "requirementId": "NFR-002", "description": "Every public item carries rustdoc and every module states scope and non-goals." }
+  ],
+  "performanceConsiderations": [
+    { "requirementId": "NFR-001", "strategy": "Modules reuse the single pooled reqwest client (CON-210); no per-module client is created." }
+  ],
+  "dependencies": [
+    { "name": "reqwest", "type": "library", "action": "no_change", "notes": "Shared pooled client." },
+    { "name": "serde", "type": "library", "action": "no_change", "notes": "Typed request and response structs." },
+    { "name": "hmac", "type": "library", "action": "no_change", "notes": "Only where a provider signs requests." }
+  ],
+  "risks": [
+    { "description": "Yelp leads may be partner-only.", "mitigation": "If the catalogue marks it restricted, the leads surface is withdrawn with a citation rather than faked." },
+    { "description": "Six modules in one feature is a large review unit.", "mitigation": "Each module is reviewed against its catalogue file and can be withdrawn independently." },
+    { "description": "Sandbox access may be missing for some providers.", "mitigation": "Acceptance tests use recorded fixtures and the report names providers not exercised live." }
+  ]
+}

@@ -1,0 +1,242 @@
+{
+  "feature": "wirekit-self-serve-provider-modules",
+  "version": 1,
+  "rows": [
+    {
+      "requirementId": "FR-001",
+      "acceptanceCriteriaIds": [
+        "AC-001",
+        "AC-006"
+      ],
+      "planSection": "P1 Feature wiring",
+      "taskIds": [
+        "T1.1"
+      ],
+      "testIds": [
+        "TEST-001",
+        "TEST-006",
+        "TEST-010",
+        "TEST-012",
+        "TEST-018",
+        "TEST-023",
+        "TEST-028",
+        "TEST-033"
+      ],
+      "status": "complete"
+    },
+    {
+      "requirementId": "FR-002",
+      "acceptanceCriteriaIds": [
+        "AC-002"
+      ],
+      "planSection": "P2 Provider modules",
+      "taskIds": [
+        "T2.1",
+        "T2.2",
+        "T2.3",
+        "T2.4",
+        "T2.5",
+        "T2.6"
+      ],
+      "testIds": [
+        "TEST-002",
+        "TEST-007",
+        "TEST-013",
+        "TEST-019",
+        "TEST-024",
+        "TEST-029",
+        "TEST-034"
+      ],
+      "status": "complete"
+    },
+    {
+      "requirementId": "FR-003",
+      "acceptanceCriteriaIds": [
+        "AC-001",
+        "AC-005"
+      ],
+      "planSection": "P2 Provider modules",
+      "taskIds": [
+        "T2.1",
+        "T2.2",
+        "T2.3",
+        "T2.4",
+        "T2.5",
+        "T2.6"
+      ],
+      "testIds": [
+        "TEST-001",
+        "TEST-005",
+        "TEST-006",
+        "TEST-009",
+        "TEST-012",
+        "TEST-017",
+        "TEST-018",
+        "TEST-022",
+        "TEST-023",
+        "TEST-027",
+        "TEST-028",
+        "TEST-032",
+        "TEST-033",
+        "TEST-037"
+      ],
+      "status": "complete"
+    },
+    {
+      "requirementId": "FR-004",
+      "acceptanceCriteriaIds": [
+        "AC-004"
+      ],
+      "planSection": "P3 Contract, docs, verification",
+      "taskIds": [
+        "T3.1"
+      ],
+      "testIds": [
+        "TEST-004",
+        "TEST-008",
+        "TEST-015",
+        "TEST-016",
+        "TEST-021",
+        "TEST-026",
+        "TEST-031",
+        "TEST-036"
+      ],
+      "status": "complete"
+    },
+    {
+      "requirementId": "FR-005",
+      "acceptanceCriteriaIds": [
+        "AC-003"
+      ],
+      "planSection": "P3 Contract, docs, verification",
+      "taskIds": [
+        "T3.1"
+      ],
+      "testIds": [
+        "TEST-003",
+        "TEST-014",
+        "TEST-020",
+        "TEST-025",
+        "TEST-030",
+        "TEST-035"
+      ],
+      "status": "complete"
+    },
+    {
+      "requirementId": "FR-006",
+      "acceptanceCriteriaIds": [
+        "AC-005"
+      ],
+      "planSection": "P3 Contract, docs, verification",
+      "taskIds": [
+        "T3.1"
+      ],
+      "testIds": [
+        "TEST-005",
+        "TEST-009",
+        "TEST-017",
+        "TEST-022",
+        "TEST-027",
+        "TEST-032",
+        "TEST-037"
+      ],
+      "status": "complete"
+    },
+    {
+      "requirementId": "FR-007",
+      "acceptanceCriteriaIds": [
+        "AC-006"
+      ],
+      "planSection": "P1 Feature wiring",
+      "taskIds": [
+        "T1.1"
+      ],
+      "testIds": [
+        "TEST-010"
+      ],
+      "status": "complete"
+    },
+    {
+      "requirementId": "FR-008",
+      "acceptanceCriteriaIds": [
+        "AC-007"
+      ],
+      "planSection": "P3 Contract, docs, verification",
+      "taskIds": [
+        "T3.1"
+      ],
+      "testIds": [
+        "TEST-011"
+      ],
+      "status": "complete"
+    },
+    {
+      "requirementId": "NFR-001",
+      "acceptanceCriteriaIds": [
+        "AC-007"
+      ],
+      "planSection": "P3 Contract, docs, verification",
+      "taskIds": [
+        "T3.2"
+      ],
+      "testIds": [
+        "TEST-011"
+      ],
+      "status": "complete"
+    },
+    {
+      "requirementId": "NFR-002",
+      "acceptanceCriteriaIds": [
+        "AC-007"
+      ],
+      "planSection": "P3 Contract, docs, verification",
+      "taskIds": [
+        "T3.2"
+      ],
+      "testIds": [
+        "TEST-011"
+      ],
+      "status": "complete"
+    },
+    {
+      "requirementId": "NFR-003",
+      "acceptanceCriteriaIds": [
+        "AC-003"
+      ],
+      "planSection": "P3 Contract, docs, verification",
+      "taskIds": [
+        "T3.1"
+      ],
+      "testIds": [
+        "TEST-003",
+        "TEST-014",
+        "TEST-020",
+        "TEST-025",
+        "TEST-030",
+        "TEST-035"
+      ],
+      "status": "complete"
+    },
+    {
+      "requirementId": "NFR-004",
+      "acceptanceCriteriaIds": [
+        "AC-004"
+      ],
+      "planSection": "P3 Contract, docs, verification",
+      "taskIds": [
+        "T3.1"
+      ],
+      "testIds": [
+        "TEST-004",
+        "TEST-008",
+        "TEST-015",
+        "TEST-016",
+        "TEST-021",
+        "TEST-026",
+        "TEST-031",
+        "TEST-036"
+      ],
+      "status": "complete"
+    }
+  ]
+}

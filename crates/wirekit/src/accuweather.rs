@@ -34,7 +34,8 @@
 //! [`ApiKeyQuery`], and redacted from tracing and error output.
 //!
 //! ```no_run
-//! use wirekit::{AccuWeatherClient, AccuWeatherConfig, Secret, WirekitClient};
+//! use wirekit::accuweather::{AccuWeatherClient, AccuWeatherConfig};
+//! use wirekit::{Secret, WirekitClient};
 //!
 //! # async fn run() -> Result<(), wirekit::WirekitError> {
 //! let transport = WirekitClient::new(wirekit::accuweather::BASE_URL)?;

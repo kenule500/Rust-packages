@@ -920,6 +920,17 @@ fn map_pagerduty_error(error: WirekitError) -> WirekitError {
         return WirekitError::api_with_details(*status, code, message, details.clone());
     }
 
+    if matches!(
+        details.get("status").and_then(serde_json::Value::as_str),
+        Some("invalid event" | "error")
+    ) {
+        let message = details
+            .get("message")
+            .and_then(serde_json::Value::as_str)
+            .unwrap_or("PagerDuty rejected the event");
+        return WirekitError::api_with_details(*status, "invalid_event", message, details.clone());
+    }
+
     if let Some(message) = details.get("message").and_then(serde_json::Value::as_str) {
         return WirekitError::api_with_details(
             *status,

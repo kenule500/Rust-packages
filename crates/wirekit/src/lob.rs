@@ -36,7 +36,8 @@
 //! [`LobClient::get_mail_piece`] using the idempotency key it supplied.
 //!
 //! ```no_run
-//! use wirekit::{LobClient, LobConfig, Secret, WirekitClient};
+//! use wirekit::lob::{LobClient, LobConfig};
+//! use wirekit::{Secret, WirekitClient};
 //!
 //! # async fn run() -> Result<(), wirekit::WirekitError> {
 //! let transport = WirekitClient::new(wirekit::lob::BASE_URL)?;

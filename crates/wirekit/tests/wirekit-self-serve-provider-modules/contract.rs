@@ -27,19 +27,34 @@ fn crate_dir() -> PathBuf {
     PathBuf::from(env!("CARGO_MANIFEST_DIR"))
 }
 
+/// Normalise the line endings of a checked-out file.
+///
+/// The assertions in this module compare against multi-line literals joined
+/// with `\n`. A checkout that materialises CRLF (a Windows runner, or
+/// `core.autocrlf=true`) would otherwise fail every such comparison even
+/// though the file itself is correct, so the readers normalise once here
+/// instead of repeating the conversion at each assertion.
+fn normalise_line_endings(source: String) -> String {
+    source.replace("\r\n", "\n")
+}
+
 fn module_source(module: &str) -> String {
     let path = crate_dir().join("src").join(format!("{module}.rs"));
-    std::fs::read_to_string(&path)
-        .unwrap_or_else(|error| panic!("{} is readable: {error}", path.display()))
+    let source = std::fs::read_to_string(&path)
+        .unwrap_or_else(|error| panic!("{} is readable: {error}", path.display()));
+    normalise_line_endings(source)
 }
 
 fn manifest() -> String {
-    std::fs::read_to_string(crate_dir().join("Cargo.toml")).expect("the crate manifest is readable")
+    let source = std::fs::read_to_string(crate_dir().join("Cargo.toml"))
+        .expect("the crate manifest is readable");
+    normalise_line_endings(source)
 }
 
 fn lib_source() -> String {
-    std::fs::read_to_string(crate_dir().join("src").join("lib.rs"))
-        .expect("the crate root is readable")
+    let source = std::fs::read_to_string(crate_dir().join("src").join("lib.rs"))
+        .expect("the crate root is readable");
+    normalise_line_endings(source)
 }
 
 /// The `//!` module documentation, with the marker removed.

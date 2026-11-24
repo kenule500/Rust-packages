@@ -66,7 +66,7 @@ on every run; a Linux checkout does not, which is why the local suite stays gree
 
 | Severity | Issue | Location | AC | Fix Required | Fix with |
 |----------|-------|----------|----|--------------|----------|
-| High | The module-gate assertion compares a `\n`-joined string against a raw file read, so it fails on CRLF checkouts and turns Windows CI red deterministically. Reproduced twice at HEAD and at the previous commit. | `crates/wirekit/tests/wirekit-self-serve-provider-modules/contract.rs:227-231` | AC-006 | Yes | `/sdrive:apply` |
+| High | The module-gate assertion compares a `\n`-joined string against a raw file read, so it fails on CRLF checkouts and turns Windows CI red deterministically. Reproduced twice at HEAD and at the previous commit. | `crates/wirekit/tests/wirekit-self-serve-provider-modules/contract.rs:227-231` | AC-006 | Yes | `/sdrive:test` |
 | Medium | `sdrive check` exits 4 on `doctor/permissions: No rule for mutating command(s): review:cold`. Pre-existing tooling drift, untouched by this feature, but it keeps the one-pass governance check red. | `.sdrive/permissions.json` | - | No | `sdrive update` |
 
 ### Evidence for F-001
@@ -93,7 +93,22 @@ be trusted to catch regressions until the readers are normalised. The fix is two
 lines in a test helper, so the feature is close to release rather than in doubt.
 
 ## 9. Handoff
-No merge was performed and the feature stayed in `.sdrive/specs/ongoing/`. Run
-`/sdrive:apply wirekit-self-serve-provider-modules` to land F-001 (and F-002 if you
-want the governance check green in the same pass), then `/sdrive:test` and this
-command again.
+No merge was performed and the feature stayed in `.sdrive/specs/ongoing/`.
+
+**Routing correction (recorded after `/sdrive:apply` ran).** The fix for F-001 lives
+in `crates/wirekit/tests/wirekit-self-serve-provider-modules/contract.rs`, and the
+implementation agent is forbidden from creating, editing, or deleting anything under
+`tests/` (07-implementation.md, rules 40 and 43). `/sdrive:apply` therefore has no
+legal way to land it: all nine production tasks are already complete, and the crate
+needs no code change. F-001 belongs to `/sdrive:test`, which owns the suite:
+
+1. Run `/sdrive:test wirekit-self-serve-provider-modules`.
+2. Make `lib_source()`, `manifest()`, and `module_source()` return
+   `read_to_string(...).replace("\r\n", "\n")`, so every string assertion is
+   platform-independent (optionally add `.gitattributes` with `*.rs text eol=lf`).
+3. Re-run `/sdrive:test` so the evidence is stamped at the new commit, then
+   `/sdrive:review wirekit-self-serve-provider-modules` again.
+
+F-002 stays non-blocking: `.sdrive/commands/permissions.json` is a framework file and
+`sdrive update` does not rewrite it, so adding the `review:cold` rule is a separate
+governance decision, not a feature fix.

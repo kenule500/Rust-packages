@@ -1,0 +1,37 @@
+[package]
+name = "public-docs-site-and-provider-matrix"
+version = "0.1.0"
+edition.workspace = true
+rust-version.workspace = true
+license.workspace = true
+repository.workspace = true
+publish = false
+description = "Acceptance tests for the public docs site, provider matrix, and error reference (AC-001..AC-006)."
+
+# No library and no binary beyond the empty shell in src/: this package exists
+# only for its acceptance tests.
+[dependencies]
+
+# Cargo only discovers integration tests directly under tests/, while CON-406
+# requires them nested under a folder that matches the SpecDrive feature name.
+# Declaring each target by path satisfies both: Cargo sees them, and the source
+# stays at tests/public-docs-site-and-provider-matrix/<subfeature>.rs.
+[[test]]
+name = "book"
+path = "tests/public-docs-site-and-provider-matrix/book.rs"
+
+[[test]]
+name = "matrix"
+path = "tests/public-docs-site-and-provider-matrix/matrix.rs"
+
+[[test]]
+name = "links"
+path = "tests/public-docs-site-and-provider-matrix/links.rs"
+
+[[test]]
+name = "ci"
+path = "tests/public-docs-site-and-provider-matrix/ci.rs"
+
+[[test]]
+name = "errors"
+path = "tests/public-docs-site-and-provider-matrix/errors.rs"

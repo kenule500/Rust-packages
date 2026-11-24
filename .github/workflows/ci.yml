@@ -55,6 +55,36 @@ jobs:
           workspaces: .
       - run: cargo doc --workspace --all-features --no-deps
 
+  book:
+    name: Docs site
+    runs-on: ubuntu-latest
+    env:
+      # Pinned, per RISK-001: a prebuilt release keeps the job inside the
+      # two-minute budget (NFR-003), and the musl build is static so it needs no
+      # matching glibc. Bump this together with the docs.
+      MDBOOK_VERSION: 0.5.4
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+      - name: Install mdBook
+        run: |
+          curl --fail --silent --show-error --location \
+            --output mdbook.tar.gz \
+            "https://github.com/rust-lang/mdBook/releases/download/v${MDBOOK_VERSION}/mdbook-v${MDBOOK_VERSION}-x86_64-unknown-linux-musl.tar.gz"
+          mkdir --parents "$HOME/.local/bin"
+          tar --extract --gzip --file mdbook.tar.gz --directory "$HOME/.local/bin"
+          rm mdbook.tar.gz
+          echo "$HOME/.local/bin" >> "$GITHUB_PATH"
+          "$HOME/.local/bin/mdbook" --version
+      # Drift and link checks first: they explain a bad build far better than
+      # mdBook's own error, and they must fail the job on their own (AC-004).
+      - name: Check generated pages, links, and reachability
+        run: node scripts/docs-check.js
+      - name: Build the book
+        run: mdbook build docs
+
   package:
     name: Package
     runs-on: ubuntu-latest

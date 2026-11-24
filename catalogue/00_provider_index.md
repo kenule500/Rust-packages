@@ -117,10 +117,16 @@ the source of truth for field-level behavior.
 ## Status
 
 Implemented and tested, not published. `wirekit` 0.1.0 ships the shared HTTP core
-plus nine provider modules behind additive features: `noaa`, `twilio`, `sendgrid`,
-`slack`, `google-oauth`, `meta`, `angi`, `google-lsa`, and `sage-intacct`. The
-`adp` feature is declared but has no module. `cargo test --workspace
---all-features` passes 175 tests with 0 failures.
+plus eleven provider modules behind additive features: `noaa`, `twilio`,
+`sendgrid`, `slack`, `google-oauth`, `meta`, `angi`, `google-lsa`,
+`sage-intacct`, `eagleview`, and `quickbooks`. The `adp` feature is declared but
+has no module. `cargo test --workspace --all-features` passes 275 tests with 0
+failures.
+
+That list is a claim, and claims go stale. The generated
+[docs site](../docs/src/provider-matrix.md) derives each provider's status from
+`crates/wirekit/Cargo.toml` and `crates/wirekit/src/`, and fails CI when this
+paragraph disagrees with the source.
 
 The remaining provider docs in this folder are still design notes for modules that
 have not been built. Review them in the priority order of the critical path above.

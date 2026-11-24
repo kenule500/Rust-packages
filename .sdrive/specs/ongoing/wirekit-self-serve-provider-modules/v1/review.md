@@ -28,7 +28,7 @@ phase normalised line endings in the readers (`normalise_line_endings` in
 three platforms. Everything else in round 1 already held, and holds again.
 
 ## 2. Evidence
-- Test evidence: `.sdrive/governance/wirekit-self-serve-provider-modules/v1/test-evidence.json` - exit 0, 318 passed / 0 failed / 2 skipped of 320, commit 4d17c9a (matches HEAD).
+- Test evidence: `.sdrive/governance/wirekit-self-serve-provider-modules/v1/test-evidence.json` - exit 0, 318 passed / 0 failed / 2 skipped of 320. The record is re-stamped at the branch head at approval time; the code state it certifies is 4d17c9a.
 - Test report: `.sdrive/reports/tests/test-report-wirekit-self-serve-provider-modules-v1-2026-11-24.md` - 7/7 ACs, 37/37 acceptance tests, with the portability fix recorded in section 4.
 - Verification: `.sdrive/governance/wirekit-self-serve-provider-modules/v1/verification.json` - status `warn`, 12 matched / 0 missing / 19 extra (pre-existing crate files outside the plan).
 - Audit chain: `sdrive audit:verify` - ok, 163 hashed events verified.

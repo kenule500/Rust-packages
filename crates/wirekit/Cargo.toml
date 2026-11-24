@@ -135,6 +135,10 @@ tokio = { version = "1.44.2", features = ["macros", "rt", "time"] }
 tracing = "0.1.41"
 
 [[test]]
+name = "wirekit-self-serve-provider-modules"
+required-features = ["accuweather", "lob", "pagerduty", "deepgram", "yelp", "klarna"]
+
+[[test]]
 name = "google-oauth-shared-helper"
 required-features = ["google-oauth"]
 

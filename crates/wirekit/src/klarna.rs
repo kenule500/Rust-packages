@@ -29,8 +29,9 @@
 //! # Region
 //!
 //! Klarna serves separate hosts per region, so [`KlarnaConfig`] carries a
-//! [`KlarnaRegion`] and every request is built from that host. The credential is
-//! a Basic-auth merchant pair, held in [`Secret`]s and rendered `***`.
+//! [`KlarnaRegion`] and every request is built from that host. A sandbox or a
+//! local mock can replace it with [`KlarnaConfig::with_base_url`]. The credential
+//! is a Basic-auth merchant pair, held in [`Secret`]s and rendered `***`.
 //!
 //! ```no_run
 //! use wirekit::klarna::{CheckoutSessionRequest, KlarnaClient, KlarnaConfig, KlarnaRegion, OrderLine};
@@ -107,6 +108,9 @@ pub struct KlarnaConfig {
     pub password: Secret<String>,
     /// The region whose host serves the merchant.
     pub region: KlarnaRegion,
+    /// An explicit host override, for a sandbox or a local mock. `None` uses
+    /// the host for [`KlarnaConfig::region`].
+    pub base_url: Option<String>,
 }
 
 impl KlarnaConfig {
@@ -117,7 +121,16 @@ impl KlarnaConfig {
             username,
             password,
             region,
+            base_url: None,
         }
+    }
+
+    /// Target a different host, for a sandbox or a local mock. The default
+    /// remains the configured region's host.
+    #[must_use]
+    pub fn with_base_url(mut self, base_url: impl Into<String>) -> Self {
+        self.base_url = Some(base_url.into());
+        self
     }
 }
 
@@ -484,7 +497,8 @@ impl KlarnaClient {
     /// Build a client over a shared [`WirekitClient`].
     ///
     /// The transport may be built against any host; every request uses the host
-    /// for the configured [`KlarnaRegion`]. An empty merchant id or password is
+    /// for the configured [`KlarnaRegion`], or the override set with
+    /// [`KlarnaConfig::with_base_url`]. An empty merchant id or password is
     /// [`WirekitError::InvalidConfig`].
     pub fn new(client: WirekitClient, config: KlarnaConfig) -> Result<Self, WirekitError> {
         if config.username.expose().trim().is_empty() {
@@ -497,6 +511,19 @@ impl KlarnaClient {
                 "a Klarna merchant password is required",
             ));
         }
+        if config
+            .base_url
+            .as_deref()
+            .is_some_and(|base_url| base_url.trim().is_empty())
+        {
+            return Err(WirekitError::invalid_config(
+                "a Klarna base URL must not be blank",
+            ));
+        }
+        let base_url = config
+            .base_url
+            .as_deref()
+            .map(|base_url| base_url.trim().trim_end_matches('/').to_owned());
 
         let auth: Arc<dyn AuthScheme> = Arc::new(BasicAuth::new(
             config.username.expose().clone(),
@@ -505,7 +532,7 @@ impl KlarnaClient {
         Ok(Self {
             inner: Arc::new(KlarnaInner {
                 client,
-                config,
+                config: KlarnaConfig { base_url, ..config },
                 auth,
             }),
         })
@@ -682,9 +709,13 @@ impl KlarnaClient {
     }
 
     fn url(&self, path: &str) -> Result<url::Url, WirekitError> {
-        self.inner
-            .client
-            .url(&format!("{}/{}", self.inner.config.region.base_url(), path))
+        let base_url = self
+            .inner
+            .config
+            .base_url
+            .as_deref()
+            .unwrap_or_else(|| self.inner.config.region.base_url());
+        self.inner.client.url(&format!("{base_url}/{path}"))
     }
 
     fn request(&self, method: Method, url: url::Url) -> RequestSpec {

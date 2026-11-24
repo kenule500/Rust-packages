@@ -27,7 +27,9 @@
 //! The Events API lives at [`BASE_URL`] and the REST API at [`REST_BASE_URL`],
 //! so one [`WirekitClient`] built against either host serves both: every request
 //! uses an absolute HTTPS URL and the shared pipeline reads only the configured
-//! retry, rate-limit, and tracing settings.
+//! retry, rate-limit, and tracing settings. A sandbox or a local mock can replace
+//! either host with [`PagerDutyConfig::with_events_base_url`] and
+//! [`PagerDutyConfig::with_rest_base_url`]; the defaults are the provider's.
 //!
 //! # Credentials
 //!
@@ -160,6 +162,10 @@ pub struct PagerDutyConfig {
     pub from_email: Option<String>,
     /// The secret an inbound webhook is signed with.
     pub webhook_secret: Option<Secret<String>>,
+    /// The Events API host. Defaults to [`BASE_URL`].
+    pub events_base_url: String,
+    /// The REST API host. Defaults to [`REST_BASE_URL`].
+    pub rest_base_url: String,
 }
 
 impl PagerDutyConfig {
@@ -171,6 +177,8 @@ impl PagerDutyConfig {
             routing_key: Some(routing_key),
             from_email: None,
             webhook_secret: None,
+            events_base_url: String::from(BASE_URL),
+            rest_base_url: String::from(REST_BASE_URL),
         }
     }
 
@@ -182,6 +190,8 @@ impl PagerDutyConfig {
             routing_key: Some(routing_key),
             from_email: None,
             webhook_secret: None,
+            events_base_url: String::from(BASE_URL),
+            rest_base_url: String::from(REST_BASE_URL),
         }
     }
 
@@ -193,6 +203,8 @@ impl PagerDutyConfig {
             routing_key: None,
             from_email: None,
             webhook_secret: None,
+            events_base_url: String::from(BASE_URL),
+            rest_base_url: String::from(REST_BASE_URL),
         }
     }
 
@@ -207,6 +219,22 @@ impl PagerDutyConfig {
     #[must_use]
     pub fn with_webhook_secret(mut self, secret: Secret<String>) -> Self {
         self.webhook_secret = Some(secret);
+        self
+    }
+
+    /// Target a different Events API host, for a sandbox or a local mock. The
+    /// default remains [`BASE_URL`].
+    #[must_use]
+    pub fn with_events_base_url(mut self, base_url: impl Into<String>) -> Self {
+        self.events_base_url = base_url.into();
+        self
+    }
+
+    /// Target a different REST API host, for a sandbox or a local mock. The
+    /// default remains [`REST_BASE_URL`].
+    #[must_use]
+    pub fn with_rest_base_url(mut self, base_url: impl Into<String>) -> Self {
+        self.rest_base_url = base_url.into();
         self
     }
 }
@@ -515,6 +543,17 @@ impl PagerDutyClient {
                 "the PagerDuty webhook secret must not be empty",
             ));
         }
+        if config.events_base_url.trim().is_empty() || config.rest_base_url.trim().is_empty() {
+            return Err(WirekitError::invalid_config(
+                "a PagerDuty base URL must not be blank",
+            ));
+        }
+        let events_base = config
+            .events_base_url
+            .trim()
+            .trim_end_matches('/')
+            .to_owned();
+        let rest_base = config.rest_base_url.trim().trim_end_matches('/').to_owned();
 
         let rest_auth = api_key.map(|key| {
             Arc::new(
@@ -526,7 +565,11 @@ impl PagerDutyClient {
         Ok(Self {
             inner: Arc::new(PagerDutyInner {
                 client,
-                config,
+                config: PagerDutyConfig {
+                    events_base_url: events_base,
+                    rest_base_url: rest_base,
+                    ..config
+                },
                 rest_auth,
             }),
         })
@@ -628,7 +671,7 @@ impl PagerDutyClient {
         let mut url = self
             .inner
             .client
-            .url(&format!("{REST_BASE_URL}/incidents"))?;
+            .url(&format!("{}/incidents", self.inner.config.rest_base_url))?;
         {
             let mut pairs = url.query_pairs_mut();
             for status in &query.statuses {
@@ -667,7 +710,10 @@ impl PagerDutyClient {
     /// asks for every schedule in the account. Only the current entry per
     /// schedule is requested, so the result is not a shift history.
     pub async fn on_calls(&self, schedule_id: Option<&str>) -> Result<Vec<OnCall>, WirekitError> {
-        let mut url = self.inner.client.url(&format!("{REST_BASE_URL}/oncalls"))?;
+        let mut url = self
+            .inner
+            .client
+            .url(&format!("{}/oncalls", self.inner.config.rest_base_url))?;
         {
             let mut pairs = url.query_pairs_mut();
             pairs.append_pair("earliest", "true");
@@ -768,7 +814,10 @@ impl PagerDutyClient {
     }
 
     async fn send_event(&self, event: WireEvent<'_>) -> Result<EventAck, WirekitError> {
-        let url = self.inner.client.url(&format!("{BASE_URL}/enqueue"))?;
+        let url = self
+            .inner
+            .client
+            .url(&format!("{}/enqueue", self.inner.config.events_base_url))?;
         let request = RequestSpec::post(url)
             .rate_limit_key("pagerduty")
             .body_error_hook(reject_error_envelope)

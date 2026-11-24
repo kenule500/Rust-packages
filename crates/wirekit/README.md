@@ -227,6 +227,61 @@ validated as `application/pdf` and bounded before it is returned. Access is
 `[to be confirmed]` until the EagleView commercial contract and credentials are
 approved, so the module is verified against a local mock.
 
+### AccuWeather
+
+`accuweather` adds `wirekit::accuweather`: location search, current conditions,
+daily and hourly forecasts, active alerts, and historical daily summaries. The
+API key travels as a query parameter, which is why the shared URL redaction and
+`Secret` both matter here; a 401 or 403 becomes `WirekitError::Auth`. Forecasts
+are naturally idempotent, so cache them by location and time bucket rather than
+polling on every request.
+
+### Lob
+
+`lob` adds `wirekit::lob`: address verification, postcards, letters, mail-piece
+lookup, tracking events, and cancellation of a scheduled piece. A test key
+(`test_` prefix) must be paired with `LobConfig::with_test_mode`, and a mismatch
+is `InvalidConfig`, so a test piece can never look like a printed one. Creating
+a piece prints it and costs postage, so every create carries a caller-supplied
+`Idempotency-Key`; after a timeout, reconcile with `get_mail_piece` instead of
+creating again.
+
+### PagerDuty
+
+`pagerduty` adds `wirekit::pagerduty`: trigger, acknowledge, and resolve through
+the Events API v2, plus incident listing and on-call lookup through the REST
+API. The routing key travels in the event body and the API key as
+`Authorization: Token token=…`; both are `Secret`s. `verify_webhook` checks the
+`X-PagerDuty-Signature` HMAC-SHA256 over the exact received bytes. A repeat with
+the same `dedup_key` does not open a second incident.
+
+### Deepgram
+
+`deepgram` adds `wirekit::deepgram`: batch transcription of an audio URL or
+audio bytes, with model and language selection, diarization into speaker-separated
+utterances, keyword boosting, punctuation, smart formatting, and project
+listing. The bearer token never reaches a URL. Live streaming is deliberately
+absent: an HTTP request client cannot hold a WebSocket open, so the caller owns
+that session and its reconnect strategy.
+
+### Yelp
+
+`yelp` adds `wirekit::yelp`: business search, business details, and reviews
+through the Fusion API. Search accepts a place or a coordinate pair and rejects
+a half-specified pair, a page size outside 1 to 50, or an out-of-range
+coordinate before a request is made. The lead surface is not implemented: the
+catalogue marks it partner-gated and unconfirmed, so a tenant without access
+imports leads manually or as CSV rather than relying on a guessed route.
+
+### Klarna
+
+`klarna` adds `wirekit::klarna`: checkout sessions, authorization-to-order
+exchange, order lookup, captures, and refunds for the merchant's region (Europe,
+North America, or Oceania). Merchant credentials use Basic auth and card data
+never enters the crate — the homeowner completes Klarna's hosted flow. A capture
+that times out is reconciled with `get_order().captured_amount`, never resent
+blindly; a declined application is a business result, not a retried error.
+
 ## Security notes
 
 - All requests use HTTPS. `allow_insecure_localhost(true)` exists only for local
@@ -242,6 +297,11 @@ approved, so the module is verified against a local mock.
 ## Gated provider features
 
 These features are additive and off by default; enabling one never enables another.
+The six self-serve modules above (AccuWeather, Lob, PagerDuty, Deepgram, Yelp,
+and Klarna) follow the same rule. Partner-gated providers — ATTOM, CoreLogic,
+BuildZoom, ADP, Gusto, Google Business, Jobber, Wisetack, and LeadPerfection —
+remain out of scope, because a route that cannot be verified against a contract
+has no place in a published crate.
 
 | Feature | Module | Network | What the caller supplies |
 |---|---|---|---|

@@ -35,7 +35,10 @@
 //! | `klarna` | `wirekit::klarna` | Basic merchant credentials | `https://api.klarna.com` |
 //!
 //! Features are additive (CON-204): enabling one provider never enables or
-//! disables another. Enabling all four costs one crate.
+//! disables another. Enabling every feature costs one crate. Partner-gated
+//! providers (ATTOM, CoreLogic, BuildZoom, ADP, Gusto, Google Business, Jobber,
+//! Wisetack, and LeadPerfection) are out of scope: a route that cannot be
+//! verified against a contract is not shipped.
 //!
 //! # I/O boundary
 //!

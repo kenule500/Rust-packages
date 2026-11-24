@@ -1148,7 +1148,7 @@
           "gates": {
             "specification": "approved",
             "planning": "approved",
-            "implementation": "pending",
+            "implementation": "approved",
             "review": "pending"
           },
           "history": [
@@ -1176,6 +1176,13 @@
               "event": "Lifecycle transition: specs/backlog → specs/ongoing; phase set to ongoing, currentStep implementation. Implementation begins.",
               "by": "SpecDrive",
               "timestamp": "2026-11-23T17:11:49Z"
+            },
+            {
+              "event": "implementation_approved",
+              "by": "kenule500",
+              "actor": "kenule500",
+              "previousValue": "pending",
+              "timestamp": "2026-11-24T14:33:22.654Z"
             }
           ]
         }

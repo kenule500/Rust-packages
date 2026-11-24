@@ -305,20 +305,15 @@ impl AccuWeatherClient {
     ///
     /// Build the underlying client against [`BASE_URL`]. An empty API key is
     /// [`WirekitError::InvalidConfig`].
-    pub fn new(
-        client: WirekitClient,
-        config: AccuWeatherConfig,
-    ) -> Result<Self, WirekitError> {
+    pub fn new(client: WirekitClient, config: AccuWeatherConfig) -> Result<Self, WirekitError> {
         if config.api_key.expose().trim().is_empty() {
             return Err(WirekitError::invalid_config(
                 "an AccuWeather API key is required",
             ));
         }
 
-        let auth: Arc<dyn AuthScheme> = Arc::new(ApiKeyQuery::new(
-            "apikey",
-            config.api_key.expose().clone(),
-        ));
+        let auth: Arc<dyn AuthScheme> =
+            Arc::new(ApiKeyQuery::new("apikey", config.api_key.expose().clone()));
         Ok(Self {
             inner: Arc::new(AccuWeatherInner {
                 client,
@@ -409,9 +404,7 @@ impl AccuWeatherClient {
             .next()
             .map(|wire| wire.into_conditions(self.inner.config.metric))
             .ok_or_else(|| {
-                WirekitError::decode(
-                    "AccuWeather returned no current conditions for that location",
-                )
+                WirekitError::decode("AccuWeather returned no current conditions for that location")
             })
     }
 
@@ -506,7 +499,11 @@ impl AccuWeatherClient {
             .await
             .map_err(map_accuweather_error)?;
 
-        Ok(response.value.into_iter().map(WireAlert::into_alert).collect())
+        Ok(response
+            .value
+            .into_iter()
+            .map(WireAlert::into_alert)
+            .collect())
     }
 
     /// Summarise the last `hours` of observations into per-day values.
@@ -527,10 +524,9 @@ impl AccuWeatherClient {
             ));
         }
 
-        let url = self
-            .inner
-            .client
-            .url(&format!("currentconditions/v1/{location_key}/historical/24"))?;
+        let url = self.inner.client.url(&format!(
+            "currentconditions/v1/{location_key}/historical/24"
+        ))?;
         let request = RequestSpec::get(url)
             .auth(self.inner.auth.clone())
             .rate_limit_key("accuweather")
@@ -582,7 +578,10 @@ impl AccuWeatherClient {
             return Ok(key.clone());
         }
 
-        let mut url = self.inner.client.url("locations/v1/cities/geoposition/search")?;
+        let mut url = self
+            .inner
+            .client
+            .url("locations/v1/cities/geoposition/search")?;
         {
             let mut pairs = url.query_pairs_mut();
             pairs.append_pair("q", &format!("{latitude},{longitude}"));
@@ -702,9 +701,12 @@ fn map_accuweather_error(error: WirekitError) -> WirekitError {
         (Some(code), Some(message)) => {
             WirekitError::api_with_details(*status, code, message, details.clone())
         }
-        (Some(code), None) => {
-            WirekitError::api_with_details(*status, code, "AccuWeather reported a failure", details.clone())
-        }
+        (Some(code), None) => WirekitError::api_with_details(
+            *status,
+            code,
+            "AccuWeather reported a failure",
+            details.clone(),
+        ),
         _ => error,
     }
 }

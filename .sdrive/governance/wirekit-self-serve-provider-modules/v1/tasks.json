@@ -19,7 +19,7 @@
             "AC-001",
             "AC-006"
           ],
-          "completed": false
+          "completed": true
         }
       ]
     },
@@ -60,7 +60,7 @@
             "AC-002",
             "AC-003"
           ],
-          "completed": false
+          "completed": true
         },
         {
           "id": "T2.3",
@@ -76,7 +76,7 @@
             "AC-002",
             "AC-003"
           ],
-          "completed": false
+          "completed": true
         },
         {
           "id": "T2.4",
@@ -92,7 +92,7 @@
             "AC-002",
             "AC-004"
           ],
-          "completed": false
+          "completed": true
         },
         {
           "id": "T2.5",
@@ -108,7 +108,7 @@
             "AC-002",
             "AC-003"
           ],
-          "completed": false
+          "completed": true
         },
         {
           "id": "T2.6",
@@ -124,7 +124,7 @@
             "AC-002",
             "AC-004"
           ],
-          "completed": false
+          "completed": true
         }
       ]
     },
@@ -153,7 +153,7 @@
             "AC-005",
             "AC-007"
           ],
-          "completed": false
+          "completed": true
         },
         {
           "id": "T3.2",
@@ -168,7 +168,7 @@
             "AC-006",
             "AC-007"
           ],
-          "completed": false
+          "completed": true
         }
       ]
     }

@@ -19,7 +19,7 @@ is stale.
 | [`public-docs-site-and-provider-matrix`](https://github.com/kenule500/Rust-packages/tree/main/crates/public-docs-site-and-provider-matrix) | 0.1.0 | not published | — | — | Acceptance tests for the public docs site, provider matrix, and error reference (AC-001..AC-006). |
 | [`quota-ledger`](https://github.com/kenule500/Rust-packages/tree/main/crates/quota-ledger) | 0.1.0 | crates.io | — | `postgres`, `redis` | Per-tenant, per-provider quota reservations with commit, release, exhaustion policies, and an optional Postgres ledger. |
 | [`syncforge`](https://github.com/kenule500/Rust-packages/tree/main/crates/syncforge) | 0.1.0 | crates.io | — | — | A durable action queue with UUID v7 idempotency, per-action batch results, and explicit conflict strategies for offline-first Rust clients. |
-| [`wirekit`](https://github.com/kenule500/Rust-packages/tree/main/crates/wirekit) | 0.1.0 | crates.io | — | `adp`, `angi`, `eagleview`, `google-lsa`, `google-oauth`, `meta`, `native-tls`, `noaa`, `quickbooks`, `sage-intacct`, `sendgrid`, `slack`, `twilio` | One HTTP client for many providers: a shared error type, retry policy, rate limiter, auth layer, and request pipeline. |
+| [`wirekit`](https://github.com/kenule500/Rust-packages/tree/main/crates/wirekit) | 0.1.0 | crates.io | — | `accuweather`, `adp`, `angi`, `deepgram`, `eagleview`, `google-lsa`, `google-oauth`, `klarna`, `lob`, `meta`, `native-tls`, `noaa`, `pagerduty`, `quickbooks`, `sage-intacct`, `sendgrid`, `slack`, `twilio`, `yelp` | One HTTP client for many providers: a shared error type, retry policy, rate limiter, auth layer, and request pipeline. |
 
 ## Catalogue packages with no crate yet
 
